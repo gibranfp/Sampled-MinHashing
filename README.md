@@ -23,7 +23,7 @@ For more control use the script:
     src/reuters/docs2tfdocs.py
     
 
-More options:
+With options:
 
     Options:
       --version             show program's version number and exit
