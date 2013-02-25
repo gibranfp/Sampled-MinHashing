@@ -1,44 +1,29 @@
-==================
+
 MinHash-Clustering
 ==================
 
 MinHash-based clustering for binary dyadic data (e.g. bag of words).
 
-
----------
 Utilities
 ---------
 
 * Scripts for Reuters corpus
 
 
-Reuters corpus
---------------
+### Reuters corpus
+
 
 In order to create the term frecuencie documents run the script:
-
-::
 
     sh scripts/create_ftdocs.sh
 
 
 For more control use the script:
-
-::
     
     src/reuters/docs2tfdocs.py
     
 
 More options:
-
-::
-
-   Usage: docs2tfdocs.py [options] dir1 [dirs]
-
-            Create inverse file documents
-
-            dir   : Directory with reuters format
-
 
     Options:
       --version             show program's version number and exit
@@ -60,7 +45,5 @@ More options:
 
 
 Stopwords from:
-
-::
 
     http://jmlr.csail.mit.edu/papers/volume5/lewis04a/a11-smart-stop-list/english.stop    
