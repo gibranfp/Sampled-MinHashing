@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # ------------------------------------------------------------------------
 """
-Converts from lists of ids to terms.
+Makes inverted file from a given corpus.
 """
 import sys
 import argparse
