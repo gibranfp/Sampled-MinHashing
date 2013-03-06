@@ -19,7 +19,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 """
-Functions to work with text corpora, vocabularies and inverted files.
+Functions to work with inverted files.
 """
 import sys
 
