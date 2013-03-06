@@ -74,7 +74,7 @@ def sorensen(A, B ,**args):
 
 def overlap(a,b):
     num = len(a & b)*1.0
-    den = max(len(a),len(b))
+    den = min(len(a),len(b))
     if den==0:
         return 1.0
     else:

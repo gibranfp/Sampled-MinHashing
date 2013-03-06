@@ -31,6 +31,7 @@ from Utils import read_clusters, read_docs
 from distance import cosine,overlap
 
 import numpy as np
+import matplotlib.pyplot as plt
 from math import log
 
 # MAIN
@@ -56,6 +57,15 @@ if __name__ == "__main__":
     p.add_option("", "--max",type="int",
         action="store", dest="max", default=0,
         help="Maximum number of cluster")
+    p.add_option("", "--show-figures",
+        action="store_true", dest="show",
+        help="Maximum number of cluster")
+    p.add_option("", "--save-figures",
+        action="store_true", dest="save",
+        help="Maximum number of cluster")
+    p.add_option("", "--odir",default="./",
+        action="store", dest="odir",
+        help="Output directory [current]")
     p.add_option("-v", "--verbose",
         action="store_true", dest="verbose", default=False,
         help="Verbose mode")
@@ -68,6 +78,8 @@ if __name__ == "__main__":
     else:   
         verbose = lambda *a: None 
 
+    if not len(args)==2:
+        p.error('Wrong number of arguments')
     verbose("Loading clusters file",args[0])
     clusters=read_clusters(args[0])
 
@@ -78,6 +90,11 @@ if __name__ == "__main__":
 
     verbose("Loading documents file",args[1])
     docs=read_docs(args[1])
+
+
+    visual=False
+    if opts.show or opts.save:
+        visual=True
 
     stats=[]
     threshold=opts.threshold
@@ -103,7 +120,30 @@ Cluster {0}:
     Perplexity : {3}
 """
 
-    for i,stats in enumerate(stats):
-        print txt.format(opts.start+i,*stats)
+    if visual:
+        lens=np.array([l for l,sim,per in stats])
+
+        #y,binEdges=np.histogram(lens,bins=100)
+        #bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+        #plt.plot(bincenters,y,'-')
+        #if opts.show:
+        #    plt.show()
+        #if opts.save:
+        #    plt.savefig("{0}/hist_size.png".format(opts.odir))
+
+        lens=np.array([sim for l,sim,per in stats])
+
+        y,binEdges=np.histogram(lens,bins=100)
+        bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
+        plt.plot(bincenters,y,'-')
+        if opts.show:
+            plt.show()
+        if opts.save:
+            plt.savefig("{0}/hist_doc.png".format(opts.odir))
+
+
+
+    #for i,stats in enumerate(stats):
+    #    print txt.format(opts.start+i,*stats)
 
     
