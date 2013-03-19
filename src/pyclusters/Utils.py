@@ -23,37 +23,50 @@
 from collections import Counter
 import sys
 
-def read_clusters(filename,out=sys.stdout,err=sys.stderr):
+def line_cluster1(line):
+    line=line.split(':',1)[1]
+    data=map(int, line.strip().split())
+    data=data[1:]
+    return Counter(data)
+
+
+def line_cluster0(line):
+    data=map(int, line.strip().split())
+    data=data[1:]
+    return Counter(data)
+
+
+def read_clusters(filename,out=sys.stdout,err=sys.stderr,format=0):
     skipped=False
     clusters=[]
+    
     with open(filename) as cf:
-        for n,line in enumerate(cf):
-            if skipped:
-                data=[int(id) for id in line.strip().split()]
-                if not len(data)-1 == data[0]:
-                    print >> err, "Error in cluster",n
-                    data=data[:1]
-                
-                clusters.append(Counter(data[1:]))
-            else:
-                skipped=True
-    return clusters
+        # 1st info
+        # size words
+        if format==0:
+            clusters=map(line_cluster0,cf)
+        # size: words
+        elif format==1:
+            clusters=map(line_cluster1,cf)
+
+    return clusters[1:]
 
 
 def tf(w):
     bits=w.split(':')
     return int(bits[0]),int(bits[1])
 
+def line_docs(line):
+    data=line.strip().split()
+    size = int(data[0])
+    doc = Counter(dict(map(tf,data[1:])))
+    if not len(doc) == size:
+        doc= Counter([])
+    return doc
+
 def read_docs(filename,out=sys.stdout,err=sys.stderr):
     docs=[]
     with open(filename) as cf:
-        for n,line in enumerate(cf):
-            data=line.strip().split()
-            size = int(data[0])
-            data = dict([tf(w) for w in data[1:]])
-            if not len(data) == size:
-                print >> err, "Error in document",n
-                data={}
-            docs.append(Counter(data))
+        docs=map(line_docs,cf)
     return docs
 
