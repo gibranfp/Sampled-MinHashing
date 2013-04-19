@@ -26,7 +26,6 @@ import sys
 def line_cluster1(line):
     line=line.split(':',1)[1]
     data=map(int, line.strip().split())
-    data=data[1:]
     return Counter(data)
 
 
@@ -45,11 +44,11 @@ def read_clusters(filename,out=sys.stdout,err=sys.stderr,format=0):
         # size words
         if format==0:
             clusters=map(line_cluster0,cf)
+            return clusters[1:]
         # size: words
         elif format==1:
             clusters=map(line_cluster1,cf)
-
-    return clusters[1:]
+            return clusters
 
 
 def tf(w):

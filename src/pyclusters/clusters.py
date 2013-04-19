@@ -103,7 +103,8 @@ if __name__ == "__main__":
         else:
             clusters=clusters[opts.start:]
 
-        nclusters=[]
+        nwfclusters=[]
+        nconclusters=[]
         visual=False
         if opts.show or opts.save:
             visual=True
@@ -112,27 +113,41 @@ if __name__ == "__main__":
         threshold=opts.threshold
 
         kn=0
-        for k in clusters:
+        for ixk,k in enumerate(clusters):
             if len(k)<=opts.min_size:
                 continue
             similarity_ = [overlap(k,doc)  for doc in docs]
             kn+=1
             similarity=np.array(similarity_)
-            ixkdocs=np.nonzero(similarity>threshold)
+            ixkdocs=np.nonzero(similarity>threshold)[0]
+           
+            total_docs=len(ixkdocs)
+
+            # Counts of frecuencies per document in cluster (Generative model)
             kdocs=[Counter(dict([(ix_,docs[ix][ix_]) for ix_ in
                 set(docs[ix].keys()).intersection(set(k.keys()))])) for ix in np.nditer(ixkdocs)]
             kwcounts=reduce(operator.add, kdocs, Counter([]))
-            total_c=sum(kwcounts.values())
-            kwcounts=[(ix,1.0*c/total_c) for ix,c in  kwcounts.most_common()]
-            similarity=similarity[similarity>threshold]
-            #print ixsim_
-            #sim=np.log(sim_)
-            #perplexity=np.power(-np.sum(sim),2)
-            nclusters.append((len(similarity),kwcounts))
+            total_wf=sum(kwcounts.values())
+            kwfcounts=[(ix,1.0*c/total_wf) for ix,c in  kwcounts.most_common()]
+            # Save word frecuencies 
+            nwfclusters.append((total_docs,ixk,kwfcounts))
+
+            # Concurrency per word in cluster
+            kcdocs=[docs[ix] & k for ix in np.nditer(ixkdocs)]
+            kcwcounts=reduce(operator.add, kcdocs, Counter([]))
+            kconcounts=[(ix,1.0*c/total_docs) for ix,c in  kcwcounts.most_common()]
+
+            # Calulate concurrency in cluster
+            con=-np.sum(np.log(np.array([y for x,y in kconcounts])))
+
+            # Save word frecuencies 
+            nconclusters.append((total_docs,ixk,con,kconcounts))
+
+
             stats.append((
                 len(k),
                 len(similarity),
-                0.0 #perplexity
+                con #perplexity
             ))
 
         txt="""\
@@ -145,11 +160,15 @@ if __name__ == "__main__":
 
         basename=os.path.basename(cluster)
 
-        nclusters.sort(key=lambda k: k[0])
-        with open ("{0}/{1}_kbest_wbest.txt".format(opts.odir,basename),'w') as kfile:
-            for h,k in nclusters:
-                print >> kfile, len(k), " ".join(["{0}:{1:0.4f}".format(ix,val) for ix,val in k]) 
+        #nwfclusters.sort(key=lambda k: k[0])
+        with open ("{0}/{1}_wordfrecuency.txt".format(opts.odir,basename),'w') as kfile:
+            for h,ix,k in nwfclusters:
+                print >> kfile, ix, len(k), " ".join(["{0}:{1:0.4f}".format(ix,val) for ix,val in k]) 
 
+        nconclusters.sort(key=lambda k: k[0])
+        with open ("{0}/{1}_concurrency.txt".format(opts.odir,basename),'w') as kfile:
+            for h,ix,c,k in nconclusters:
+                print >> kfile, ix, len(k),"{0:0.4f}".format(c) , " ".join(["{0}:{1:0.4f}".format(ix,val) for ix,val in k]) 
 
         if visual:
             lens=np.array([s[0] for s in stats])

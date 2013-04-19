@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+
+{% block content %}
+<h1>Cluster WebApp</h1>
+<p>
+Cluster number {{num}} of size {{size}} {% if score %} with score {{score}} {% endif %}
+</p>
+
+<table>
+{% for per,word in info %}
+<tr>
+<td>
+    <strong>{{word}}</strong> 
+</td>
+<td>
+  {{per}} 
+</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

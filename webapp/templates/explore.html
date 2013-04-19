@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+
+{% block content %}
+<h1>Cluster WebApp</h1>
+
+Conent of cluster {{filename}}
+
+<ul>
+{% for num,size,score,values in content %}
+<li>
+{% if score %}
+    <a href="/vocab/{{num}}/{{size}}/{{score}}?{{values}}">Show vocab</a>
+    <a href="/wordcloud/{{num}}/{{size}}/{{score}}?{{values}}">Show wordcloud</a>
+{% else %}
+    <a href="/vocab/{{num}}/{{size}}?{{values}}">Show vocab</a>
+    <a href="/wordcloud/{{num}}/{{size}}?{{values}}">Show wordcloud</a>
+{% endif %}
+</li>
+{% endfor %}
+</ul>
+
+{% endblock %}
