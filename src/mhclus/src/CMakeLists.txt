@@ -1,0 +1,6 @@
+set (MHCLUS_SRCS mhclus minhash ifutils)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+include_directories( ${PROJECT_SOURCE_DIR}/include )
+add_executable( mhclus ${MHCLUS_SRCS} )
+target_link_libraries(mhclus m)
