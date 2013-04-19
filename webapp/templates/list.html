@@ -1,0 +1,16 @@
+{% extends "default.html" %}
+
+{% block content %}
+<h1>Cluster WebApp</h1>
+
+List of ordered clusters
+
+<ul>
+{% for file in listing %}
+<li>
+<a href="explore/{{file}}">{{ file }}</a>
+</li>
+{% endfor %}
+</ul>
+
+{% endblock %}
