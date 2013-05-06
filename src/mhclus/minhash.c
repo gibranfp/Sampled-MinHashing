@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include "types.h"
 #include "ifutils.h"
 #include "minhash.h"
 
@@ -50,7 +51,8 @@ void mh_init(uint d, uint r, uint l, uint **hmat, Bucket **htable,
      
      printf("Initializing MinHash data structure. r = %u, l = %u," 
 	    "Table size = %u buckets . . . \n", r, l, table_size);
-     srand((uint) time(NULL));
+     srand(1234567);
+     //srand((uint) time(NULL));
      ta = (uint *) malloc(r * sizeof(uint));
      tb = (uint *) malloc(r * sizeof(uint));
      for (i = 0; i < r; i++){//Random values for 2nd-level hashing 
@@ -262,7 +264,7 @@ void mh_mine(uint **setdb, uint *card, uint n, uint d, uint r,
 	       htable[j].head = htable[j].tail = NULL;
 	       htable[j].card = htable[j].hvalue = 0;
 	  }
-	  printf("MINED = %d, Total = %d\n", k, total);
+	  printf("Mined = %d, Total = %d\n", k, total);
      }
      *mined = ms;
      *mined_card = mc;
@@ -433,7 +435,7 @@ void mh_check_bucket(Set *setdb, Set *clus, uint setid, Bucket *bucket,
 	  Node *ptr = bucket->head;
 	  while (ptr != NULL){
 	       if (ptr->item != setid && 
-		   overlap(setdb[ptr->item], setdb[setid]) > ovr_th){
+		   overlap(setdb[setid], setdb[ptr->item]) > ovr_th){
 		    // cooccurring set is not classified
 		    if (checked[ptr->item] == 0)
 			 mh_add_to_cluster(&clus[clus_table[setid]], 
@@ -570,6 +572,7 @@ uint mhw_getindex(uint *set, uint *weight, uint card, uint d,
 		    minhv = umat[i * d + set[j]];
 	       }
 	  }
+	  printf("(%d, %lf) ", minperm, minhv);
 	  tmp_index += a[i] * hmat[i * d + minperm];
 	  tmp_hv += b[i] * hmat[i * d + minperm]; 
      }
@@ -626,8 +629,10 @@ void mhw_hashset(uint *set, uint *weight, uint card, uint id, uint d,
 		 uint *hmat, double *umat, uint r, Bucket *htable, 
 		 uint table_size, uint *a, uint *b)
 {
+     printf ("Set %d values: ", id);
      uint index = mhw_getindex(set, weight, card, d, hmat, umat, r, 
 			       htable, table_size, a, b);
+     printf ("\n");
      Node *tmp = (Node *) malloc(sizeof(Node));
      tmp->item = id;
      tmp->next = NULL;

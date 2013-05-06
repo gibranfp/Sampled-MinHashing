@@ -8,12 +8,8 @@
 #ifndef MINHASH_H
 #define MINHASH_H
 
+#include "types.h"
 #include "ifutils.h"
-#define INF (4294967295)//Largest 32-bit unsigned integer
-#define PRIME (4294967291)//Largest 32-bit prime number (2^32-5) 
-                          //[E2LSH Manual, Andoni and Indyk 2005]
-
-typedef unsigned int uint;
 
 typedef struct Bucket{
      uint hvalue;

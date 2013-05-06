@@ -1,3 +1,5 @@
-cmake_minimum_required( VERSION 2.8 )
-project( minhash_clustering )
-add_subdirectory( src )
+set (MHCLUS_SRCS mhclus minhash)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+include_directories( ${PROJECT_SOURCE_DIR}/include )
+add_executable( mhclus ${MHCLUS_SRCS} )
+target_link_libraries(mhclus m ifutils)

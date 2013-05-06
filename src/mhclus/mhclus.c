@@ -24,8 +24,9 @@
 #include <math.h>
 #include <time.h>
 #include <getopt.h>
-#include "minhash.h"
+#include "types.h"
 #include "ifutils.h"
+#include "minhash.h"
 
 /**
  * @brief Prints help in screen.
