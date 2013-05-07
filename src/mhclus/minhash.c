@@ -32,7 +32,7 @@
 
 
 /**
- * @brief Creates and initializes a structure for performing MinHash
+ * @brief Creates and initializes a structured, r, l, for performing MinHash
  *        on collections of binary sets.
  *
  * @param d Largest item value in the database of sets
@@ -49,13 +49,10 @@ void mh_init(uint d, uint r, uint l, uint **hmat, Bucket **htable,
      uint i;
      uint *ta, *tb;
      
-     printf("Initializing MinHash data structure. r = %u, l = %u," 
-	    "Table size = %u buckets . . . \n", r, l, table_size);
-     srand(1234567);
-     //srand((uint) time(NULL));
+     srand((uint) time(NULL));
      ta = (uint *) malloc(r * sizeof(uint));
      tb = (uint *) malloc(r * sizeof(uint));
-     for (i = 0; i < r; i++){//Random values for 2nd-level hashing 
+     for (i = 0; i < r; i++){// Random values for 2nd-level hashing 
           ta[i] = rand();
 	  while (ta[i] == 0)
 	       ta[i] = rand();
@@ -80,6 +77,7 @@ void mh_init(uint d, uint r, uint l, uint **hmat, Bucket **htable,
 void mh_randperm(uint d, uint r, uint *hmat)
 {
      uint i, j;
+
      for (i = 0; i < r; i++){//generates random permutations of the items
 	  for (j = 0; j < d; j++){//assigns random number to each item
 	       hmat[i * d + j] = ((uint) rand() % INF);
@@ -108,9 +106,10 @@ void mh_randperm(uint d, uint r, uint *hmat)
 uint mh_getindex(uint *set, uint card, uint d, uint *hmat, uint r, 
 		 Bucket *htable, uint table_size, uint *a, uint *b)
 {
-     int i, j, k, minperm;
+     uint i, j, k;
      uint index;
      uint hvalue;
+     uint minperm;
      double minhv;
      unsigned long long tmp_index, tmp_hv;
      
@@ -178,9 +177,12 @@ void mh_hashset(uint *set, uint card, uint setid, uint d, uint *hmat,
 		uint r, Bucket *htable, uint table_size, uint *a, 
 		uint *b)
 {
-     uint index = mh_getindex(set, card, d, hmat, r, htable, table_size, 
-			      a, b);
-     Node *tmp = (Node *) malloc(sizeof(Node));
+     uint index;
+     Node *tmp;
+
+     index = mh_getindex(set, card, d, hmat, r, htable, table_size, 
+			 a, b);
+     tmp = (Node *) malloc(sizeof(Node));
      tmp->item = setid;
      tmp->next = NULL;
      if (htable[index].head == NULL){//if bucket has not been used
@@ -214,7 +216,8 @@ void mh_mine(uint **setdb, uint *card, uint n, uint d, uint r,
 	     uint l, uint table_size, uint ***mined, uint **mined_card,
 	     uint *mined_num)
 {
-     uint i, j;
+     uint i, j, k, x;
+     Node *ptr, *tmp;
      uint **ms = NULL;//mined sets 
      uint *mc = NULL;//set cardinalities
      Bucket *htable;//Hash table
@@ -231,9 +234,8 @@ void mh_mine(uint **setdb, uint *card, uint n, uint d, uint r,
 	  for (j = 0; j < n; j++)
 	       mh_hashset(setdb[j], card[j], j, d, hmat, r, htable,
 			  table_size, a, b);
-	  uint k = 0;
+	  k = 0;
 	  for (j = 0; j < table_size; j++){
-	       Node *ptr;
 	       if (htable[j].card > 2){//Discards mined with few words
 		    ms = (uint **) realloc(ms, 
 					   (total + 1) * sizeof(uint *));
@@ -241,12 +243,12 @@ void mh_mine(uint **setdb, uint *card, uint n, uint d, uint r,
 					  (total + 1) * sizeof(uint));
 		    mc[total] = htable[j].card;
 		    ms[total] = (uint *) malloc(mc[total] * sizeof(uint));
-		    uint x = 0;
+		    x = 0;
 		    ptr = htable[j].head;
 		    while (ptr != NULL){
 			 ms[total][x] = ptr->item;
 			 x++;
-			 Node *tmp = ptr;
+			 tmp = ptr;
 			 ptr = ptr->next;
 			 free(tmp);
 		    }
@@ -256,7 +258,7 @@ void mh_mine(uint **setdb, uint *card, uint n, uint d, uint r,
 	       else{
 		    ptr = htable[j].head;
 		    while (ptr != NULL){
-			 Node *tmp = ptr;
+			 tmp = ptr;
 			 ptr = ptr->next;
 			 free(tmp);
 		    }
@@ -289,21 +291,23 @@ void mh_cluster(Set *setdb, uint n, uint d, uint r, uint l,
 		double ovr_th)
 {
      int i, j;
-     Node *ptr, *ptr2, *prev;
      uint *hmat, *a, *b;
      Bucket *htable;
      Set *clus = NULL;
-     uint *checked = (uint *) calloc(n, sizeof(uint));
-     uint *clus_table = (uint *) malloc(n * sizeof(uint));
-     uint *ind = (uint *) malloc(n * sizeof(uint));
+     uint *checked;
+     uint *clus_table;
+     uint *ind;
      uint clus_num = 0;
      
      printf("Clustering co-occurring sets . . .\n"
 	    "\tNumber of sets = %d, Dimensionality = %d, l = %d, r = %d "
 	    "sim_thres = %f\n", n, d, l, r, ovr_th);
+     checked = (uint *) calloc(n, sizeof(uint));
+     clus_table = (uint *) malloc(n * sizeof(uint));
+     ind = (uint *) malloc(n * sizeof(uint));
      mh_init(d, r, l, &hmat, &htable, table_size, &a, &b);
-     for (i = 0; i < l; i++){	// computes each hash table
-       printf("Hash table %u of %u: %u random permutations for %u sets\n", i, l, r, n);
+     for (i = 0; i < l; i++){// computes each hash table
+	  printf("Hash table %u of %u: %u random permutations for %u sets\n", i, l, r, n);
 	  mh_randperm(d, r, hmat);
 	  for (j = 0; j < n; j++)
 	       mhl_hashset(setdb[j], j, d, hmat, r, htable, 
@@ -340,7 +344,8 @@ void mh_cluster(Set *setdb, uint n, uint d, uint r, uint l,
 void mh_make_model(Set *setdb, Set *cluster, uint clus_num, 
 		   Set **model, uint *model_num)
 {
-     int i;
+     uint i;
+     Node *ptr;
      Set *mod = NULL;
      uint mod_num = 0;
      
@@ -350,7 +355,7 @@ void mh_make_model(Set *setdb, Set *cluster, uint clus_num,
 				     sizeof(Set));
      	       mod[mod_num].head = mod[mod_num].tail = NULL;
      	       mod[mod_num].card = 0;
-     	       Node *ptr = cluster[i].head;
+     	       ptr = cluster[i].head;
      	       while (ptr != NULL){
 		    set_add(&mod[mod_num], &setdb[ptr->item]);
      		    ptr = ptr->next;
@@ -360,6 +365,7 @@ void mh_make_model(Set *setdb, Set *cluster, uint clus_num,
      }
      *model = mod;
      *model_num = mod_num;
+     
      printf("Built %d models\n", mod_num);
 }
 
@@ -376,7 +382,9 @@ void mh_make_model(Set *setdb, Set *cluster, uint clus_num,
 void mh_add_to_cluster(Set *cluster, uint clusid, uint setid, 
 		       uint *checked, uint *clus_table)
 {
-     Node *tmp = (Node *) malloc(sizeof(Node));
+     Node *tmp;
+
+     tmp = (Node *) malloc(sizeof(Node));
      tmp->item = setid;
      tmp->next = NULL;
      if (cluster->card == 0)
@@ -399,20 +407,22 @@ void mh_add_to_cluster(Set *cluster, uint clusid, uint setid,
  * @param clus_table Keeps track of the cluster to which each set is 
  *                   assigned
  */
-void mh_merge_clusters(Set cl1, Set cl2, uint clusid, uint *clus_table)
+void mh_merge_clusters(Set clus1, Set clus2, uint clusid, uint *clus_table)
 {
+     Node *ptr;
+
      /* Connecting two clusters */
-     cl1.tail->next = cl2.head;
-     cl1.tail = cl2.tail;
-     cl1.card += cl2.card;
+     clus1.tail->next = clus2.head;
+     clus1.tail = clus2.tail;
+     clus1.card += clus2.card;
      
      /* The second is deleted*/
-     cl2.head = NULL;
-     cl2.tail = NULL;
-     Node *ptr2 = cl1.head;
-     while(ptr2 != NULL){
-	  clus_table[ptr2->item] = clusid;
-	  ptr2 = ptr2->next;
+     clus2.head = NULL;
+     clus2.tail = NULL;
+     ptr = clus1.head;
+     while(ptr != NULL){
+	  clus_table[ptr->item] = clusid;
+	  ptr = ptr->next;
      }
 }
 
@@ -431,8 +441,10 @@ void mh_merge_clusters(Set cl1, Set cl2, uint clusid, uint *clus_table)
 void mh_check_bucket(Set *setdb, Set *clus, uint setid, Bucket *bucket,
 		     uint *checked, uint *clus_table, double ovr_th)
 {
+     Node *ptr, *prev;
+
      if (bucket->head != NULL){ // if the bucket has not been checked yet
-	  Node *ptr = bucket->head;
+	  ptr = bucket->head;
 	  while (ptr != NULL){
 	       if (ptr->item != setid && 
 		   overlap(setdb[setid], setdb[ptr->item]) > ovr_th){
@@ -455,7 +467,7 @@ void mh_check_bucket(Set *setdb, Set *clus, uint setid, Bucket *bucket,
 		    }
 	       }
 	       // Freeing up bucket
-	       Node *prev = ptr;
+	       prev = ptr;
 	       ptr = ptr->next;
 	       free(prev);
 	  }
@@ -482,8 +494,6 @@ void mhw_init(uint d, uint r, uint l, uint **hmat, double **umat,
      uint i;
      uint *ta, *tb;
      
-     printf("Initializing MinHash data structure. r = %u, l = %u," 
-	    "Table size = %u buckets . . . \n", r, l, table_size);
      srand((uint) time(NULL));
      ta = (uint *) malloc(r * sizeof(uint));
      tb = (uint *) malloc(r * sizeof(uint));
@@ -572,7 +582,7 @@ uint mhw_getindex(uint *set, uint *weight, uint card, uint d,
 		    minhv = umat[i * d + set[j]];
 	       }
 	  }
-	  printf("(%d, %lf) ", minperm, minhv);
+	  printf("%d\n", minperm);
 	  tmp_index += a[i] * hmat[i * d + minperm];
 	  tmp_hv += b[i] * hmat[i * d + minperm]; 
      }
@@ -629,11 +639,12 @@ void mhw_hashset(uint *set, uint *weight, uint card, uint id, uint d,
 		 uint *hmat, double *umat, uint r, Bucket *htable, 
 		 uint table_size, uint *a, uint *b)
 {
-     printf ("Set %d values: ", id);
-     uint index = mhw_getindex(set, weight, card, d, hmat, umat, r, 
-			       htable, table_size, a, b);
-     printf ("\n");
-     Node *tmp = (Node *) malloc(sizeof(Node));
+     uint index;
+     Node *tmp;
+
+     index = mhw_getindex(set, weight, card, d, hmat, umat, r, 
+			  htable, table_size, a, b);
+     tmp = (Node *) malloc(sizeof(Node));
      tmp->item = id;
      tmp->next = NULL;
      if (htable[index].head == NULL){//if bucket has not been used
@@ -665,29 +676,27 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 	      uint r, uint l, uint table_size, uint ***mined, 
 	      uint *mined_card, uint *mined_num)
 {
-     uint i, j;
+     uint i, j, k;
+     Node *ptr, *tmp;
      Bucket *htable;//Hash table
      uint *hmat;//Holds random permutations
      double *umat;//Holds random permutations
      unsigned int *a, *b;//Random arrays for 2nd-level hashing
      uint total = 0;
-     
+
      //Hashing database & storing candidates
-     printf("Hashing sets . . .\n");
-     mhw_init(d, r, l, &hmat, &umat, &htable, table_size, &a, &b);
+     mhw_init(d, r, l, &hmat, &umat, &htable, table_size, &a, &b);  
      for (i = 0; i < l; i++){
-	  mh_randperm(d, r, hmat);
-	  printf("\tTable %d: ",i);
+	  mhw_randperm(d, r, hmat, umat);
 	  for (j = 0; j < n; j++)
 	       mhw_hashset(setdb[j], weight[j], card[j], j, d, hmat, 
 			   umat, r, htable, table_size, a, b);
-	  uint k = 0;
+	  k = 0;
 	  for (j = 0; j < table_size; j++){
-	       Node *ptr;
 	       if (htable[j].card > 2){//Discards mined with few words
 		    ptr = htable[j].head;
 		    while (ptr != NULL){
-			 Node *tmp = ptr;
+			 tmp = ptr;
 			 ptr = ptr->next;
 			 free(tmp);
 		    }
@@ -697,7 +706,7 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 	       else{
 		    ptr = htable[j].head;
 		    while (ptr != NULL){
-			 Node *tmp = ptr;
+			 tmp = ptr;
 			 ptr = ptr->next;
 			 free(tmp);
 		    }
@@ -705,7 +714,7 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 	       htable[j].head = htable[j].tail = NULL;
 	       htable[j].card = htable[j].hvalue = 0;
 	  }
-	  printf("MINED = %d, Total = %d\n", k, total);
+	  printf("Mined = %d, Total = %d\n", k, total);
      }
      *mined_num = total;
 }
@@ -729,17 +738,18 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 uint mhl_getindex(Set set, uint d, uint *hmat, uint r, 
 		  Bucket *htable, uint table_size, uint *a, uint *b)
 {
-     uint i, k, minperm;
+     uint i, k;
+     Node *ptr;
      uint index;
      uint hvalue;
-     uint minhv;
+     uint minhv, minperm;
      unsigned long long tmp_index, tmp_hv;
      
      tmp_index = 0;
      tmp_hv = 0;
      for (i = 0; i < r; i++){ // computes second level hashing
 	  minhv = INF;
-	  Node *ptr = set.head;
+	  ptr = set.head;
 	  // computes the ith min-hash value for the given set
 	  while (ptr != NULL){ 
 	       if (hmat[i * d + ptr->item] < minhv){
@@ -799,9 +809,12 @@ void mhl_hashset(Set set, uint id, uint d, uint *hmat, uint r,
 		 Bucket *htable, uint table_size, uint *a, uint *b, 
 		 uint *indx_db)
 {
-     uint index = mhl_getindex(set, d, hmat, r, htable, table_size, 
-			       a, b);
-     Node *tmp = (Node *) malloc(sizeof(Node));
+     uint index;
+     Node *tmp;
+     
+     index = mhl_getindex(set, d, hmat, r, htable, table_size, 
+			  a, b);
+     tmp = (Node *) malloc(sizeof(Node));
      tmp->item = id;
      tmp->next = NULL;
      if (htable[index].head == NULL){  // if bucket has not been used
