@@ -146,6 +146,13 @@ int main(int argc, char **argv)
 	  output_file = argv[optind++];
 	  read_corpus(corpus_file, &corpus, &termfreq, &doccard, 
 		      &corpsize);
+	  uint i, j;
+	  for (i = 0; i < corpsize; ++i){
+	       printf("%u ",doccard[i]);
+	       for (j = 0; j < corpsize; ++j)
+	  	    printf("%u:%u ",corpus[i][j], termfreq[i][j]);
+	       printf("\n");
+	  }
 	  read_vocab(vocab_file, &vocab, &termid, &corpfreq, 
 		     &docfreq, &vocsize);
 	  make_ifs(corpus, corpfreq, docfreq, doccard, corpsize, 
