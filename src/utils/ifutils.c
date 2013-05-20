@@ -53,13 +53,8 @@
 void read_corpus(char **filename, uint ***corpus, uint ***termfreq,
 		 uint **doccard, uint *corpsize)
 {
+     uint i;
      FILE *fp;
-     fp = fopen(filename, "r");
-     if (fp == NULL){
-	  fprintf(stderr,"Could not open file %s\n", filename);
-	  exit(EXIT_FAILURE);
-     }
-     
      char *line = NULL;
      size_t len = 0;
      ssize_t read;
@@ -67,33 +62,44 @@ void read_corpus(char **filename, uint ***corpus, uint ***termfreq,
      uint **tf = NULL;// term frequencies
      uint *dc = NULL;// document cardinalities
      uint csize = 0;// corpus size
+
+     fp = fopen(filename, "r");
+     if (fp == NULL){
+	  fprintf(stderr,"Could not open file %s\n", filename);
+	  exit(EXIT_FAILURE);
+     }
+     
      // reading each line of the file
      while ((read = getline(&line, &len, fp)) != -1) {
+	  printf("\n");
 	  char *token = strtok (line," ");
-	  char **doc;
+	  uint card = atoi(token);
+	  printf("%s ", token);
+	  char **doc = (char **) malloc(card * sizeof(char *));
 	  uint term = 0;
 	  // spliting line in document terms
+	  token = strtok (NULL," ");
 	  while (token != NULL)
 	  {
 	       doc[term] = token;
-	       printf ("%s\n",token);
+	       printf("%s ", token);
 	       token = strtok (NULL, " ");
 	       term++;
 	  }
-	  c = (int **) realloc(c, (csize + 1) * sizeof(int *));
-	  c[csize] = (int *) malloc((term - 1) * sizeof(int));
-	  tf = (int **) realloc(tf, (csize + 1) * sizeof(int *));
-	  tf[csize] = (int *) malloc((term - 1) * sizeof(int));
-	  dc = (int *) realloc(dc, (csize + 1) * sizeof(int));
-	  dc[csize] = atoi(doc[0]);
-	  uint i;
-	  for (i = 1; i < term; i++){
-	       token = strtok (doc[i],":");
+	  c = (uint **) realloc(c, (csize + 1) * sizeof(uint *));
+	  c[csize] = (uint *) malloc((term - 1) * sizeof(uint));
+	  tf = (uint **) realloc(tf, (csize + 1) * sizeof(uint *));
+	  tf[csize] = (uint *) malloc((term - 1) * sizeof(uint));
+	  dc = (uint *) realloc(dc, (csize + 1) * sizeof(uint));
+	  dc[csize] = card;
+	  for (i = 0; i < term; i++){
+	       token = strtok (doc[i], ":");
 	       c[csize][i] = atoi(token);
-	       token = strtok (doc[i],":");
+	       token = strtok (NULL, ":");
 	       tf[csize][i] = atoi(token);
 	  }
 	  csize++;
+	  free(doc);
      }
      free(line);
      fclose(fp);

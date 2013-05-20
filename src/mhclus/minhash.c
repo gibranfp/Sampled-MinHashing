@@ -532,11 +532,11 @@ void mhw_randperm(uint d, uint r, uint *hmat, double *umat)
 	  for (j = 0; j < d; j++){//assigns random numbers to each item
 	       rnd = (uint) rand();
 	       hmat[i * d + j] = rnd % INF;
-	       umat[i * d + j] = -log(rnd / ((double) RAND_MAX + 1));
+	       umat[i * d + j] = -log((double)rnd / ((double) RAND_MAX + 1));
 	       while (hmat[i * d + j] == 0){
 		    rnd = (uint) rand();
 		    hmat[i * d + j] = rnd % INF;
-		    umat[i * d + j] = -log(rnd / ((double) RAND_MAX + 1));
+		    umat[i * d + j] = -log((double)rnd / ((double) RAND_MAX + 1));
 	       }
 	  }
      }
@@ -577,9 +577,9 @@ uint mhw_getindex(uint *set, uint *weight, uint card, uint d,
 	  minhv = INF;
 	  //computes the ith MinHash value of the given set
 	  for (j = 0; j < card; j++){
-	       if (((umat[i * d + set[j]]) / weight[j]) < minhv){
+	       if (umat[i * d + set[j]] / weight[j] < minhv){
 		    minperm = set[j];
-		    minhv = umat[i * d + set[j]];
+		    minhv = umat[i * d + set[j]] / weight[j];
 	       }
 	  }
 	  printf("%d\n", minperm);
@@ -714,7 +714,7 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 	       htable[j].head = htable[j].tail = NULL;
 	       htable[j].card = htable[j].hvalue = 0;
 	  }
-	  printf("Mined = %d, Total = %d\n", k, total);
+//	  printf("Mined = %d, Total = %d\n", k, total);
      }
      *mined_num = total;
 }
