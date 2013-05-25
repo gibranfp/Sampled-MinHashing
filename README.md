@@ -2,7 +2,7 @@
 MinHash-Clustering
 ==================
 
-MinHash-based clustering for binary dyadic data (e.g. bag of words).
+MinHash-based clustering for binary and weighted dyadic data (e.g. bag of words).
 
 Utilities
 ---------
