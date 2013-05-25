@@ -61,7 +61,7 @@ def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
     similarity = np.array([overlap(k,doc)  for doc in docs_])
     ixkdocs=np.nonzero(similarity>threshold)[0]
     print >> sys.stderr,ikluster, ' Clusters Analised of size ', len(k), ' with a coverage of ', len(ixkdocs)
-    if len(ixkdocs)<10 or len(ixkdocs)>1000:
+    if len(ixkdocs)<50 or len(ixkdocs)>1000:
         return None
     dprobs_=[dprobs[ii] for ii in ixdocs]
     dlogprobs_=[dlogprobs[ii] for ii in ixdocs]
