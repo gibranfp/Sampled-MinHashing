@@ -10,20 +10,23 @@
 {% block content %}
 <h1>Cluster WebApp</h1>
 <p>
-Wordcould for the first 200 words of cluster number {{iid}} with identifier {{num}} of size {{size}} {% if score %} with score {{score}} {% endif %}
+Wordcouls dfor the first 200 words of cluster
 </p>
 
 {% if info %}
 {{info}}
 {% endif %}
 
+{% for size,num,iid,content in contents %}
+
+<center>
 <script>
   var fill = d3.scale.category20b();
 
   d3.layout.cloud().size([800, 640])
       .words([
-        {% for size,word in content %}
-        { text: "{{word}}", size:{{size}} },
+        {% for fsize,word in content %}
+        { text: "{{word}}", size:{{fsize}} },
         {% endfor %}
         ])
       .rotate(function() { return ~~(Math.random() * 2) * 90; })
@@ -51,5 +54,8 @@ Wordcould for the first 200 words of cluster number {{iid}} with identifier {{nu
         .text(function(d) { return d.text; });
   }
 </script>
+    Cluster number {{iid}} with id {{num}} and size {{size}}
+</center>
+{% endfor %}
 
 {% endblock %}

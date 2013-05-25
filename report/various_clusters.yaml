@@ -1,0 +1,102 @@
+doc:
+    - title
+    - intro
+    - expCWS
+    - expACWS
+    - expPrune
+    - expAPrune
+
+
+expCWS:
+    block: !!omap
+        - title: Experimentos con 1a parte de MinHash
+        - import: clusters
+        - code: clusters.analysedir(args[1],
+                                    u'cws',[
+                   (u'Número de hash por grupo 1',[
+                            (3,".*ifs-[^-]+-3.*\.cws"),
+                            (4,".*ifs-[^-]+-4.*\.cws"),
+                            (5,".*ifs-[^-]+-5.*\.cws"),
+                            (6,".*ifs-[^-]+-6.*\.cws"),
+                            ]),
+                    (u'Umbral de similaridad',[
+                            (x*0.01,".*ifs-{0}-.*\.cws".format('{:.2}'.format(x*0.01)[1:])) for x in range(0,101)]),
+                    (u'Zoom a Umbral de similaridad',[
+                            (x*0.01,".*ifs-{0}-.*\.cws".format('{:.2}'.format(x*0.01)[1:])) for x in range(10,51)]),
+   
+                    ])
+
+expACWS:
+    block: !!omap
+        - title: Experimentos con 1a parte de MinHash y aglomerative
+        - import: clusters
+        - code: clusters.analysedir(args[1],
+                                    u'cws_aglomerative',[
+                    (u'Umbral de similaridad',[
+                            (10,".*ifs-\.10.*\.model"),
+                            (13,".*ifs-\.13.*\.model"),
+                            (15,".*ifs-\.15.*\.model"),
+                            ]),
+                    (u'Número de hash por grupo',[
+                            (3,".*ifs-[^-]+-3-.*\.model"),
+                            (4,".*ifs-[^-]+-4-.*\.model"),
+                    ])
+                 ])
+
+
+
+expPrune:
+    block: !!omap
+        - title: Experimentos con clusters prunned
+        - import: clusters
+        - code: clusters.analysedir(args[1],
+                                    u'pruned',[
+                    (u'Umbral de similaridad',[
+                            (10,".*ifs-\.10.*\.pruned"),
+                            (13,".*ifs-\.13.*\.pruned"),
+                            (15,".*ifs-\.15.*\.pruned"),
+                            ]),
+                    (u'Número de hash por grupo',[
+                            (3,".*ifs-[^-]+-3-.*\.pruned"),
+                            (4,".*ifs-[^-]+-4-.*\.pruned"),
+                    ])
+                ])
+
+
+expAPrune:
+    block: !!omap
+        - title: Experimentos con clusters prunned y aglomerative
+        - import: clusters
+        - code: clusters.analysedir(args[1],
+                                    u'pruned_aglomerative',[
+                    (u'Umbral de similaridad',[
+                            (10,".*ifs-\.10.*\.model"),
+                            (13,".*ifs-\.13.*\.model"),
+                            (15,".*ifs-\.15.*\.model"),
+                            ]),
+                    (u'Número de hash por grupo',[
+                            (3,".*ifs-[^-]+-3-.*\.model"),
+                            (4,".*ifs-[^-]+-4-.*\.model"),
+                    ])
+ 
+                ])
+
+
+
+
+intro: 
+    block: !!omap
+        - title: Introducción
+        - text:
+            - Se presentan el análisis de los experimentos usando MinHash-Clustering
+
+title:
+    vars: 
+        title: "Reporte de experimentos MinHash-Clustering"
+        author: Gibran Fuentes & Ivan Meza 
+        email: <gibranfp@gmail.com> <ivanvladimir@gmail.com>
+        version: 0.1
+        revision: 0.1
+    block: !!omap
+        - file: report/title.block
+
