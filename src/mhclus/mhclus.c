@@ -338,7 +338,7 @@ void mhclus_cluster(int opnum, char **opts)
 	  mh_cluster(setdb, n, d, r, l, table_size, &clusters,
 		     &clus_num, ovr);
 	  mh_make_model(setdb, clusters, clus_num, &models, &model_num);
-	  setldb_write(output, models, d, model_num);
+	  setldb_write(output, models, n, model_num);
      }
      else{
 	  if (optind + 2 > opnum)
