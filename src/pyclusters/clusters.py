@@ -6,7 +6,7 @@
 # Ivan Vladimir Meza-Ruiz/ ivanvladimir at turing.iimas.unam.mx
 # 2012/IIMAS/UNAM
 # ----------------------------------------------------------------------
-# authorid.py is free software: you can redistribute it and/or modify
+# clusters.py is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
@@ -26,22 +26,77 @@ import sys
 import os
 import os.path
 import operator
-from collections import Counter
+from collections import Counter, defaultdict
+from itertools import chain
+from sets import Set
+import re
+import random
+re_file=re.compile('(?P<corpus>[^.]+)\.(?P<ifs>[^-]+)-(?P<val>[^-]+)-(?P<win1>[^-]+)-(?P<win2>[^.]+).*')
+from multiprocessing import Pool
 
 
 # Local imports
-from Utils import read_clusters, read_docs
-from distance import cosine,overlap
+from Utils import read_clusters, read_docs, docs2if, docs2probs
+from distance import jacard,overlap
 
 import numpy as np
 import matplotlib.pyplot as plt
 from math import log
 
+
+def rand_jsd((ixkdocs_,docs,dprobs,dlogprobs)):
+    docs_=[docs[ii] for ii in ixkdocs]
+    dprobs_=[dprobs[ii] for ii in ixkdocs]
+    dlogprobs_=[dlogprobs[ii] for ii in ixkdocs]
+    k_probs,k_logprobs=docs2probs(
+            [reduce(operator.add,docs_,Counter())])
+    jsd_actual=np.average(np.array([jsd(doc,dlogprobs_[ii],k_probs[0],k_logprobs[0]) for ii,doc in enumerate(dprobs_)]))
+    return jsd_actual
+
+
+
+def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
+    ixdocs=reduce(operator.or_,[idocs[kk] for kk in k.keys()],Set())
+    docs_=[docs[ii] for ii in ixdocs]
+    similarity = np.array([overlap(k,doc)  for doc in docs_])
+    ixkdocs=np.nonzero(similarity>threshold)[0]
+    print >> sys.stderr,ikluster, ' Clusters Analised of size ', len(k), ' with a coverage of ', len(ixkdocs)
+    if len(ixkdocs)<10 or len(ixkdocs)>1000:
+        return None
+    dprobs_=[dprobs[ii] for ii in ixdocs]
+    dlogprobs_=[dlogprobs[ii] for ii in ixdocs]
+    docs_=[docs_[ii] for ii in ixkdocs]
+    dprobs_=[dprobs_[ii] for ii in ixkdocs]
+    dlogprobs_=[dlogprobs_[ii] for ii in ixkdocs]
+    k_probs,k_logprobs=docs2probs(
+            [reduce(operator.add,docs_,Counter())])
+    jsd_actual=np.average(np.array([jsd(doc,dlogprobs_[ii],k_probs[0],k_logprobs[0]) for ii,doc in enumerate(dprobs_)]))
+    return len(k),ixkdocs,jsd_actual
+
+
+def jsd(doc,logdoc,clu,logclu):
+    k1=Set(doc.keys())
+    k2=Set(clu.keys())
+    commons=list(k1.intersection(k2))
+    p=np.array([doc[c] for c in commons])
+    q=np.array([clu[c] for c in commons])
+    p_=np.array([logdoc[c] for c in commons])
+    q_=np.array([logclu[c] for c in commons])
+
+    m_=np.log((p+q))-np.log(2)
+    res=dkl(p,p_,m_)/2+dkl(q,q_,m_)/2
+    return res
+
+def dkl(p,p_log,m_log):
+    res=np.sum(p*(p_log-m_log))
+    return res
+
+
 # MAIN
 if __name__ == "__main__":
     usage="""%prog docsfile clustersfile
 
-        Visualize clusters
+        Analyse a clustering given a set of documents
 
         docsfile      : File with documents specified
         clusterfile   : File with clusters specified
@@ -52,10 +107,10 @@ if __name__ == "__main__":
     # Command line options
     p = optparse.OptionParser(usage=usage,version=version)
     p.add_option("-k", "--k",type="int",
-        action="store", dest="min_size", default=0.0,
+        action="store", dest="min_size", default=3,
         help="Minimum size of clusters")
     p.add_option("-t", "--threshold",type="float",
-        action="store", dest="threshold", default=0.0,
+        action="store", dest="threshold", default=0.70,
         help="Threshold for clusters")
     p.add_option("", "--start",type="int",
         action="store", dest="start", default=0,
@@ -75,10 +130,16 @@ if __name__ == "__main__":
     p.add_option("", "--odir",default="./",
         action="store", dest="odir",
         help="Output directory [current]")
+    p.add_option("", "--processors",
+        action="store", dest="processors", type="int",default=1,
+        help="Number of processors [2]")
     p.add_option("-v", "--verbose",
         action="store_true", dest="verbose", default=False,
         help="Verbose mode")
     opts, args = p.parse_args()
+ 
+
+    info={}
 
     # Setting verbose
     if opts.verbose:
@@ -90,142 +151,121 @@ if __name__ == "__main__":
     if not len(args)>1:
         p.error('Wrong number of arguments')
 
+
+    if opts.processors>1:
+        # Loads the multriprocessors
+        print >> sys.stderr, 'Usando multiple processors'
+        try:
+            pool=Pool(processes=opts.processors)
+        except AtributteError:
+            pool=Pool(processes=1)
+
+
+
     verbose("Loading documents file",args[0])
     docs=read_docs(args[0])
-
+    dprobs,dlogprobs=docs2probs(docs)
+    verbose("Creating inverse file")
+    idocs=docs2if(docs)
 
     for cluster in args[1:]:
-        verbose("Loading clusters file",cluster)
-        clusters=read_clusters(cluster,format=opts.format)
-
+        basename=os.path.basename(cluster)
+        #m=re_file.match(basename)
+        #for k,v in m.groupdict().iteritems():
+        #    info[k]=v
+ 
+        verbose("Loading clustering ",cluster)
+        print >> sys.stderr, "Loading clustering ",cluster
+        clusters=read_clusters(cluster,format=opts.format,min=opts.min_size)
+        info['Original total cluster']=len(clusters)
+        verbose("Original number of clusters ",len(clusters))
+        print >> sys.stderr, "Original number of clusters ",len(clusters)
+        if len(clusters)==0:
+            continue
+        if len(clusters)>30000:
+            continue
+        info['Original Filename']=cluster
+        info['Starting point']=opts.start
         if opts.max > 0:
             clusters=clusters[opts.start:opts.start+opts.max]
+            info['Total cluster analysed']=opts.max
         else:
             clusters=clusters[opts.start:]
+            info['Total cluster analysed']=len(clusters)
+        threshold=opts.threshold
+        clusters=[(ii,k,docs,idocs,dprobs,dlogprobs,threshold) for ii,k in enumerate(clusters) if k]
+        if len(clusters)==0:
+            continue
+        verbose("Total cluster larger than ",opts.min_size,': ',len(clusters))
+        print >> sys.stderr,  "Total cluster larger than ",opts.min_size,': ',len(clusters)
+        
 
-        nwfclusters=[]
-        nconclusters=[]
         visual=False
         if opts.show or opts.save:
             visual=True
 
         stats=[]
-        threshold=opts.threshold
 
-        kn=0
-        for ixk,k in enumerate(clusters):
-            if len(k)<=opts.min_size:
-                continue
-            similarity_ = [overlap(k,doc)  for doc in docs]
-            kn+=1
-            similarity=np.array(similarity_)
-            ixkdocs=np.nonzero(similarity>threshold)[0]
-           
-            total_docs=len(ixkdocs)
+        info['Threshold']=opts.threshold
 
-            # Counts of frecuencies per document in cluster (Generative model)
-            kdocs=[Counter(dict([(ix_,docs[ix][ix_]) for ix_ in
-                set(docs[ix].keys()).intersection(set(k.keys()))])) for ix in np.nditer(ixkdocs)]
-            kwcounts=reduce(operator.add, kdocs, Counter([]))
-            total_wf=sum(kwcounts.values())
-            kwfcounts=[(ix,1.0*c/total_wf) for ix,c in  kwcounts.most_common()]
-            # Save word frecuencies 
-            nwfclusters.append((total_docs,ixk,kwfcounts))
+        docs_recovered=Counter([])
+        # Just analyse the documents with terms in common
+        if opts.processors==1:
+            mapres=map(extractstats,clusters)
+        else:
+            print >> sys.stderr, 'Using multiple processors'
+            mapres=pool.map(extractstats,clusters)
+        stats=filter(None,mapres)
 
-            # Concurrency per word in cluster
-            kcdocs=[docs[ix] & k for ix in np.nditer(ixkdocs)]
-            kcwcounts=reduce(operator.add, kcdocs, Counter([]))
-            kconcounts=[(ix,1.0*c/total_docs) for ix,c in  kcwcounts.most_common()]
+        #return len(k), ixkdocs,jsd_actual
+        sizes= defaultdict(int)
+        docs_recoverd=Counter([])
+        for s, ixs, v in stats:
+            sizes[len(ixs)]+=1
+            docs_recovered.update(ixs)
 
-            # Calulate concurrency in cluster
-            con=-np.sum(np.log(np.array([y for x,y in kconcounts])))
+        docs_rand=dict([(s, 
+            [[random.choice(range(len(docs))) 
+                        for y in range(s)] 
+                        for x in range(50)]) 
+                        for s,vals in sizes.iteritems()])
 
-            # Save word frecuencies 
-            nconclusters.append((total_docs,ixk,con,kconcounts))
+        jsd_rand={}
+        for s,ks in docs_rand.iteritems():
+            jsd_rand[s]=np.average([ rand_jsd((ixkdocs,docs,dprobs,dlogprobs))
+                for ixkdocs in ks])
 
 
-            stats.append((
-                len(k),
-                len(similarity),
-                con #perplexity
-            ))
+        coh=sum([len(x[1])*(jsd_rand[len(x[1])]-x[2]) for x in stats])
+        den=sum([len(x[1]) for x in stats])
+        if den==0.0:
+            coh=0.0
+        else:
+            coh=coh/den
+        if len(stats)>0:
+            coh_=sum([x[2] for x in stats])/len(stats)
+        else:
+            coh_=0.0
+
+        info['Coherence']=coh
+        info['Coverture']=len(docs_recovered)
 
         txt="""\
 
     Cluster {0}:
         Size       : {1}
-        Total docs : {2}
-        Perplexity : {3}
+        Analysed   : {4}
+        Coverture  : {2}
+        Coherence  : {3}
+        Coherence*  : {5}
     """
 
-        basename=os.path.basename(cluster)
-
-        #nwfclusters.sort(key=lambda k: k[0])
-        with open ("{0}/{1}_wordfrecuency.txt".format(opts.odir,basename),'w') as kfile:
-            for h,ix,k in nwfclusters:
-                print >> kfile, ix, len(k), " ".join(["{0}:{1:0.4f}".format(ix,val) for ix,val in k]) 
-
-        nconclusters.sort(key=lambda k: k[0])
-        with open ("{0}/{1}_concurrency.txt".format(opts.odir,basename),'w') as kfile:
-            for h,ix,c,k in nconclusters:
-                print >> kfile, ix, len(k),"{0:0.4f}".format(c) , " ".join(["{0}:{1:0.4f}".format(ix,val) for ix,val in k]) 
-
-        if visual:
-            lens=np.array([s[0] for s in stats])
-            min = np.min(lens)
-            max = np.max(lens)
-            mu = np.mean(lens)
-            median = np.median(lens)
-            sigma = np.std(lens)
-            textstr = '$min=%d$,\n$max=%d$,\n$\mu=%.2f$\n$\mathrm{median}=%.2f$\n$\sigma=%.2f$'%(min,max,mu,
-                    median, sigma)
-
-            y,binEdges=np.histogram(lens,bins=100)
-            bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
-            fig=plt.figure()
-            p1 = fig.add_subplot(111)
-            plt.title('Histogram for {1} cluster size\n (threshold {0})'.format(opts.threshold,kn))
-            plt.xlabel('Cluster size (words)')
-            plt.ylabel('Number of clusters')
-            p1.plot(bincenters,y,'-')
-            p1.text(0.95, 0.95, textstr,
-                    transform=p1.transAxes,verticalalignment='top',horizontalalignment='right')
-
-            if opts.show:
-                fig.show()
-            if opts.save:
-                fig.savefig("{0}/{1}_hist_word.png".format(opts.odir,basename))
-
-            lens=np.array([s[1] for s in stats])
-            min = np.min(lens)
-            max = np.max(lens)
-            mu = np.mean(lens)
-            median = np.median(lens)
-            sigma = np.std(lens)
-            textstr = '$min=%d$,\n$max=%d$,\n$\mu=%.2f$\n$\mathrm{median}=%.2f$\n$\sigma=%.2f$'%(min,max,mu,
-                    median, sigma)
+        print txt.format(
+            cluster,
+            len(clusters),
+            len(docs_recovered),
+            coh,
+            len(stats),
+            coh_)
 
 
-            y,binEdges=np.histogram(lens,bins=100)
-            bincenters = 0.5*(binEdges[1:]+binEdges[:-1])
-            fig=plt.figure()
-            p2 = fig.add_subplot(111)
-            plt.title('Histogram for {1} cluster coverage\n (threshold {0})'.format(opts.threshold,kn))
-            plt.xlabel('Cluster hits (documents {0})'.format(len(docs)))
-            plt.ylabel('Number of clusters')
-            p2.plot(bincenters,y,'-')
-            p2.text(0.95, 0.95, textstr,
-                    transform=p2.transAxes,verticalalignment='top',horizontalalignment='right')
-
-
-            if opts.show:
-                fig.show()
-            if opts.save:
-                fig.savefig("{0}/{1}_hist_doc.png".format(opts.odir,basename))
-
-
-
-        #for i,stats in enumerate(stats):
-        #    print txt.format(opts.start+i,*stats)
-
-        

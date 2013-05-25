@@ -33,3 +33,11 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+clusters/
+data/
+imgs/
+report.pdf
+report.rst
+*.swo
+*.swp

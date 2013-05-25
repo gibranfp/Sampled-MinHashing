@@ -1,0 +1,7 @@
+{% macro printinfo(info) -%}
+
+{% for k,v in info.items() %}
+<strong>{{k}}</strong>:{{v}}, 
+{% endfor %}
+
+{%- endmacro %}

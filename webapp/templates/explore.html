@@ -1,22 +1,31 @@
 {% extends "default.html" %}
 
+{% from 'macros.html' import printinfo %}
+
 {% block content %}
 <h1>Cluster WebApp</h1>
 
-Conent of cluster {{filename}}
+Content of set of clusters {{filename}}
 
+<p>
+{{printinfo(info)}}
+</p>
+
+<form action="/wordclouds/{{filename}}" method="get">
 <ul>
-{% for num,size,score,values in content %}
-<li>
-{% if score %}
-    <a href="/vocab/{{num}}/{{size}}/{{score}}?{{values}}">Show vocab</a>
-    <a href="/wordcloud/{{num}}/{{size}}/{{score}}?{{values}}">Show wordcloud</a>
-{% else %}
-    <a href="/vocab/{{num}}/{{size}}?{{values}}">Show vocab</a>
-    <a href="/wordcloud/{{num}}/{{size}}?{{values}}">Show wordcloud</a>
-{% endif %}
-</li>
+{% for score,num,size,iid in content %}
+<p>
+<input type="checkbox" name="iid{{iid}}" value="{{iid}}">
+Cluster number {{iid}} with id {{num}} with size {{size}} {% if score %} {{score}} {% endif %}
+</input>
+    <a href="/vocab/{{corpus}}/{{type}}/{{filename}}/{{iid}}">[vocab]</a>
+    <a href="/wordcloud/{{corpus}}/{{type}}/{{filename}}/{{iid}}">[wordcloud]</a>
+    <a href="/showimage/size/{{corpus}}/{{type}}/{{filename}}/">[Hist Size]</a>
+    <a href="/showimage/cover/{{corpus}}/{{type}}/{{filename}}/">[Hist cover]</a>
+</p>
 {% endfor %}
 </ul>
+<input type="submit" value="Draw wordclouds">
+</form>
 
 {% endblock %}

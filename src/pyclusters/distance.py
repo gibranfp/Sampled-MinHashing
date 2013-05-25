@@ -32,9 +32,9 @@ def jacard(A, B):
     num=len(A.intersection(B))*1.0
     den=len(A.union(B))
     if den==0:
-        return 0.0
+        return 1.0
     else:
-        return  1-num/den 
+        return  num/den 
  
 def masi_distance (A, B):
     label1=set(A.elements())

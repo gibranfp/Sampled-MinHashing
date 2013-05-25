@@ -22,23 +22,20 @@
 
 from collections import Counter
 import sys
+from sets import Set
+import numpy as np
 
-def line_cluster1(line):
-    line=line.split(':',1)[1]
-    data=map(int, line.strip().split())
-    return Counter(data)
-
-
-def line_cluster0(line):
-    data=map(int, line.strip().split())
-    data=data[1:]
-    return Counter(data)
-
-
-def read_clusters(filename,out=sys.stdout,err=sys.stderr,format=0):
+def len_clusters(filename,format=0):
     skipped=False
-    clusters=[]
-    
+
+    def line_cluster1(line):
+        line=line.split(':',1)[1].strip().split()
+        return len(line)
+
+    def line_cluster0(line):
+        line=line.strip().split()
+        return len(line)-1
+
     with open(filename) as cf:
         # 1st info
         # size words
@@ -50,6 +47,62 @@ def read_clusters(filename,out=sys.stdout,err=sys.stderr,format=0):
             clusters=map(line_cluster1,cf)
             return clusters
 
+
+
+def read_clusters(filename,out=sys.stdout,err=sys.stderr,format=0,min=0):
+    skipped=False
+    clusters=[]
+   
+
+    def line_cluster1(line):
+        line=line.split(':',1)[1].strip().split()
+        if min>0 and len(line)<min:
+            return None
+        else:
+            data=map(int, line)
+            return Counter(data)
+
+    def line_cluster0(line):
+        line=line.strip().split()
+        if min>0 and len(line)<min:
+            return None
+        else:
+            data=map(int, line)
+            data=data[1:]
+            return Counter(data)
+
+    with open(filename) as cf:
+        # 1st info
+        # size words
+        if format==0:
+            clusters=map(line_cluster0,cf)
+            return clusters[1:]
+        # size: words
+        elif format==1:
+            clusters=map(line_cluster1,cf)
+            return clusters
+
+
+def docs2probs(docs):
+    docs_=[]
+    logdocs_=[]
+    for doc in docs:
+        t=sum(doc.values())
+        docs_.append(dict([(k,1.0*v/t) for k,v in doc.iteritems() ])) 
+        logdocs_.append(dict([(k,np.log(1.0*v/t)) for k,v in doc.iteritems() ])) 
+    return docs_,logdocs_
+
+
+def docs2if(docs):
+    if_={}
+    for idoc,doc in enumerate(docs):
+        for w,v in doc.iteritems():
+            try:
+                if_[w].append(idoc)
+            except KeyError:
+                if_[w]=[idoc]
+    return dict([(k,Set(v)) for k,v in if_.iteritems()])
+        
 
 def tf(w):
     bits=w.split(':')
