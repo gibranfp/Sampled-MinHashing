@@ -19,7 +19,7 @@
  *
  * @brief Functions for computing MinHash functions, creating hash tables
  *        and storing data into them. Hash tables as arrays of single 
- *        linked lists and conflict resolution is done with separate 
+ *        linked lists and conflict resolution is done with separate
  *        chaining and open adressing.
  */
 #include <stdio.h>
@@ -531,12 +531,11 @@ void mhw_randperm(uint d, uint r, uint *hmat, double *umat)
      for (i = 0; i < r; i++){//generates random permutations
 	  for (j = 0; j < d; j++){//assigns random numbers to each item
 	       rnd = (uint) rand();
-	       hmat[i * d + j] = rnd % INF;
 	       umat[i * d + j] = -log((double)rnd / ((double) RAND_MAX + 1));
+	       hmat[i * d + j] = rnd % INF;
 	       while (hmat[i * d + j] == 0){
 		    rnd = (uint) rand();
 		    hmat[i * d + j] = rnd % INF;
-		    umat[i * d + j] = -log((double)rnd / ((double) RAND_MAX + 1));
 	       }
 	  }
      }
@@ -565,9 +564,10 @@ uint mhw_getindex(uint *set, uint *weight, uint card, uint d,
 		  uint *hmat, double *umat, uint r, Bucket *htable,
 		  uint table_size, uint *a, uint *b)
 {
-     int i, j, k, minperm;
+     int i, j, k;
      uint index;
      uint hvalue;
+     uint minperm;
      double minhv;
      unsigned long long tmp_index, tmp_hv;
      
@@ -582,7 +582,6 @@ uint mhw_getindex(uint *set, uint *weight, uint card, uint d,
 		    minhv = umat[i * d + set[j]] / weight[j];
 	       }
 	  }
-	  printf("%d\n", minperm);
 	  tmp_index += a[i] * hmat[i * d + minperm];
 	  tmp_hv += b[i] * hmat[i * d + minperm]; 
      }
@@ -635,17 +634,17 @@ uint mhw_getindex(uint *set, uint *weight, uint card, uint d,
  * @param a Random values for 2nd-level hashing
  * @param b Random values for 2nd-level hashing
  */ 
-void mhw_hashset(uint *set, uint *weight, uint card, uint id, uint d, 
+void mhw_hashset(uint *set, uint *weight, uint card, uint setid, uint d, 
 		 uint *hmat, double *umat, uint r, Bucket *htable, 
 		 uint table_size, uint *a, uint *b)
 {
      uint index;
      Node *tmp;
-
+     
      index = mhw_getindex(set, weight, card, d, hmat, umat, r, 
 			  htable, table_size, a, b);
      tmp = (Node *) malloc(sizeof(Node));
-     tmp->item = id;
+     tmp->item = setid;
      tmp->next = NULL;
      if (htable[index].head == NULL){//if bucket has not been used
 	  htable[index].head = tmp;//set becomes the head and tail
@@ -676,8 +675,10 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 	      uint r, uint l, uint table_size, uint ***mined, 
 	      uint *mined_card, uint *mined_num)
 {
-     uint i, j, k;
+     uint i, j, k, x;
      Node *ptr, *tmp;
+     uint **ms = NULL;//mined sets 
+     uint *mc = NULL;//set cardinalities
      Bucket *htable;//Hash table
      uint *hmat;//Holds random permutations
      double *umat;//Holds random permutations
@@ -688,14 +689,23 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
      mhw_init(d, r, l, &hmat, &umat, &htable, table_size, &a, &b);  
      for (i = 0; i < l; i++){
 	  mhw_randperm(d, r, hmat, umat);
+	  printf("\tTable %d: ",i);
 	  for (j = 0; j < n; j++)
 	       mhw_hashset(setdb[j], weight[j], card[j], j, d, hmat, 
 			   umat, r, htable, table_size, a, b);
 	  k = 0;
 	  for (j = 0; j < table_size; j++){
 	       if (htable[j].card > 2){//Discards mined with few words
+		    ms = (uint **) realloc(ms, 
+					   (total + 1) * sizeof(uint *));
+		    mc = (uint *) realloc(mc, 
+					  (total + 1) * sizeof(uint));
+		    mc[total] = htable[j].card;
+		    ms[total] = (uint *) malloc(mc[total] * sizeof(uint));
+		    x = 0;
 		    ptr = htable[j].head;
 		    while (ptr != NULL){
+			 ms[total][x] = ptr->item;
 			 tmp = ptr;
 			 ptr = ptr->next;
 			 free(tmp);
@@ -714,8 +724,10 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 	       htable[j].head = htable[j].tail = NULL;
 	       htable[j].card = htable[j].hvalue = 0;
 	  }
-//	  printf("Mined = %d, Total = %d\n", k, total);
+	  printf("Mined = %d, Total = %d\n", k, total);
      }
+     *mined = ms;
+     *mined_card = mc;
      *mined_num = total;
 }
 
