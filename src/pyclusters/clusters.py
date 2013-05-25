@@ -77,18 +77,18 @@ def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
 def jsd(doc,logdoc,clu,logclu):
     k1=Set(doc.keys())
     k2=Set(clu.keys())
-    commons=list(k1.intersection(k2))
+    commons=k1.intersection(k2)
     p=np.array([doc[c] for c in commons])
     q=np.array([clu[c] for c in commons])
     p_=np.array([logdoc[c] for c in commons])
     q_=np.array([logclu[c] for c in commons])
 
-    m_=np.log((p+q))-np.log(2)
+    m_=np.log((np.add(p,q)))-np.log(2)
     res=dkl(p,p_,m_)/2+dkl(q,q_,m_)/2
     return res
 
 def dkl(p,p_log,m_log):
-    res=np.sum(p*(p_log-m_log))
+    res=np.sum(np.multiply(p,(np.subtract(p_log,m_log))))
     return res
 
 
@@ -224,19 +224,22 @@ if __name__ == "__main__":
             sizes[len(ixs)]+=1
             docs_recovered.update(ixs)
 
-        docs_rand=dict([(s, 
-            [[random.choice(range(len(docs))) 
-                        for y in range(s)] 
-                        for x in range(50)]) 
-                        for s,vals in sizes.iteritems()])
+        #idocs_rand=dict([(s, 
+        #    [[random.choice(range(len(docs))) 
+        #                for y in range(s)] 
+        #                for x in range(50)]) 
+        #                for s,vals in sizes.iteritems()])
 
-        jsd_rand={}
-        for s,ks in docs_rand.iteritems():
-            jsd_rand[s]=np.average([ rand_jsd((ixkdocs,docs,dprobs,dlogprobs))
-                for ixkdocs in ks])
+        #jsd_rand={}
+        #for s,ks in docs_rand.iteritems():
+        #    jsd_rand[s]=np.average([ rand_jsd((ixkdocs,docs,dprobs,dlogprobs))
+        #        for ixkdocs in ks])
 
+        for x in stats:
+            print '>>',len(x[1]),x[2]
 
-        coh=sum([len(x[1])*(jsd_rand[len(x[1])]-x[2]) for x in stats])
+        #coh=sum([len(x[1])*(jsd_rand[len(x[1])]-x[2]) for x in stats])
+        coh=sum([len(x[1])*x[2] for x in stats])
         den=sum([len(x[1]) for x in stats])
         if den==0.0:
             coh=0.0
