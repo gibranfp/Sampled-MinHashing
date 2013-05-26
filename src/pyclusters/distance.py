@@ -25,6 +25,7 @@
 #import nltk
 from math import sqrt
 from math import pow
+import numpy as np
 
 def jacard(A, B):
     A=set(A.elements())
@@ -72,9 +73,11 @@ def sorensen(A, B ,**args):
     return 1-float(2.0*d1d2 / (len(vec1) + len(vec2) ) )
 
 
-def overlap(a,b):
-    num = len(a & b)*1.0
-    den = min(len(a),len(b))
+def overlap(k,d):
+    inter= np.intersect1d(k.indices,d.indices)
+    num = inter.shape[0]*1.0
+    den = min(len(k.data),len(d.data))
+    
     if den==0:
         return 1.0
     else:
