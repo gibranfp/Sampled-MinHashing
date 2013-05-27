@@ -8,6 +8,7 @@
 #ifndef MINHASH_H
 #define MINHASH_H
 
+#include <inttypes.h>
 #include "types.h"
 #include "ifutils.h"
 
@@ -56,7 +57,7 @@ void mhw_hashset(uint *set, uint *weight, uint card, uint setid, uint d,
 		 uint table_size, uint *a, uint *b);
 void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 	      uint r, uint l, uint table_size, uint ***mined, 
-	      uint *mined_card, uint *mined_num);
+	      uint **mined_card, uint *mined_num);
 uint mhl_getindex(Set set, uint d, uint *hmat, uint r, 
 		  Bucket *htable, uint table_size, uint *a, uint *b);
 void mhl_hashset(Set set, uint setid, uint d, uint *hmat, uint r, 

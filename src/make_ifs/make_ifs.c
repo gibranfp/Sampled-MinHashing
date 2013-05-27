@@ -25,6 +25,8 @@
 #include <math.h>
 #include <time.h>
 #include <getopt.h>
+#include <float.h>
+#include <inttypes.h>
 #include "types.h"
 #include "ifutils.h"
 #include "weights.h"
@@ -54,26 +56,28 @@ void usage(void)
  * @param doc_card Number of terms in each document
  * @param corpus_size Number of documents in the corpus
  */
-void make_ifs(uint **corpus, uint **corpfreq, uint **docfreq, 
-		uint *dcard, uint corpsize, uint *voc, uint vocsize,
-		uint ***ifs, void ***weight, uint **ifs_card,
-		double (*wg)(const void*,const void*,const void*))
+void make_ifs(uint **corpus, uint **termfreq, uint *doccard, uint corpsize, 
+	      uint *voc, uint *corpfreq, uint *docfreq, uint vocsize,
+	      uint ***ifs, uint ***weight, uint **ifs_card,
+	      double (*wg)(const void*,const void*,const void*))
 {
-     uint i;
-     uint **db = (uint **) calloc(vocsize, sizeof(uint *));
-     uint **tw = (uint **) calloc(vocsize, sizeof(uint *));
+     uint i, j;
+     uint tid;
+     double wval;
+     uint **db = (uint **) malloc(vocsize * sizeof(uint *));
+     uint **tw = (uint **) malloc(vocsize * sizeof(uint *));
      uint *tc = (uint *) calloc(vocsize, sizeof(uint));
+
+     for (i = 0; i < vocsize; i++){
+	  db[i] = (uint *) malloc(docfreq[i] * sizeof(uint));
+	  tw[i] = (uint *) malloc(docfreq[i] * sizeof(uint));
+     }
+     
      for (i = 0; i < corpsize; i++){
-	  uint j;
-	  for (j = 0; j < dcard[i]; j++){
-	       uint tid = corpus[i][j];
-	       db[tid] = (uint *) realloc(db, (tc[tid] + 1)
-					  * sizeof(uint));
+	  for (j = 0; j < doccard[i]; j++){
+	       tid = corpus[i][j];
 	       db[tid][tc[tid]] = i;
-	       tw[tid] = (uint *) realloc(db, (tc[tid] + 1)
-					  * sizeof(uint));
-	       double wval = (double)(*wg)(corpfreq[i][j], 
-					   docfreq[i][j], corpsize);
+	       wval = (double) termfreq[i][j] * log((double) corpsize / (double) docfreq[tid]);
 	       tw[tid][tc[tid]] = intweight(wval);
 	       tc[tid]++;
 	  }
@@ -146,17 +150,10 @@ int main(int argc, char **argv)
 	  output_file = argv[optind++];
 	  read_corpus(corpus_file, &corpus, &termfreq, &doccard, 
 		      &corpsize);
-	  uint i, j;
-	  for (i = 0; i < corpsize; ++i){
-	       printf("%u ",doccard[i]);
-	       for (j = 0; j < corpsize; ++j)
-	  	    printf("%u:%u ",corpus[i][j], termfreq[i][j]);
-	       printf("\n");
-	  }
 	  read_vocab(vocab_file, &vocab, &termid, &corpfreq, 
 		     &docfreq, &vocsize);
-	  make_ifs(corpus, corpfreq, docfreq, doccard, corpsize, 
-		   vocab, vocsize, &ifs, &weight, &ifs_card, tfidf);
+	  make_ifs(corpus, termfreq, doccard, corpsize, 
+		   vocab, corpfreq, docfreq, vocsize, &ifs, &weight, &ifs_card, tfidf);
 	  setwdb_write(output_file, ifs, weight, ifs_card, vocsize, 
 		       corpsize);
      }
