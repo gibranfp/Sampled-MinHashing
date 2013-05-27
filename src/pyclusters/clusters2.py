@@ -36,9 +36,10 @@ from multiprocessing import Pool
 
 
 # Local imports
-from Utils import read_clusters, read_docs, docs2if, docs2probs
+from Utils import read_clusters2, read_docs2, docs2if, docs2probs
 from distance import jacard,overlap
 
+import scipy.sparse as sparse
 import numpy as np
 import matplotlib.pyplot as plt
 from math import log
@@ -56,40 +57,42 @@ def rand_jsd((ixkdocs_,docs,dprobs,dlogprobs)):
 
 
 def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
-    ixdocs=reduce(operator.or_,[idocs[kk] for kk in k.keys()],Set())
-    docs_=[docs[ii] for ii in ixdocs]
+    ixdocs=np.unique(idocs[k.data].data)
+    if len(ixdocs)==0:
+        return None
+    docs_=docs[ixdocs]
     similarity = np.array([overlap(k,doc)  for doc in docs_])
     ixkdocs=np.nonzero(similarity>threshold)[0]
-    print >> sys.stderr,ikluster, ' Clusters Analised of size ', len(k), ' with a coverage of ', len(ixkdocs)
+    print >> sys.stderr,ikluster, ' Clusters Analised of size ', len(k.data), ' with a coverage of ', len(ixkdocs)
     if len(ixkdocs)<50 or len(ixkdocs)>50000:
         return None
-    dprobs_=[dprobs[ii] for ii in ixdocs]
-    dlogprobs_=[dlogprobs[ii] for ii in ixdocs]
-    docs_=[docs_[ii] for ii in ixkdocs]
-    dprobs_=[dprobs_[ii] for ii in ixkdocs]
-    dlogprobs_=[dlogprobs_[ii] for ii in ixkdocs]
-    k_probs,k_logprobs=docs2probs(
-            [reduce(operator.add,docs_,Counter())])
-    jsd_actual=np.average(np.array([jsd(doc,dlogprobs_[ii],k_probs[0],k_logprobs[0]) for ii,doc in enumerate(dprobs_)]))
-    return len(k),ixkdocs,jsd_actual
+
+    dprobs_=dprobs[ixdocs]
+    dlogprobs_=dlogprobs[ixdocs]
+    docs_=docs_[ixkdocs]
+    dprobs_=dprobs_[ixkdocs]
+    dlogprobs_=dlogprobs_[ixkdocs]
+    cols= docs_.sum(axis=0)
+    total=cols.sum()
+    probs=cols/total
+    logprobs=np.log(cols/total)
+
+    logprobs=np.nan_to_num(logprobs)
+    k_probs=sparse.csr_matrix((probs),shape=(1,docs.shape[1]))
+    k_logprobs=sparse.csr_matrix((logprobs),shape=(1,docs.shape[1]))
+    jsd_actual=np.average(np.array([jsd(ii,doc,dlogprobs_[ii],k_probs,k_logprobs) for ii,doc in enumerate(dprobs_)]))
+    return k.shape[0],ixkdocs,jsd_actual
 
 
-def jsd(doc,logdoc,clu,logclu):
-    k1=Set(doc.keys())
-    k2=Set(clu.keys())
-    commons=k1.intersection(k2)
-    p=np.array([doc[c] for c in commons])
-    q=np.array([clu[c] for c in commons])
-    p_=np.array([logdoc[c] for c in commons])
-    q_=np.array([logclu[c] for c in commons])
-
-    m_=np.log((np.add(p,q)))-np.log(2)
-    res=dkl(p,p_,m_)/2+dkl(q,q_,m_)/2
+def jsd(ii,doc,logdoc,clu,logclu):
+    m_= (doc+clu)/2
+    m_.data=np.log(m_.data)
+    res=dkl(doc,logdoc,m_)/2+dkl(clu,logclu,m_)/2
     return res
 
 def dkl(p,p_log,m_log):
-    res=np.sum(np.multiply(p,(np.subtract(p_log,m_log))))
-    return res
+    val=p.multiply(p_log-m_log)
+    return val.sum()
 
 
 # MAIN
@@ -163,7 +166,8 @@ if __name__ == "__main__":
 
 
     verbose("Loading documents file",args[0])
-    docs=read_docs(args[0])
+    docs=read_docs2(args[0])
+    verbose("Calculating probabilities")
     dprobs,dlogprobs=docs2probs(docs)
     verbose("Creating inverse file")
     idocs=docs2if(docs)
@@ -176,13 +180,13 @@ if __name__ == "__main__":
  
         verbose("Loading clustering ",cluster)
         print >> sys.stderr, "Loading clustering ",cluster
-        clusters=read_clusters(cluster,format=opts.format,min=opts.min_size)
-        info['Original total cluster']=len(clusters)
-        verbose("Original number of clusters ",len(clusters))
-        print >> sys.stderr, "Original number of clusters ",len(clusters)
-        if len(clusters)==0:
+        clusters=read_clusters2(cluster,format=opts.format,min=opts.min_size)
+        info['Original total cluster']=clusters.shape[0]
+        verbose("Original number of clusters ",clusters.shape[0])
+        print >> sys.stderr, "Original number of clusters ",clusters.shape[0]
+        if clusters.shape[0]==0:
             continue
-        if len(clusters)>300000:
+        if clusters.shape[0]>30000:
             continue
         info['Original Filename']=cluster
         info['Starting point']=opts.start
@@ -191,9 +195,9 @@ if __name__ == "__main__":
             info['Total cluster analysed']=opts.max
         else:
             clusters=clusters[opts.start:]
-            info['Total cluster analysed']=len(clusters)
+            info['Total cluster analysed']=clusters.shape[0]
         threshold=opts.threshold
-        clusters=[(ii,k,docs,idocs,dprobs,dlogprobs,threshold) for ii,k in enumerate(clusters) if k]
+        clusters=[(ii,k,docs,idocs,dprobs,dlogprobs,threshold) for ii,k in enumerate(clusters) if k.shape[0]]
         if len(clusters)==0:
             continue
         verbose("Total cluster larger than ",opts.min_size,': ',len(clusters))
@@ -208,21 +212,26 @@ if __name__ == "__main__":
 
         info['Threshold']=opts.threshold
 
-        docs_recovered=Counter([])
         # Just analyse the documents with terms in common
         if opts.processors==1:
             mapres=map(extractstats,clusters)
         else:
-            print >> sys.stderr, 'Using multiple processors'
+            print >> sys.stderr, '- Using multiple processors'
+            print >> sys.stderr, len(clusters)
             mapres=pool.map(extractstats,clusters)
         stats=filter(None,mapres)
 
         #return len(k), ixkdocs,jsd_actual
-        sizes= defaultdict(int)
-        docs_recoverd=Counter([])
+        docs_recovered=[]
         for s, ixs, v in stats:
-            sizes[len(ixs)]+=1
-            docs_recovered.update(ixs)
+            docs_recovered.append(ixs)
+
+        if len(docs_recovered)>0:
+            dd=np.concatenate(docs_recovered)
+            docs_recovered=np.unique(dd)
+        else:
+            docs_recovered=[]
+    
 
         #idocs_rand=dict([(s, 
         #    [[random.choice(range(len(docs))) 
@@ -270,5 +279,5 @@ if __name__ == "__main__":
             coh,
             len(stats),
             coh_)
-
-
+#
+#
