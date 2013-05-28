@@ -23,12 +23,14 @@
 #ifndef WEIGHTS_H
 #define WEIGHTS_H
 
+#include "inttypes.h"
 #include "types.h"
 
-double tf(uint tf, uint df, uint corpsize);
-double logtf(uint tf, uint df, uint corpsize);
-double bintf(uint tf, uint df,uint corpsize);
-double idf(uint tf, uint df, uint corpsize);
-double tfidf(uint tf, uint df, uint corpsize);
+double tf(const void *tf, const void *df, const void *corpsize);
+double logtf(const void *tf, const void *df, const void *corpsize);
+double bintf(const void *tf, const void *df,const void *corpsize);
+double idf(const void *tf, const void *df, const void *corpsize);
+double tfidf(const void *tf, const void *df, const void *corpsize);
+double tfidf_weight(uint tf, uint df, uint corpsize);
 uint intweight(double weight);
 #endif

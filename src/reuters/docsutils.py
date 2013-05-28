@@ -121,10 +121,10 @@ def docszip((n,filename,voca,path,sw,splits,splitnames),log=True):
                     vocastr(pp.tail,cwords,sw,voca)
                 vocastr(child.text,cwords,sw,voca)
                 vocastr(child.tail,cwords,sw,voca)
-                cnts=["{0}:{1}".format(voca[w],x) for w,x in cwords.most_common() if voca.has_key(w)]
-                print >> corpusfile[splits[info.filename]], "{0} {1}".format(len(cwords)," ".join(cnts))
-                print >> idxfile[splits[info.filename]],"{0}:{1}".format(filename,info.filename)
-                docs_+=1
+            cnts=["{0}:{1}".format(voca[w],x) for w,x in cwords.most_common() if voca.has_key(w)]
+            print >> corpusfile[splits[info.filename]], "{0} {1}".format(len(cwords)," ".join(cnts))
+            print >> idxfile[splits[info.filename]],"{0}:{1}".format(filename,info.filename)
+            docs_+=1
         except ET.ParseError:
             print "Error in XML file:",info.filename 
             if log:

@@ -24,6 +24,7 @@
 #include <math.h>
 #include <time.h>
 #include <getopt.h>
+#include <inttypes.h>
 #include "types.h"
 #include "ifutils.h"
 #include "minhash.h"
@@ -72,9 +73,9 @@ void mhclus_mine(int opnum, char **opts)
      uint **ifs;//inverted file
      uint **weight;//set weights
      uint *ifs_card;
-     uint **cws;//co-occurring word sets
-     uint *cws_card;
-     uint cws_num;
+     uint **mined;//co-occurring word sets
+     uint *mined_card;
+     uint mined_num;
      uint d, n;//Dimensionality and cardinality of database
      uint r = 4;//Default tuple size
      uint l = 500;//Default tuple number
@@ -133,15 +134,25 @@ void mhclus_mine(int opnum, char **opts)
 	  output = opts[optind++];
 	  if (weight_flag){
 	    setwdb_read(input, &ifs, &weight, &ifs_card, &n, &d);
+	    uint i,j;
+	    for (i = 0; i < n; ++i)
+	    {
+		 printf("%d ",ifs_card[i]);
+		 for (j = 0; j < ifs_card[i]; ++j)
+		 {
+		      printf("%d %u ",ifs[i][j], weight[i][j]);
+		 }
+		 printf("\n");
+	    }
 	    mhw_mine(ifs, weight, ifs_card, n, d, r, l, table_size, 
-		     &cws, &cws_card, &cws_num);
-	    setdb_write(output, cws, cws_card, cws_num, n);
+		     &mined, &mined_card, &mined_num);
+	    setdb_write(output, mined, mined_card, mined_num, n);
 	  }
 	  else {
 	       setdb_read(input, &ifs, &ifs_card, &n, &d);
-	       mh_mine(ifs, ifs_card, n, d, r, l, table_size, &cws, 
-		       &cws_card, &cws_num);
-	       setdb_write(output, cws, cws_card, cws_num, n);
+	       mh_mine(ifs, ifs_card, n, d, r, l, table_size, &mined, 
+		       &mined_card, &mined_num);
+	       setdb_write(output, mined, mined_card, mined_num, n);
 	  }
      }
      else{
