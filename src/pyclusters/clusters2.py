@@ -64,7 +64,7 @@ def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
     similarity = np.array([overlap(k,doc)  for doc in docs_])
     ixkdocs=np.nonzero(similarity>threshold)[0]
     print >> sys.stderr,ikluster, ' Clusters Analised of size ', len(k.data), ' with a coverage of ', len(ixkdocs)
-    if len(ixkdocs)<50 or len(ixkdocs)>50000:
+    if len(ixkdocs)==0:
         return None
 
     dprobs_=dprobs[ixdocs]
@@ -79,17 +79,13 @@ def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
 
     logprobs=np.nan_to_num(logprobs)
     k_probs=sparse.csr_matrix((probs),shape=(1,docs.shape[1]))
-    print len(k_probs.indices)
     k_logprobs=sparse.csr_matrix((logprobs),shape=(1,docs.shape[1]))
     jsd_actual=np.average(np.array([jsd(ii,doc,dlogprobs_[ii],k_probs,k_logprobs) for ii,doc in enumerate(dprobs_)]))
     return k.shape[0],ixkdocs,jsd_actual
 
 
 def jsd(ii,doc,logdoc,clu,logclu):
-    print doc
-    print clu
     m_= (doc+clu)/2
-    print m_
     m_.data=np.log(m_.data)
     res=dkl(doc,logdoc,m_)/2+dkl(clu,logclu,m_)/2
     return res
