@@ -1,10 +1,66 @@
 doc:
     - title
     - intro
-    - expCWS
     - expACWS
-    - expPrune
     - expAPrune
+    - expWA
+    - expWAPrune
+#    - expCWS
+#    - expPrune
+
+expAPrune:
+    block: !!omap
+        - title: Resumen de experimentos con Min-Hash Prunned Agglomerative
+        - import: clusters
+        - code: clusters.analysedir(args[1],
+                    u'pruned_aglomerative',[
+                        (u'Umbral de similaridad',[
+                                (0.10,".*ifs-\.10.*\.[789]\.model"),
+                                (0.13,".*ifs-\.13.*\.[789]\.model"),
+                                (0.15,".*ifs-\.15.*\.[789]\.model"),
+                                ]),
+                        (u'Número de hash por grupo',[
+                                (3,".*ifs-[^-]+-3-.*\.[789]\.model"),
+                                (4,".*ifs-[^-]+-4-.*\.[789]\.model"),
+                        ])
+                ])
+
+
+expWAPrune:
+    block: !!omap
+        - title: Resumen de experimentos con Min-Hash Prunned Agglomerative
+        - import: clusters
+        - code: clusters.analysedir(args[1],
+                    u'weighted/cluster/pruned',[
+                        (u'Umbral de similaridad',[
+                                (0.10,".*wifs-0\.10.*\.[789]\.model"),
+                                (0.13,".*wifs-0\.13.*\.[789]\.model"),
+                                (0.15,".*wifs-0\.15.*\.[789]\.model"),
+                                ]),
+                        (u'Número de hash por grupo',[
+                                (3,".*wifs-[^-]+-3-.*\.[789]\.model"),
+                                (4,".*wifs-[^-]+-4-.*\.[789]\.model"),
+                        ])
+                ])
+
+
+expWA:
+    block: !!omap
+        - title: "Resumen de experimentos con Min-Hash Agglomerative (No prunning)"
+        - import: clusters
+        - code: clusters.analysedir(args[1],
+                    u'weighted/cluster/cws',[
+                        (u'Umbral de similaridad',[
+                                (0.10,".*wifs-0\.10.*\.[789]\.model"),
+                                (0.13,".*wifs-0\.13.*\.[789]\.model"),
+                                (0.15,".*wifs-0\.15.*\.[789]\.model"),
+                                ]),
+                        (u'Número de hash por grupo',[
+                                (3,".*wifs-[^-]+-3-.*\.[789]\.model"),
+                                (4,".*wifs-[^-]+-4-.*\.[789]\.model"),
+                        ])
+                ])
+
 
 
 expCWS:
@@ -13,7 +69,7 @@ expCWS:
         - import: clusters
         - code: clusters.analysedir(args[1],
                                     u'cws',[
-                   (u'Número de hash por grupo 1',[
+                    (u'Número de hash por grupo 1',[
                             (3,".*ifs-[^-]+-3.*\.cws"),
                             (4,".*ifs-[^-]+-4.*\.cws"),
                             (5,".*ifs-[^-]+-5.*\.cws"),
@@ -33,13 +89,13 @@ expACWS:
         - code: clusters.analysedir(args[1],
                                     u'cws_aglomerative',[
                     (u'Umbral de similaridad',[
-                            (10,".*ifs-\.10.*\.model"),
-                            (13,".*ifs-\.13.*\.model"),
-                            (15,".*ifs-\.15.*\.model"),
+                            (0.10,".*ifs-\.10.*\.[789]\.model"),
+                            (0.13,".*ifs-\.13.*\.[789]\.model"),
+                            (0.15,".*ifs-\.15.*\.[789]\.model"),
                             ]),
                     (u'Número de hash por grupo',[
-                            (3,".*ifs-[^-]+-3-.*\.model"),
-                            (4,".*ifs-[^-]+-4-.*\.model"),
+                            (3,".*ifs-[^-]+-3-.*\.[789]\.model"),
+                            (4,".*ifs-[^-]+-4-.*\.[789]\.model"),
                     ])
                  ])
 
@@ -52,9 +108,9 @@ expPrune:
         - code: clusters.analysedir(args[1],
                                     u'pruned',[
                     (u'Umbral de similaridad',[
-                            (10,".*ifs-\.10.*\.pruned"),
-                            (13,".*ifs-\.13.*\.pruned"),
-                            (15,".*ifs-\.15.*\.pruned"),
+                            (0.10,".*ifs-\.10.*\.pruned"),
+                            (0.13,".*ifs-\.13.*\.pruned"),
+                            (0.15,".*ifs-\.15.*\.pruned"),
                             ]),
                     (u'Número de hash por grupo',[
                             (3,".*ifs-[^-]+-3-.*\.pruned"),
@@ -62,24 +118,6 @@ expPrune:
                     ])
                 ])
 
-
-expAPrune:
-    block: !!omap
-        - title: Experimentos con clusters prunned y aglomerative
-        - import: clusters
-        - code: clusters.analysedir(args[1],
-                                    u'pruned_aglomerative',[
-                    (u'Umbral de similaridad',[
-                            (10,".*ifs-\.10.*\.model"),
-                            (13,".*ifs-\.13.*\.model"),
-                            (15,".*ifs-\.15.*\.model"),
-                            ]),
-                    (u'Número de hash por grupo',[
-                            (3,".*ifs-[^-]+-3-.*\.model"),
-                            (4,".*ifs-[^-]+-4-.*\.model"),
-                    ])
- 
-                ])
 
 
 

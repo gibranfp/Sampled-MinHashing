@@ -35,6 +35,11 @@ from Utils import len_clusters
 
 
 def analysedir(dir,type,sections):
+    if '/' in type:
+        type_=os.path.basename(type)
+    else:
+        type_=type
+
     dir=dir+'/'+type
     txt=[]
 
@@ -61,9 +66,9 @@ def analysedir(dir,type,sections):
                 maxs[-1].append(np.amax(data))
                 lens[-1].append(len(data))
                 avgs[-1].append(np.average(data))
-        fn1=rst_plot(maxs,labels,u'boxplot','max'+type,prefix="sec{0}_".format(isec),stitle='Maximum size of cluster')
-        fn2=rst_plot(lens,labels,u'boxplot','len'+type,prefix="sec{0}_".format(isec),stitle='Total number of clusters')
-        fn3=rst_plot(avgs,labels,u'boxplot','avgs'+type,prefix="sec{0}_".format(isec),stitle='Average size of cluster')
+        fn1=rst_plot(maxs,labels,u'boxplot','max'+type_,prefix="sec{0}_".format(isec),stitle='Maximum size of cluster')
+        fn2=rst_plot(lens,labels,u'boxplot','len'+type_,prefix="sec{0}_".format(isec),stitle='Total number of clusters')
+        fn3=rst_plot(avgs,labels,u'boxplot','avgs'+type_,prefix="sec{0}_".format(isec),stitle='Average size of cluster')
         txt.extend([
             rst_images([(fn1,{'scale':u'80%','align':'center'})]),
             rst_images([(fn2,{'scale':u'80%','align':'center'})]),

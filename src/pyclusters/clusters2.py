@@ -64,7 +64,7 @@ def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
     similarity = np.array([overlap(k,doc)  for doc in docs_])
     ixkdocs=np.nonzero(similarity>threshold)[0]
     print >> sys.stderr,ikluster, ' Clusters Analised of size ', len(k.data), ' with a coverage of ', len(ixkdocs)
-    if len(ixkdocs)<50 or len(ixkdocs)>50000:
+    if len(ixkdocs)<50:
         return None
 
     dprobs_=dprobs[ixdocs]
@@ -81,7 +81,7 @@ def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
     k_probs=sparse.csr_matrix((probs),shape=(1,docs.shape[1]))
     k_logprobs=sparse.csr_matrix((logprobs),shape=(1,docs.shape[1]))
     jsd_actual=np.average(np.array([jsd(ii,doc,dlogprobs_[ii],k_probs,k_logprobs) for ii,doc in enumerate(dprobs_)]))
-    return k.shape[0],ixkdocs,jsd_actual
+    return k.shape[1],ixkdocs,jsd_actual
 
 
 def jsd(ii,doc,logdoc,clu,logclu):
@@ -244,10 +244,27 @@ if __name__ == "__main__":
         #    jsd_rand[s]=np.average([ rand_jsd((ixkdocs,docs,dprobs,dlogprobs))
         #        for ixkdocs in ks])
 
+        fig,ax1 = plt.subplots()        
+        points1=[(len(x[1]),x[2]) for x in stats]
         for x in stats:
-            print '>>',len(x[1]),x[2]
+            print '>>>>',x[0],len(x[1]),x[2]
 
-        #coh=sum([len(x[1])*(jsd_rand[len(x[1])]-x[2]) for x in stats])
+        vals={}
+        for x,y in points1:
+            try:
+                vals[x].append(y)
+            except KeyError:
+                vals[x]=[y]
+
+        points1=[(x,np.mean(y)) for x,y in vals.iteritems()]
+        points1.sort()
+
+        ax1.plot(*zip(*points1),marker='o',color='r',ls='')
+        ax1.set_xscale('log')
+        ax1.set_xticks([10,20,100,200,1000,2000])
+        plt.savefig('size_vs_jsd.png')
+
+
         coh=sum([len(x[1])*x[2] for x in stats])
         den=sum([len(x[1]) for x in stats])
         if den==0.0:
