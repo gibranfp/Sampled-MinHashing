@@ -8,6 +8,7 @@
 #ifndef IFUTILS_H
 #define IFUTILS_H
 
+#include <inttypes.h>
 #include "types.h"
 
 typedef struct Node{

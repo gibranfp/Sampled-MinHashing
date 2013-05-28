@@ -35,6 +35,8 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
+#include <float.h>
 #include "types.h"
 #include "ifutils.h"
 
@@ -56,8 +58,12 @@ void read_corpus(char **filename, uint ***corpus, uint ***termfreq,
      uint i;
      FILE *fp;
      char *line = NULL;
+     char *token;
+     char **doc;
      size_t len = 0;
      ssize_t read;
+     uint card;
+     uint term;
      uint **c = NULL; // corpus
      uint **tf = NULL;// term frequencies
      uint *dc = NULL;// document cardinalities
@@ -71,28 +77,27 @@ void read_corpus(char **filename, uint ***corpus, uint ***termfreq,
      
      // reading each line of the file
      while ((read = getline(&line, &len, fp)) != -1) {
-	  printf("\n");
-	  char *token = strtok (line," ");
-	  uint card = atoi(token);
-	  printf("%s ", token);
-	  char **doc = (char **) malloc(card * sizeof(char *));
-	  uint term = 0;
+	  token = strtok (line," ");
+	  card = atoi(token);
+	  doc = (char **) malloc(card * sizeof(char *));
+	  term = 0;
 	  // spliting line in document terms
 	  token = strtok (NULL," ");
 	  while (token != NULL)
 	  {
 	       doc[term] = token;
-	       printf("%s ", token);
 	       token = strtok (NULL, " ");
 	       term++;
 	  }
 	  c = (uint **) realloc(c, (csize + 1) * sizeof(uint *));
-	  c[csize] = (uint *) malloc((term - 1) * sizeof(uint));
+	  c[csize] = (uint *) malloc(card * sizeof(uint));
 	  tf = (uint **) realloc(tf, (csize + 1) * sizeof(uint *));
-	  tf[csize] = (uint *) malloc((term - 1) * sizeof(uint));
+	  tf[csize] = (uint *) malloc(card * sizeof(uint));
 	  dc = (uint *) realloc(dc, (csize + 1) * sizeof(uint));
 	  dc[csize] = card;
-	  for (i = 0; i < term; i++){
+	  
+          //spliting term id and frequency
+	  for (i = 0; i < card; i++){
 	       token = strtok (doc[i], ":");
 	       c[csize][i] = atoi(token);
 	       token = strtok (NULL, ":");
@@ -134,16 +139,17 @@ void read_vocab(char **filename, char ***vocab, uint **termid,
      }
      
      char *line = NULL;
+     char *token;
      size_t len = 0;
      ssize_t read;
      char **v = NULL;
      uint *cf = NULL;
      uint *df = NULL;
      uint *id = NULL;
-     int vsize = 0;
+     uint vsize = 0;
      while ((read = getline(&line, &len, fp)) != -1){
 	  // term
-	  char *token = strtok (line," = ");
+	  token = strtok (line," = ");
 	  v = (char **) realloc(v, (vsize + 1) * sizeof(char *));
 	  v[vsize] = (char *) malloc(strlen(token) * sizeof(char));
 	  v[vsize] = strcpy(v[vsize],token);
@@ -153,11 +159,12 @@ void read_vocab(char **filename, char ***vocab, uint **termid,
 	  id[vsize] = atoi(token);
 	  // term frequency
 	  token = strtok (NULL, " = ");
-	  char *sf = strtok (token," ");
-	  cf[vsize] = atoi(sf);
+	  cf = (uint *) realloc(cf, (vsize + 1) * sizeof(uint));
+	  cf[vsize] = atoi(token);
 	  // term document frequency
-	  sf = strtok (token," ");
-	  df[vsize] = atoi(sf);
+	  token = strtok (NULL," ");
+	  df = (uint *) realloc(df, (vsize + 1) * sizeof(uint));
+	  df[vsize] = atoi(token);
 	  vsize++;
      }
      free(line);
@@ -231,7 +238,7 @@ void setdb_write(char *filename, uint **setdb, uint *card, uint n,
 {
      uint i, j;
      FILE *file;
-     
+
      printf("Writing %u sets to file %s . . . \n", n, filename);
      if (!(file = fopen(filename,"w"))){
           fprintf(stderr,"Error: Could not create file %s\n", filename);
@@ -284,7 +291,7 @@ void setwdb_read(char *filename, uint ***setdb, uint ***weight,
           db[i] = (uint *) malloc(c[i] * sizeof(uint));
 	  w[i] = (uint *) malloc(c[i] * sizeof(uint));
 	  for (j = 0; j < c[i]; j++){ // reads set items
-               fscanf(file,"%u", &db[i][j]);
+	       fscanf(file,"%u", &db[i][j]);
 	       fscanf(file,"%u", &w[i][j]);
           }
      }
@@ -323,12 +330,12 @@ void setwdb_write(char *filename, uint **setdb, uint **weight, uint *card,
           exit(EXIT_FAILURE);
      }
      // writes dimensionality and number of sets
-     fprintf(file,"%u %u", d, n); 
+     fprintf(file,"%u %u\n", d, n); 
      for (i = 0; i < n; i ++){     // writes sets
 	  fprintf(file,"%u ", card[i]);
           for (j = 0; j < card[i]; j++){// writes each item
                fprintf(file,"%u ", setdb[i][j]);
-	       fprintf(file,"%u ", weight[i][j]);
+	       fprintf(file,"%llu ", weight[i][j]);
 	  }
 	  fprintf(file,"\n");
      }

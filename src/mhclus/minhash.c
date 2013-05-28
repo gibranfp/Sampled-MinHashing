@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <inttypes.h>
 #include "types.h"
 #include "ifutils.h"
 #include "minhash.h"
@@ -80,9 +81,9 @@ void mh_randperm(uint d, uint r, uint *hmat)
 
      for (i = 0; i < r; i++){//generates random permutations of the items
 	  for (j = 0; j < d; j++){//assigns random number to each item
-	       hmat[i * d + j] = ((uint) rand() % INF);
+	       hmat[i * d + j] = (uint) rand();
 	       while (hmat[i * d + j] == 0)
-		    hmat[i * d + j] = ((uint) rand() % INF);
+		    hmat[i * d + j] = (uint) rand();
 	  }
      }
 }
@@ -531,12 +532,10 @@ void mhw_randperm(uint d, uint r, uint *hmat, double *umat)
      for (i = 0; i < r; i++){//generates random permutations
 	  for (j = 0; j < d; j++){//assigns random numbers to each item
 	       rnd = (uint) rand();
-	       umat[i * d + j] = -log((double)rnd / ((double) RAND_MAX + 1));
-	       hmat[i * d + j] = rnd % INF;
-	       while (hmat[i * d + j] == 0){
-		    rnd = (uint) rand();
-		    hmat[i * d + j] = rnd % INF;
-	       }
+	       umat[i * d + j] = -logl((double)rnd / ((double) RAND_MAX + 1));
+	       hmat[i * d + j] = rnd;
+	       while (hmat[i * d + j] == 0)
+		    hmat[i * d + j] = (uint) rand();
 	  }
      }
 }
@@ -673,7 +672,7 @@ void mhw_hashset(uint *set, uint *weight, uint card, uint setid, uint d,
  */
 void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 	      uint r, uint l, uint table_size, uint ***mined, 
-	      uint *mined_card, uint *mined_num)
+	      uint **mined_card, uint *mined_num)
 {
      uint i, j, k, x;
      Node *ptr, *tmp;
@@ -706,6 +705,7 @@ void mhw_mine(uint **setdb, uint **weight, uint *card, uint n, uint d,
 		    ptr = htable[j].head;
 		    while (ptr != NULL){
 			 ms[total][x] = ptr->item;
+			 x++;
 			 tmp = ptr;
 			 ptr = ptr->next;
 			 free(tmp);

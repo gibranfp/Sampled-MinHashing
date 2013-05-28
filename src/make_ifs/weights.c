@@ -21,6 +21,7 @@
  *        corpus using different weighting schemes.
  */
 #include <math.h>
+#include <inttypes.h>
 #include "types.h"
 #include "ifutils.h"
 #include "weights.h"
@@ -28,23 +29,23 @@
 /**
  * @brief Term frequency weighting
  */
-double termfreq(uint tf, uint df, uint corpsize)
+double termfreq(const void *tf, const void *df, const void *corpsize)
 {
-     return tf;
+     return *(uint *)tf;
 }
 
 /**
  * @brief Logarithmic term frequency
  */
-double logtf(uint tf, uint df, uint corpsize)
+double logtf(const void *tf, const void *df, const void *corpsize)
 {
-     return log(tf + 1);
+     return log(*(uint *)tf + 1);
 }
 
 /**
  * @brief Binary term frequency
  */
-double bintf(uint tf, uint df, uint corpsize)
+double bintf(const void *tf, const void *df, const void *corpsize)
 {
      return 1.0;
 }
@@ -52,17 +53,22 @@ double bintf(uint tf, uint df, uint corpsize)
 /**
  * @brief Inverse document frequency
  */
-double idf(uint tf, uint df, uint corpsize)
+double idf(const void *tf, const void *df, const void *corpsize)
 {
-     return log (corpsize / df);
+     return log (*(uint *)corpsize / *(uint *)df);
 }
 
 /**
  * @brief Term frequency inverse document frequency
  */
-double tfidf(uint tf, uint df, uint corpsize)
+double tfidf(const void *tf, const void *df, const void *corpsize)
 {
      return termfreq(tf, df, corpsize) * idf(tf, df, corpsize);
+}
+
+double tfidf_weight(uint tf, uint df, uint corpsize)
+{
+     return tf * log (corpsize / df);
 }
 
 /**
@@ -70,6 +76,5 @@ double tfidf(uint tf, uint df, uint corpsize)
  */
 uint intweight(double weight)
 {
-     round(weight * 100000000000);
-     return ;
+return round(weight * 100000000L);
 }
