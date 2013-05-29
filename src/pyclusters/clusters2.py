@@ -41,6 +41,8 @@ from distance import jacard,overlap
 
 import scipy.sparse as sparse
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from math import log
 
