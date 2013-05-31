@@ -41,6 +41,8 @@ from distance import jacard,overlap
 
 import scipy.sparse as sparse
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from math import log
 
@@ -64,7 +66,7 @@ def extractstats((ikluster,k,docs,idocs,dprobs,dlogprobs,threshold)):
     similarity = np.array([overlap(k,doc)  for doc in docs_])
     ixkdocs=np.nonzero(similarity>threshold)[0]
     print >> sys.stderr,ikluster, ' Clusters Analised of size ', len(k.data), ' with a coverage of ', len(ixkdocs)
-    if len(ixkdocs)<50:
+    if len(ixkdocs)==0:
         return None
 
     dprobs_=dprobs[ixdocs]
