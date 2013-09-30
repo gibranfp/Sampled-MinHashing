@@ -1,12 +1,33 @@
 doc:
     - title
     - intro
-    - expACWS
+    - time
+    - expCWS
     - expAPrune
-    - expWA
-    - expWAPrune
-#    - expCWS
+#    - expACWS
+#    - expWA
+#    - expWAPrune
 #    - expPrune
+
+
+time:
+    block: !!omap
+        - title: Resumen de tiempos
+        - import: clusters
+        - code: clusters.analysedirtime(args[1],
+                    [u'cws',u'pruned_aglomerative'],[
+                        (u'Umbral de similaridad',[
+                                (0.10,".*ifs-\.10.*\.stats"),
+                                (0.13,".*ifs-\.13.*\.stats"),
+                                (0.15,".*ifs-\.15.*\.stats"),
+                                ]),
+                        (u'Número de hash por grupo',[
+                                (3,".*ifs-[^-]+-3-.*\.stats"),
+                                (4,".*ifs-[^-]+-4-.*\.stats"),
+                        ])
+                ])
+
+
 
 expAPrune:
     block: !!omap
@@ -15,15 +36,49 @@ expAPrune:
         - code: clusters.analysedir(args[1],
                     u'pruned_aglomerative',[
                         (u'Umbral de similaridad',[
-                                (0.10,".*ifs-\.10.*\.[789]\.model"),
-                                (0.13,".*ifs-\.13.*\.[789]\.model"),
-                                (0.15,".*ifs-\.15.*\.[789]\.model"),
-                                ]),
+                                (0.10,".*ifs-\.10.*\.model"),
+                                (0.13,".*ifs-\.13.*\.model"),
+                                (0.15,".*ifs-\.15.*\.model"),
+                                ],
+                        u'(B)',
+                        u's*',
+                        'Number of Topics'
+                        ),
                         (u'Número de hash por grupo',[
-                                (3,".*ifs-[^-]+-3-.*\.[789]\.model"),
-                                (4,".*ifs-[^-]+-4-.*\.[789]\.model"),
-                        ])
+                                (3,".*ifs-[^-]+-3-.*\.model"),
+                                (4,".*ifs-[^-]+-4-.*\.model"),
+                        ],
+                        u'(B)',
+                        u'r',
+                        'Number of Topics'
+                        )
                 ])
+
+
+expCWS:
+    block: !!omap
+        - title: Experimentos con 1a parte de MinHash
+        - import: clusters
+        - code: clusters.analysedir(args[1],
+                                    u'cws',[
+                        (u'Umbral de similaridad',[
+                                (0.10,".*ifs-\.10-[34]-.*\.cws"),
+                                (0.13,".*ifs-\.13-[34].*\.cws"),
+                                (0.15,".*ifs-\.15-[34].*\.cws"),
+                                ],
+                             u'(A)',
+                             u's*',
+                             u'Number of Topics'
+                                ),
+                        (u'Número de hash por grupo',[
+                                (3,".*ifs-\.1[035]+-3-.*\.cws"),
+                                (4,".*ifs-\.1[035]+-4-.*\.cws"),
+                        ],
+                            u'(A)',
+                            u'r',
+                            u'Number of Topics'
+                        )
+                    ])
 
 
 expWAPrune:
@@ -33,13 +88,13 @@ expWAPrune:
         - code: clusters.analysedir(args[1],
                     u'weighted/cluster/pruned',[
                         (u'Umbral de similaridad',[
-                                (0.10,".*wifs-0\.10.*\.[789]\.model"),
-                                (0.13,".*wifs-0\.13.*\.[789]\.model"),
-                                (0.15,".*wifs-0\.15.*\.[789]\.model"),
+                                (0.10,".*wifs-0\.10.*\.model"),
+                                (0.13,".*wifs-0\.13.*\.model"),
+                                (0.15,".*wifs-0\.15.*\.model"),
                                 ]),
                         (u'Número de hash por grupo',[
-                                (3,".*wifs-[^-]+-3-.*\.[789]\.model"),
-                                (4,".*wifs-[^-]+-4-.*\.[789]\.model"),
+                                (3,".*wifs-[^-]+-3-.*\.model"),
+                                (4,".*wifs-[^-]+-4-.*\.model"),
                         ])
                 ])
 
@@ -51,37 +106,19 @@ expWA:
         - code: clusters.analysedir(args[1],
                     u'weighted/cluster/cws',[
                         (u'Umbral de similaridad',[
-                                (0.10,".*wifs-0\.10.*\.[789]\.model"),
-                                (0.13,".*wifs-0\.13.*\.[789]\.model"),
-                                (0.15,".*wifs-0\.15.*\.[789]\.model"),
+                                (0.10,".*wifs-0\.10.*\.model"),
+                                (0.13,".*wifs-0\.13.*\.model"),
+                                (0.15,".*wifs-0\.15.*\.model"),
                                 ]),
                         (u'Número de hash por grupo',[
-                                (3,".*wifs-[^-]+-3-.*\.[789]\.model"),
-                                (4,".*wifs-[^-]+-4-.*\.[789]\.model"),
+                                (3,".*wifs-[^-]+-3-.*\.model"),
+                                (4,".*wifs-[^-]+-4-.*\.model"),
                         ])
                 ])
 
 
 
-expCWS:
-    block: !!omap
-        - title: Experimentos con 1a parte de MinHash
-        - import: clusters
-        - code: clusters.analysedir(args[1],
-                                    u'cws',[
-                    (u'Número de hash por grupo 1',[
-                            (3,".*ifs-[^-]+-3.*\.cws"),
-                            (4,".*ifs-[^-]+-4.*\.cws"),
-                            (5,".*ifs-[^-]+-5.*\.cws"),
-                            (6,".*ifs-[^-]+-6.*\.cws"),
-                            ]),
-                    (u'Umbral de similaridad',[
-                            (x*0.01,".*ifs-{0}-.*\.cws".format('{:.2}'.format(x*0.01)[1:])) for x in range(0,101)]),
-                    (u'Zoom a Umbral de similaridad',[
-                            (x*0.01,".*ifs-{0}-.*\.cws".format('{:.2}'.format(x*0.01)[1:])) for x in range(10,51)]),
-   
-                    ])
-
+ 
 expACWS:
     block: !!omap
         - title: Experimentos con 1a parte de MinHash y aglomerative
@@ -89,13 +126,13 @@ expACWS:
         - code: clusters.analysedir(args[1],
                                     u'cws_aglomerative',[
                     (u'Umbral de similaridad',[
-                            (0.10,".*ifs-\.10.*\.[789]\.model"),
-                            (0.13,".*ifs-\.13.*\.[789]\.model"),
-                            (0.15,".*ifs-\.15.*\.[789]\.model"),
+                            (0.10,".*ifs-\.10.*\.[6789]\.model"),
+                            (0.13,".*ifs-\.13.*\.[6789]\.model"),
+                            (0.15,".*ifs-\.15.*\.[6789]\.model"),
                             ]),
                     (u'Número de hash por grupo',[
-                            (3,".*ifs-[^-]+-3-.*\.[789]\.model"),
-                            (4,".*ifs-[^-]+-4-.*\.[789]\.model"),
+                            (3,".*ifs-[^-]+-3-.*\.[6789]\.model"),
+                            (4,".*ifs-[^-]+-4-.*\.[6789]\.model"),
                     ])
                  ])
 

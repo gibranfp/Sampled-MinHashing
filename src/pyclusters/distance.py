@@ -74,9 +74,9 @@ def sorensen(A, B ,**args):
 
 
 def overlap(k,d):
-    inter= np.intersect1d(k.indices,d.indices)
+    inter= np.intersect1d(k,d.indices)
     num = inter.shape[0]*1.0
-    den = min(len(k.data),len(d.data))
+    den = min(len(k),len(d.indices))
     
     if den==0:
         return 1.0

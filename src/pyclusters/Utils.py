@@ -27,6 +27,24 @@ import numpy as np
 import scipy.sparse as sparse
 from scipy.sparse.sparsetools import csr_scale_rows 
 
+
+def stats(filename):
+
+    def line_cluster1(line):
+        line=line.strip()
+        line=line.split(':',1)
+        if len(line)==2:
+            return line[0],line[1]
+        else:
+            return None
+
+    with open(filename) as cf:
+        vals=map(line_cluster1,cf)
+        vals=filter(None,vals)
+    return dict(vals)
+
+
+
 def len_clusters(filename,format=0):
     skipped=False
 
@@ -157,15 +175,14 @@ def docs2probs(docs):
 
 def docs2if(docs):
     size,etc=docs.shape
-    ind=docs.indices
-    ptr=docs.indptr
     data=[]
     col=[]
     row=[]
-    for i in range(size):
-        row.append(np.array(ind[ptr[i]:ptr[i+1]]))
-        col.append(np.array([i for x in row[-1]]))
-        data.append(np.array([i for x in row[-1]]))
+    for r in range(size):
+        words=docs[r,:].indices
+        row.append(words)
+        col.append([r for x in row[-1]])
+        data.append([1 for x in row[-1]])
     row=np.concatenate(row)
     col=np.concatenate(col)
     data=np.concatenate(data)
