@@ -1,5 +1,0 @@
-set (MAKE_IFS_SRCS make_ifs weights)
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
-include_directories(${PROJECT_SOURCE_DIR}/include)
-add_executable(make_ifs ${MAKE_IFS_SRCS})
-target_link_libraries(make_ifs m ifutils)
