@@ -1,8 +1,6 @@
 /**
  * @file mhclus.c 
- * @authors Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- *          Ivan Vladimir Meza Ruiz <ivanvladimir@turing.iimas.unam.mx>
- * @version 0.1
+ * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
  * @date 2013
  *
  * @section GPL
@@ -134,16 +132,6 @@ void mhclus_mine(int opnum, char **opts)
 	  output = opts[optind++];
 	  if (weight_flag){
 	    setwdb_read(input, &ifs, &weight, &ifs_card, &n, &d);
-	    uint i,j;
-	    for (i = 0; i < n; ++i)
-	    {
-		 printf("%d ",ifs_card[i]);
-		 for (j = 0; j < ifs_card[i]; ++j)
-		 {
-		      printf("%d %u ",ifs[i][j], weight[i][j]);
-		 }
-		 printf("\n");
-	    }
 	    mhw_mine(ifs, weight, ifs_card, n, d, r, l, table_size, 
 		     &mined, &mined_card, &mined_num);
 	    setdb_write(output, mined, mined_card, mined_num, n);
@@ -344,8 +332,21 @@ void mhclus_cluster(int opnum, char **opts)
      }
      if (optind + 2 == opnum){
 	  input = opts[optind++];
-	  output = opts[optind++];
+	  output = opts[optind++];	  
 	  setldb_read(input, &setdb, &n, &d);
+	  printf ("%d %d", d, n);
+	  int i;
+	  for (i = 0; i < n; ++i)
+	  {
+	       printf ("\n%d ", setdb[i].card);
+	       Node *ptr;
+	       ptr = setdb[i].head;
+	       while (ptr != NULL)
+	       {
+		    printf ("%d ", ptr->item);
+		    ptr = ptr->next;
+	       }
+	  }
 	  mh_cluster(setdb, n, d, r, l, table_size, &clusters,
 		     &clus_num, ovr);
 	  mh_make_model(setdb, clusters, clus_num, &models, &model_num);

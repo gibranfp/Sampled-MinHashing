@@ -1,8 +1,6 @@
 /**
  * @file weights.h 
- * @authors Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- *          Ivan Vladimir Meza Ruiz <ivanvladimir@turing.iimas.unam.mx>
- * @version 0.1
+ * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
  * @date 2013
  *
  * @section GPL
@@ -17,8 +15,7 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief This program makes the inverted file structure of a given
- *        corpus using different weighting schemes.
+ * @brief Declarations for weighting functions.
  */
 #ifndef WEIGHTS_H
 #define WEIGHTS_H

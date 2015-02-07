@@ -1,7 +1,7 @@
 /**
- * @file types.h
+ * @file mhlink.h
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2013
+ * @date 2014
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -15,20 +15,17 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief Declaration of general data types and macros.
+ * @brief Declaration of functios to performing single-link clustering
+ *        accelerated by Min-Hashing
  */
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef MHLINK_H
+#define MHLINK_H
 
-#define min(a, b) (a) < (b) ? a : b
-#define max(a, b) (a) < (b) ? b : a
+#include "minhash.h"
 
-#define INF 1.7976931348623157e308
-#define LARGEST_INT 4294967295 //Largest 32-bit unsigned integer
-#define LARGEST_PRIME 4294967291 //Largest 32-bit prime number (2^32-5) 
-                                 //[E2LSH Manual, Andoni and Indyk 2005]
-typedef unsigned char uchar;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-typedef unsigned long ulong;
+void mhlink_make_model(ListDB *listdb, ListDB *clusters, ListDB *models);
+void mhlink_add_neighbors(ListDB *listdb, ListDB *clusters, uint listid, List *items, uint *checked, 
+						   uint *clus_table, double (*sim)(List *, List *), double thres);
+void mhlink_cluster(ListDB *listdb, ListDB *clusters, uint table_size, uint number_of_tuples,
+					uint tuple_size, double (*sim)(List *, List *), double thres);
 #endif

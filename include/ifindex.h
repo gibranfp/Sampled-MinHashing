@@ -1,5 +1,5 @@
 /**
- * @file types.h
+ * @file ifindex.h
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
  * @date 2013
  *
@@ -15,20 +15,18 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief Declaration of general data types and macros.
+ * @brief Declaration of structures for handling lists and inverted file structures.
  */
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef IFINDEX_H
+#define IFINDEX_H
 
-#define min(a, b) (a) < (b) ? a : b
-#define max(a, b) (a) < (b) ? b : a
+#include "listdb.h"
 
-#define INF 1.7976931348623157e308
-#define LARGEST_INT 4294967295 //Largest 32-bit unsigned integer
-#define LARGEST_PRIME 4294967291 //Largest 32-bit prime number (2^32-5) 
-                                 //[E2LSH Manual, Andoni and Indyk 2005]
-typedef unsigned char uchar;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-typedef unsigned long ulong;
+/************************ Function prototypes ************************/
+List ifindex_query(ListDB *, List *);
+ListDB ifindex_query_multi(ListDB *, ListDB *);
+void ifindex_discard_less_frequent(ListDB *, uint);
+void ifindex_rank_more_frequent(ListDB *);
+void ifindex_sort_custom(ListDB *, ListDB *, ListDB *,  
+						 int (*)(const void *, const void *));
 #endif
