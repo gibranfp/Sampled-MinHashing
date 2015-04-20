@@ -353,9 +353,10 @@ uint mh_store_list(List *list, uint id, HashTable *hash_table)
 void mh_store_listdb(ListDB *listdb, HashTable *hash_table, uint *indices)
 {
 	uint i;	
-
+			
 	// hash all lists in the database
 	for (i = 0; i < listdb->size; i++)
 		if (listdb ->lists[i].size > 0)
 			indices[i] = mh_store_list(&listdb->lists[i], i, hash_table);
 }
+\

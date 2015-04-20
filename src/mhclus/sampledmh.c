@@ -1,3 +1,24 @@
+/**
+ * @file sampledmh.c
+ * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
+ * @date 2015
+ *
+ * @section GPL
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details at
+ * http://www.gnu.org/copyleft/gpl.html
+ *
+ * @brief Functions to perform Sampled Min-Hashing
+ */
+#include <math.h>
+#include "ifindex.h"
 #include "sampledmh.h"
 
 /**
@@ -50,3 +71,44 @@ ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
 	return coitems;
 }
 
+/**
+ * @brief Prunes co-occurring sets.
+ *
+ * @param ifindex Inverted file index
+ * @param mined Co-occurring sets
+ * @param stop Minimum number of items in co-occurring sets
+ * @param hits Minimum number of hits of co-occurring set
+ * @param ovr Minimum overlap between a co-occurring set and a document to retrieve it
+ * @param coocc Minimum overlap between list of retrieved documents and item entry in inverted file
+ */
+void sampledmh_prune(ListDB *ifindex, ListDB *mined, uint stop, uint hits, double ovr, double cooc)
+{
+	// query inverted file with mined sets
+	ListDB retdocs = ifindex_query_multi(ifindex, mined);
+
+	// leaves documents in which at least ovr_th percent of the mined sets occurred
+	uint i, j;
+	for (i = 0; i < mined->size; i++) {
+		uint ovr_th = (uint) ceil(mined->lists[i].size * ovr);
+		list_delete_less_frequent(&retdocs.lists[i], ovr_th);
+
+		double cooc_th = retdocs.lists[i].size * cooc;
+		for (j = 0; j < mined->lists[i].size; j++){
+			// removes items from sets which co-occured in very few documents with the rest
+			uint curr_item = mined->lists[i].data[j].item;
+			if (list_intersection_size(&ifindex->lists[curr_item], &retdocs.lists[i]) < cooc_th)
+				list_delete_position(&mined->lists[i], j);
+		}
+	}
+
+	// removes sets which occured in very few documents
+	for (i = 0; i < mined->size; i++){
+		if (retdocs.lists[i].size < hits){
+			listdb_delete_position(mined, i);
+			i--;
+		}
+	}
+
+	// removes small sets
+	listdb_delete_smallest(mined, stop);
+}

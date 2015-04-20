@@ -22,6 +22,7 @@
 
 #include "minhash.h"
 
-void sampledmh_get_coitems(ListDB *coitems, HashTable *hash_table);
-ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, uint table_size);
+void sampledmh_get_coitems(ListDB *, HashTable *);
+ListDB sampledmh_mine(ListDB *, uint, uint, uint);
+void sampledmh_prune(ListDB *, ListDB *, uint, uint, double, double);
 #endif

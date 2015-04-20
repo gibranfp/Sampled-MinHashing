@@ -23,9 +23,8 @@
 
 #include "minhash.h"
 
-void mhlink_make_model(ListDB *listdb, ListDB *clusters, ListDB *models);
-void mhlink_add_neighbors(ListDB *listdb, ListDB *clusters, uint listid, List *items, uint *checked, 
-						   uint *clus_table, double (*sim)(List *, List *), double thres);
-void mhlink_cluster(ListDB *listdb, ListDB *clusters, uint table_size, uint number_of_tuples,
-					uint tuple_size, double (*sim)(List *, List *), double thres);
+ListDB mhlink_make_model(ListDB *, ListDB *);
+void mhlink_add_neighbors(ListDB *, ListDB *, uint , List *, uint *, uint *, 
+			  double (*)(List *, List *), double);
+ListDB mhlink_cluster(ListDB *, uint, uint, uint, double (*)(List *, List *), double);
 #endif

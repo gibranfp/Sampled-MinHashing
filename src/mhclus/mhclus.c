@@ -23,9 +23,9 @@
 #include <time.h>
 #include <getopt.h>
 #include <inttypes.h>
-#include "types.h"
-#include "ifutils.h"
-#include "minhash.h"
+#include "ifindex.h"
+#include "sampledmh.h"
+#include "mhlink.h"
 
 /**
  * @brief Prints help in screen.
@@ -36,17 +36,15 @@ void usage(void)
 	    "       mhclus prune [OPTIONS]... [INVERTED_FILE] [INPUT_FILE] [OUTPUT_FILE]\n"
 	    "       mhclus cluster [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
 	    "Mines inverted file structures, prunes and clusters mined sets,"
-            "and writes the output to a file .\n\n"
+	    "and writes the output to a file .\n\n"
 	    "General options:\n"
 	    "   --help\t\tPrints this help\n"
 	    "mine options:\n"
-	    "   -w, --weight\t\tUses inverted files with term frequencies\n"
 	    "   -s, --size[=1048576]\tNumber of buckets in hash"
 	    "table (power of 2)\n"
 	    "   -r, --hashes[=4]\tNumber of hashes per tuple\n"
 	    "   -l, --tuples[=500]\tNumber of tuples\n"
 	    "prune options:\n"
-	    "   -w, --weight\t\tUses inverted files with term frequencies\n"
 	    "   -s, --stop[=3]\tMinimum set size (stop > 0)\n"
 	    "   -d, --dochits[=3]\tMinimum document hits per set (dochits > 0)\n"
 	    "   -o, --overlap[=0.7]\tOverlap threshold (0 <= overlap <= 1)\n"
@@ -68,35 +66,28 @@ void usage(void)
  */
 void mhclus_mine(int opnum, char **opts)
 {
-     uint **ifs;//inverted file
-     uint **weight;//set weights
-     uint *ifs_card;
-     uint **mined;//co-occurring word sets
-     uint *mined_card;
-     uint mined_num;
-     uint d, n;//Dimensionality and cardinality of database
-     uint r = 4;//Default tuple size
-     uint l = 500;//Default tuple number
-     uint table_size = 1048576;//Defualt table size
+     uint **ifs;
+     uint **mined; // co-occurring word sets
+     uint tuple_size = 4; // default tuple size
+     uint number_of_tuples = 500; // default number of tuples
+     uint table_size = 1048576; // default table size
      char *input, *output;
-     //Variables for getopt
+     
      int op;
-     static int weight_flag;
      int option_index = 0;
      
      static struct option long_options[] =
 	  {
 	       {"help", no_argument, 0, 'h'},
-	       {"weighted", no_argument, &weight_flag, 1},
-	       {"hashes", required_argument, 0, 'r'},
-	       {"tuples", required_argument, 0, 'l'},
-	       {"size", required_argument, 0, 's'},
+	       {"tuple_size", required_argument, 0, 'r'},
+	       {"number_of_tuples", required_argument, 0, 'l'},
+	       {"table_size", required_argument, 0, 't'},
 	       {0, 0, 0, 0}
 	  };
 
      //Command-line option parser
      while((op = getopt_long( opnum, opts, "hws:l:r:", long_options, 
-			     &option_index)) != -1){
+			      &option_index)) != -1){
 	  int this_option_optind = optind ? optind : 1;
 	  switch (op)
 	  {
@@ -106,18 +97,14 @@ void mhclus_mine(int opnum, char **opts)
 	       usage();
 	       exit(EXIT_SUCCESS);
 	       break;
-	  case 'w':
-	       weight_flag = 1;
-	       break;
-	  case 's':
-	       table_size = (uint) pow(2, ceil(log(atoi(optarg)) / 
-					       log(2)));
-	       break;
 	  case 'r':
-	       r = atoi(optarg);
+	       tuple_size = atoi(optarg);
 	       break;
 	  case 'l':
-	       l = atoi(optarg);
+	       number_of_tuples = atoi(optarg);
+	       break;
+	  case 't':
+	       table_size = (uint) pow(2, ceil(log(atoi(optarg)) / log(2)));
 	       break;
 	  case '?':
 	       fprintf(stderr,"Error: Unknown options.\n"
@@ -130,20 +117,11 @@ void mhclus_mine(int opnum, char **opts)
      if (optind + 2 == opnum){
 	  input = opts[optind++];
 	  output = opts[optind++];
-	  if (weight_flag){
-	    setwdb_read(input, &ifs, &weight, &ifs_card, &n, &d);
-	    mhw_mine(ifs, weight, ifs_card, n, d, r, l, table_size, 
-		     &mined, &mined_card, &mined_num);
-	    setdb_write(output, mined, mined_card, mined_num, n);
-	  }
-	  else {
-	       setdb_read(input, &ifs, &ifs_card, &n, &d);
-	       mh_mine(ifs, ifs_card, n, d, r, l, table_size, &mined, 
-		       &mined_card, &mined_num);
-	       setdb_write(output, mined, mined_card, mined_num, n);
-	  }
-     }
-     else{
+	  ListDB listdb = listdb_load_from_file(input);
+	  ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
+	  listdb_sort_by_size_back(&coitems);
+	  listdb_save_to_file(output,&coitems);
+     } else {
 	  if (optind + 2 > opnum)
 	       fprintf(stderr, "Error: Missing argumets.\n"
 		       "Try `mhclus --help' for more information.\n");
@@ -164,29 +142,17 @@ void mhclus_mine(int opnum, char **opts)
  */
 void mhclus_prune(int opnum, char **opts)
 {
-     uint **mined;//Database of sets
-     uint *mined_card;//Cardinalities of each set in the database
-     uint mined_dim, mined_num;
-     uint **ifs;//Database of sets
-     uint *ifs_card;//Cardinalities of each set in the database
-     uint ifs_dim, ifs_num;
-     uint **pruned;//Pruned sets
-     uint *pruned_card;//Cardinalities of pruned sets
-     uint pruned_num;//Number of sets in the pruned database
+     char *inv_file, *mined_file, *pruned_file;
      uint stop = 3;
      uint dochits = 3;
      double ovr = 0.7;
      double coocc = 0.7;
-     char *invfile, *input, *output;
-     //Variables for getopt
      int op;
-     static int weight_flag;
      int option_index = 0;
      
      static struct option long_options[] =
 	  {
 	       {"help", no_argument, 0, 'h'},
-	       {"weight", no_argument, &weight_flag, 1},
 	       {"stop", required_argument, 0, 's'},
 	       {"dochits", required_argument, 0, 'd'},
 	       {"overlap", required_argument, 0, 'o'},
@@ -195,8 +161,8 @@ void mhclus_prune(int opnum, char **opts)
 	  };
 
      //Command-line ption parser
-     while((op = getopt_long( opnum, opts, "hws:d:o:c:", long_options,
-			     &option_index)) != -1){
+     while((op = getopt_long( opnum, opts, "hs:d:o:c:", long_options,
+			      &option_index)) != -1){
 	  int this_option_optind = optind ? optind : 1;
 	  switch (op)
 	  {
@@ -205,9 +171,6 @@ void mhclus_prune(int opnum, char **opts)
 	  case 'h':
 	       usage();
 	       exit(EXIT_SUCCESS);
-	       break;
-	  case 'w':
-	       weight_flag = 1;
 	       break;
 	  case 's':
 	       stop = atoi(optarg);
@@ -225,7 +188,7 @@ void mhclus_prune(int opnum, char **opts)
 		    ovr = 0.0;
 	       if (ovr > 1)
 		    ovr = 1.0;
-		    break;
+	       break;
 	  case 'c':
 	       coocc = atof(optarg);
 	       if (coocc < 0)
@@ -242,20 +205,15 @@ void mhclus_prune(int opnum, char **opts)
 	  }
      }
      if (optind + 3 == opnum){
-	  invfile = opts[optind++];
-	  input = opts[optind++];
-	  output = opts[optind++];
-	  setdb_read(invfile, &ifs, &ifs_card, &ifs_num, &ifs_dim);
-	  setdb_read(input, &mined, &mined_card, &mined_num, &mined_dim);
-	  setdb_prune(mined, mined_card, mined_num, mined_dim, 
-		      ifs, ifs_card, ifs_num, ifs_dim, 
-		      &pruned, &pruned_card, &pruned_num,
-		      stop, dochits, ovr, coocc);
-	  printf ("%d pruned sets\n",pruned_num);
-	  setdb_write(output, pruned, pruned_card, pruned_num, 
-		      mined_dim);
-     }
-     else{
+	  inv_file = opts[optind++];
+	  mined_file = opts[optind++];
+	  pruned_file = opts[optind++];
+	  ListDB ifindex = listdb_load_from_file(inv_file);
+	  ListDB mined = listdb_load_from_file(mined_file);
+
+	  sampledmh_prune(&ifindex, &mined, stop, dochits, ovr, coocc);
+	  listdb_save_to_file(pruned_file, &mined);
+     } else {
 	  if (optind + 3 > opnum)
 	       fprintf(stderr, "Error: Missing argumets.\n"
 		       "Try `mhclus --help' for more information.\n");
@@ -276,16 +234,11 @@ void mhclus_prune(int opnum, char **opts)
  */
 void mhclus_cluster(int opnum, char **opts)
 {
-     Set *setdb;//Database
-     uint d, n;//Dimensionality and cardinality of database
-     uint r = 3;//Default tuple size
-     uint l = 255;//Default tuple number
+     char *mined_file, *clusters_file, *models_file;
+     uint tuple_size = 3;//Default tuple size
+     uint number_of_tuples = 255;//Default tuple number
      uint table_size = 1048576;//Defualt table size
      double ovr = 0.7;//overlap
-     Set *models, *clusters;
-     uint clus_num, model_num;
-     char *input, *output;
-     //Variables for getopt
      int op;
      int option_index = 0;
      
@@ -310,10 +263,10 @@ void mhclus_cluster(int opnum, char **opts)
 	       exit(EXIT_SUCCESS);
 	       break;
 	  case 'r':
-	       r = atoi(optarg);
+	       tuple_size = atoi(optarg);
 	       break;
 	  case 'l':
-	       l = atoi(optarg);
+	       number_of_tuples = atoi(optarg);
 	       break;
 	  case 's':
 	       table_size = atoi(optarg);
@@ -330,27 +283,18 @@ void mhclus_cluster(int opnum, char **opts)
 	       abort ();
 	  }
      }
-     if (optind + 2 == opnum){
-	  input = opts[optind++];
-	  output = opts[optind++];	  
-	  setldb_read(input, &setdb, &n, &d);
-	  printf ("%d %d", d, n);
-	  int i;
-	  for (i = 0; i < n; ++i)
-	  {
-	       printf ("\n%d ", setdb[i].card);
-	       Node *ptr;
-	       ptr = setdb[i].head;
-	       while (ptr != NULL)
-	       {
-		    printf ("%d ", ptr->item);
-		    ptr = ptr->next;
-	       }
-	  }
-	  mh_cluster(setdb, n, d, r, l, table_size, &clusters,
-		     &clus_num, ovr);
-	  mh_make_model(setdb, clusters, clus_num, &models, &model_num);
-	  setldb_write(output, models, n, model_num);
+     if (optind + 3 == opnum){
+	  mined_file= opts[optind++];
+	  clusters_file = opts[optind++];	  
+	  models_file = opts[optind++];	  
+
+	  ListDB mined = listdb_load_from_file(mined_file);
+	  ListDB clusters = mhlink_cluster(&mined, table_size, number_of_tuples, tuple_size, list_overlap, ovr);
+	  listdb_delete_smallest(&clusters, 1);
+	  listdb_save_to_file(clusters_file, &clusters);
+
+	  ListDB models = mhlink_make_model(&mined, &clusters);
+	  listdb_save_to_file(models_file, &models);
      }
      else{
 	  if (optind + 2 > opnum)
@@ -391,8 +335,7 @@ int main(int argc, char **argv)
      }
      else {
 	  printf ("Missing arguments.\n"
-		  "Try `mhclus --help' for more information.\n", 
-		  argv[1]);
+		  "Try `mhclus --help' for more information.\n");
 	  exit(EXIT_FAILURE);
      }
      
