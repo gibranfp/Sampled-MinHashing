@@ -46,6 +46,10 @@ typedef struct HashTable {
 	uint *b;
 } HashTable;
 
+typedef struct HashIndex {
+	uint number_of_tables;
+	HashTable *hash_table;
+} HashIndex
 
 /************************ Function prototypes ************************/
 void mh_print_head(HashTable *);
