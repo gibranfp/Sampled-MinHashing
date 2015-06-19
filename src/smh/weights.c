@@ -21,13 +21,12 @@
 #include <math.h>
 #include <inttypes.h>
 #include "types.h"
-#include "ifutils.h"
 #include "weights.h"
 
 /**
  * @brief Term frequency weighting
  */
-double termfreq(const void *tf, const void *df, const void *corpsize)
+double termfreq(uint *tf, uint *df, uint *corpsize)
 {
 	return *(uint *)tf;
 }
@@ -35,7 +34,7 @@ double termfreq(const void *tf, const void *df, const void *corpsize)
 /**
  * @brief Logarithmic term frequency
  */
-double logtf(const void *tf, const void *df, const void *corpsize)
+double logtf(uint *tf, uint *df, uint *corpsize)
 {
 	return log(*(uint *)tf + 1);
 }
@@ -43,7 +42,7 @@ double logtf(const void *tf, const void *df, const void *corpsize)
 /**
  * @brief Binary term frequency
  */
-double bintf(const void *tf, const void *df, const void *corpsize)
+double bintf(uint *tf, uint *df, uint *corpsize)
 {
 	return 1.0;
 }
@@ -51,7 +50,7 @@ double bintf(const void *tf, const void *df, const void *corpsize)
 /**
  * @brief Inverse document frequency
  */
-double idf(const void *tf, const void *df, const void *corpsize)
+double idf(uint *tf, uint *df, uint *corpsize)
 {
 	return log (*(uint *)corpsize / *(uint *)df);
 }
@@ -59,7 +58,7 @@ double idf(const void *tf, const void *df, const void *corpsize)
 /**
  * @brief Term frequency inverse document frequency
  */
-double tfidf(const void *tf, const void *df, const void *corpsize)
+double tfidf(uint *tf, uint *df, uint *corpsize)
 {
 	return termfreq(tf, df, corpsize) * idf(tf, df, corpsize);
 }

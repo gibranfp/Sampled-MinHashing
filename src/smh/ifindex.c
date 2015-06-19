@@ -67,9 +67,7 @@ ListDB ifindex_query_multi(ListDB *ifindex, ListDB *queries)
  * @brief Discards all lists that are less frequent than a given frequency
  *
  * @param query_results Lists
- * @param query Query list
- *
- * @return Result
+ * @param min_freq Minimum frequency
  */
 void ifindex_discard_less_frequent(ListDB *query_results, uint min_freq)
 {
@@ -79,12 +77,10 @@ void ifindex_discard_less_frequent(ListDB *query_results, uint min_freq)
 }
 
 /**
- * @brief Returns a list that include the items in the lists given by the query
+ * @brief Discards all lists that are more frequent than a given frequency
  *
- * @param ifindex Inverted file index
- * @param query Query list
- *
- * @return Result
+ * @param query_results Lists
+ * @param max_freq Maximum frequency
  */
 void ifindex_discard_more_frequent(ListDB *query_results, uint max_freq)
 {
@@ -92,61 +88,63 @@ void ifindex_discard_more_frequent(ListDB *query_results, uint max_freq)
 	for (i = 0; i < query_results->size; i++)
 		list_delete_more_frequent(&query_results->lists[i], max_freq);
 }
+
+/**
+ * @brief Ranks query results based on document hits
+ *
+ * @param query_results Database of lists with query results
+ */
+void ifindex_rank_more_frequent(ListDB *query_results)
+{
+	listdb_apply_to_all(query_results, list_sort_by_frequency_back);
+}
      
 /**
- * @brief Returns a list that include the items in the lists given by the query
+ * @brief Makes inverted file from a given corpus
  *
- * @param ifindex Inverted file index
- * @param query Query list
+ * @param corpus Corpus
  *
- * @return Result
+ * @return Inverted file index
  */
-void ifindex_sort_custom(ListDB *ifindex, ListDB *queries, ListDB *query_results, 
-						 int (*custom_compare)(const void *, const void *))
+ListDB ifindex_make_from_corpus(ListDB *corpus)
 {
-	uint i;
-	for (i = 0; i < query_results->size; i++)
-		qsort(&query_results[i], query_results[i].size, sizeof(Item), 
-			   custom_compare);
+	uint i, j;
+	uint tid;
+	
+	// reads corpus and creates inverted file
+	ListDB ifindex = listdb_create(corpus->dim);
+	ifindex.dim = corpus->size;
+	for (i = 0; i < corpus->size; i++) {
+		for (j = 0; j < corpus->lists[i].size; j++) {
+			tid = corpus->lists[i].data[j].freq;
+			Item item = {i, corpus->lists[i].data[j].freq};
+			list_push(&ifindex.lists[tid], item);
+		}
+	}
+
+	return ifindex;
 }
 
-/* /\** */
-/*  * @brief Makes inverted file from a given corpus */
-/*  * */
-/*  * @param corpus Corpus */
-/*  * @param termfreq Frequency of each term in the document */
-/*  * @param doc_card Number of terms in each document */
-/*  * @param corpus_size Number of documents in the corpus */
-/*  *\/ */
-/* ListDB make_ifs(uint **corpus, uint **termfreq, uint *doccard, uint corpsize,  */
-/* 				uint *corpfreq, uint *docfreq, uint vocsize, */
-/* 				double (*wg)(const void*,const void*,const void*)) */
-/* { */
-/* 	uint i, j; */
-/* 	uint tid; */
-/* 	double wval; */
-	
-/* 	ListDB ifindex = listdb_create(vocsize); */
+/**
+ * @brief Computes weights of inverted file structure
+ *
+ * @param ifindex Inverted file index
+ * @param corpus Corpus
+ * @param wg Function to compute weight
+ */
+void ifindex_weight(ListDB *ifindex, ListDB *corpus, double (*wg)(uint, uint, uint))
+{
+	uint i, j;
+	double wval;
 
-/* 	for (i = 0; i < vocsize; i++) { */
-/* 		ifindex.lists[i] = (uint *) malloc(docfreq[i] * sizeof(uint)); */
-/* 		tw[i] = (uint *) malloc(docfreq[i] * sizeof(uint)); */
-/* 	} */
-
-/* 	for (i = 0; i < corpsize; i++) { */
-/* 		for (j = 0; j < doccard[i]; j++) { */
-/* 			tid = corpus[i][j]; */
-/* 			db[tid][tc[tid]] = i; */
-/* 			wval = (double) termfreq[i][j] * log((double) corpsize / (double) docfreq[tid]); */
-/* 			tw[tid][tc[tid]] = intweight(wval); */
-/* 			if (tw[tid][tc[tid]] == 0) { */
-/* 				tw[tid][tc[tid]] = 1; */
-/* 			} */
-/* 			tc[tid]++; */
-/* 		} */
-/* 	} */
-     
-/* 	*ifs = db; */
-/* 	*weight = tw; */
-/* 	*ifs_card = tc; */
-/* } */
+	// performs term weighting
+	for (i = 0; i < ifindex->size; i++) {
+		for (j = 0; j < ifindex->lists[i].size; j++) {
+			printf("%d\n", ifindex->lists[i].data[j].freq);
+			wval = (double) wg(ifindex->lists[i].data[j].freq, ifindex->lists[i].size, ifindex->dim);
+			ifindex->lists[i].data[j].freq = intweight(wval);
+			if (ifindex->lists[i].data[j].freq == 0)
+				ifindex->lists[i].data[j].freq = 1;
+		}
+	}
+}
