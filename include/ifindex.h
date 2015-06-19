@@ -21,12 +21,14 @@
 #define IFINDEX_H
 
 #include "listdb.h"
+#include "weights.h"
 
 /************************ Function prototypes ************************/
 List ifindex_query(ListDB *, List *);
 ListDB ifindex_query_multi(ListDB *, ListDB *);
 void ifindex_discard_less_frequent(ListDB *, uint);
+void ifindex_discard_more_frequent(ListDB *, uint);
 void ifindex_rank_more_frequent(ListDB *);
-void ifindex_sort_custom(ListDB *, ListDB *, ListDB *,  
-						 int (*)(const void *, const void *));
+ListDB ifindex_make_from_corpus(ListDB *);
+void ifindex_weight(ListDB *, ListDB *, double (*)(uint,uint,uint));
 #endif
