@@ -1,5 +1,6 @@
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 include_directories( ${PROJECT_SOURCE_DIR}/include )
+
 add_library(array_lists array_lists)
 add_library(listdb listdb)
 add_library(weights weights)

@@ -35,18 +35,23 @@ typedef struct Score{
 
 /************************ Function prototypes ************************/
 void listdb_init(ListDB *);
-ListDB listdb_create(uint);
+ListDB listdb_create(uint, uint);
 ListDB listdb_random(uint, uint, uint);
+void listdb_clear(ListDB *listdb);
 void listdb_destroy(ListDB *);
 void listdb_print(ListDB *);
 void listdb_print_multi(ListDB *, List *);
 void listdb_print_range(ListDB *, uint, uint);
 int listdb_size_compare(const void *, const void *);
 int listdb_size_compare_back(const void *, const void *);
+int listdb_score_compare(const void *a, const void *b);
+int listdb_score_compare_back(const void *a, const void *b);
 void listdb_sort_by_size(ListDB *);
 void listdb_sort_by_size_back(ListDB *);
-void listdb_sort_by_score(ListDB *, Score *);
-void listdb_sort_by_score_back(ListDB *, Score *);
+Score *listdb_compute_scores(ListDB *listdb, double (*func)(List *));
+void listdb_swap_all(ListDB *listdb, Score *scores);
+void listdb_sort_by_score(ListDB *listdb, double (*func)(List *));
+void listdb_sort_by_score_back(ListDB *listdb, double (*func)(List *));
 void listdb_apply_to_all(ListDB *, void (*)(List *));
 void listdb_apply_to_range(ListDB *, void (*)(List *), uint, uint);
 void listdb_apply_to_multi(ListDB *, void (*)(List *), List *);

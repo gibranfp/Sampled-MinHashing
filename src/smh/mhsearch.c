@@ -24,8 +24,7 @@
 #include <getopt.h>
 #include <inttypes.h>
 #include "ifindex.h"
-#include "sampledmh.h"
-#include "mhlink.h"
+#include "mhsearch.h"
 
 /**
  * @brief Builds a MinHash index
@@ -39,14 +38,14 @@ HashIndex mhsearch_build(ListDB *listdb, uint number_of_tuples, uint tuple_size,
 {
      HashIndex hash_index;
      hash_index.number_of_tables = number_of_tuples;
-     hash_index.number_of_tables = (HashTable *) malloc(number_of_tuples * sizeof(HashTable));
+     hash_index.hash_tables = (HashTable *) malloc(number_of_tuples * sizeof(HashTable));
      uint *indices = (uint *) malloc(listdb->size * sizeof(uint));
 
      uint i;
      for (i = 0; i < number_of_tuples; i++) {
 	  hash_index.hash_tables[i] = mh_create(table_size, tuple_size, listdb->dim);
 	  mh_generate_permutations(listdb->dim, tuple_size, hash_index.hash_tables[i].permutations);
-	  mh_store_listdb(listdb, &hash_index.hash_tables[i], &indices);
+	  mh_store_listdb(listdb, &hash_index.hash_tables[i], indices);
      }
 
      return hash_index;

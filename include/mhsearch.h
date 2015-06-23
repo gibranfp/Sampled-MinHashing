@@ -26,3 +26,4 @@ HashIndex mhsearch_build(ListDB *listdb, uint number_of_tuples, uint tuple_size,
 List mhsearch_query(List *query, HashIndex *hash_index);
 void mhsearch_sort_custom(List *query, List *neighbors, ListDB *listdb, double (*func)(List *, List *));
 ListDB mhsearch_query_multi(ListDB *queries, HashIndex *hash_index);
+#endif

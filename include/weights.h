@@ -23,11 +23,10 @@
 #include "inttypes.h"
 #include "types.h"
 
-double tf(uint *tf, uint *df, uint *corpsize);
+double termfreq(uint *tf, uint *df, uint *corpsize);
 double logtf(uint *tf, uint *df, uint *corpsize);
 double bintf(uint *tf, uint *df,uint *corpsize);
 double idf(uint *tf, uint *df, uint *corpsize);
 double tfidf(uint *tf, uint *df, uint *corpsize);
-double tfidf_weight(uint tf, uint df, uint corpsize);
 uint intweight(double weight);
 #endif
