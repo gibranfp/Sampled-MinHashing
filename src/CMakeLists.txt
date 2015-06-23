@@ -1,2 +1,2 @@
-add_subdirectory( mhclus )
+add_subdirectory( smh )
 add_subdirectory( tests )
