@@ -31,9 +31,9 @@
  */
 void listdb_init(ListDB *listdb)
 {     
-	listdb->size = 0;
-	listdb->dim = 0;
-	listdb->lists = NULL;
+     listdb->size = 0;
+     listdb->dim = 0;
+     listdb->lists = NULL;
 }
 
 /**
@@ -43,14 +43,14 @@ void listdb_init(ListDB *listdb)
  *
  * @return Created database
  */
-ListDB listdb_create(uint size)
+ListDB listdb_create(uint size, uint dim)
 {     
-	ListDB listdb;
-	listdb.size = size;
-	listdb.dim = 0;
-	listdb.lists = (List *) calloc(size, sizeof(List));
+     ListDB listdb;
+     listdb.size = size;
+     listdb.dim = 0;
+     listdb.lists = (List *) calloc(size, sizeof(List));
 
-	return listdb;
+     return listdb;
 }
 
 /**
@@ -64,15 +64,25 @@ ListDB listdb_create(uint size)
  */
 ListDB listdb_random(uint dbsize, uint max_size, uint max_item)
 {  
-	ListDB listdb;
-	uint i;
+     ListDB listdb;
+     uint i;
 
-	listdb = listdb_create(dbsize);
-	listdb.dim = max_item;
-	for (i = 0; i < dbsize; i++)
-		listdb.lists[i] = list_random(max_size, max_item);
+     listdb = listdb_create(dbsize, max_item);
+     for (i = 0; i < dbsize; i++)
+	  listdb.lists[i] = list_random(max_size, max_item);
 
-	return listdb;
+     return listdb;
+}
+
+/**
+ * @brief Clears a list database structure
+ *
+ * @param *listdb List database to be cleared
+ */
+void listdb_clear(ListDB *listdb)
+{     
+     free(listdb->lists);
+     listdb_init(listdb);
 }
 
 /**
@@ -82,13 +92,13 @@ ListDB listdb_random(uint dbsize, uint max_size, uint max_item)
  */
 void listdb_destroy(ListDB *listdb)
 {     
-	int i;
+     int i;
 
-	for (i = 0; i < listdb->size; i++)
-		list_destroy(&listdb->lists[i]);
+     for (i = 0; i < listdb->size; i++)
+	  list_destroy(&listdb->lists[i]);
 
-	free(listdb->lists);
-	listdb_init(listdb);
+     free(listdb->lists);
+     listdb_init(listdb);
 }
 
 /**
@@ -98,11 +108,11 @@ void listdb_destroy(ListDB *listdb)
  */
 void listdb_print(ListDB *listdb)
 {     
-	uint i;
-	for (i = 0; i < listdb->size; i++) {
-		printf("[  %d  ] ", i);
-		list_print(&listdb->lists[i]);
-	}
+     uint i;
+     for (i = 0; i < listdb->size; i++) {
+	  printf("[  %d  ] ", i);
+	  list_print(&listdb->lists[i]);
+     }
 }
 
 /**
@@ -113,18 +123,18 @@ void listdb_print(ListDB *listdb)
  */
 void listdb_print_multi(ListDB *listdb, List *positions)
 {
-	uint i, pos;
+     uint i, pos;
      
-	for (i = 0; i < positions->size; i++) {
-		pos = positions->data[i].item;
-		if (pos >= 0 && pos < listdb->size){
-			printf("[  %d  ] ", pos);
-			list_print(&listdb->lists[pos]);
-		}
-		else
-			printf ("%d-OOR ", pos);
-	}
-	printf ("\n");
+     for (i = 0; i < positions->size; i++) {
+	  pos = positions->data[i].item;
+	  if (pos >= 0 && pos < listdb->size){
+	       printf("[  %d  ] ", pos);
+	       list_print(&listdb->lists[pos]);
+	  }
+	  else
+	       printf ("%d-OOR ", pos);
+     }
+     printf ("\n");
 }
 
 /**
@@ -136,17 +146,17 @@ void listdb_print_multi(ListDB *listdb, List *positions)
  */
 void listdb_print_range(ListDB *listdb, uint low, uint high)
 {     
-	uint i;
-	if (low >= 0 && low <= high && high < listdb->size) {
-		printf ("%d -- %d-%d\n", listdb->size, low, high);
-		for (i = low; i <= high; i++){
-			printf("[  %d  ] ", i);
-			list_print(&listdb->lists[i]); 
-		}
-	} else {
-		printf ("Invalid range %d-%d. Database range is 0-%d", 
-				low, high, listdb->size - 1);
-	}
+     uint i;
+     if (low >= 0 && low <= high && high < listdb->size) {
+	  printf ("%d -- %d-%d\n", listdb->size, low, high);
+	  for (i = low; i <= high; i++){
+	       printf("[  %d  ] ", i);
+	       list_print(&listdb->lists[i]); 
+	  }
+     } else {
+	  printf ("Invalid range %d-%d. Database range is 0-%d", 
+		  low, high, listdb->size - 1);
+     }
 }
 
 /**
@@ -160,10 +170,10 @@ void listdb_print_range(ListDB *listdb, uint low, uint high)
  */
 int listdb_size_compare(const void *a, const void *b)
 {
-	int a_size = ((List *)a)->size;
-	int b_size = ((List *)b)->size;
+     int a_size = ((List *)a)->size;
+     int b_size = ((List *)b)->size;
 
-	return a_size - b_size;
+     return a_size - b_size;
 }
 
 /**
@@ -173,14 +183,58 @@ int listdb_size_compare(const void *a, const void *b)
  * @param *b Second List to compare
  *
  * @return 0 if the lists are equal, positive if the second list
- *         is greater than the firt and negative otherwise.
+ *         is greater than the first and negative otherwise.
  */
 int listdb_size_compare_back(const void *a, const void *b)
 {
-	int a_size = ((List *)a)->size;
-	int b_size = ((List *)b)->size;
+     int a_size = ((List *)a)->size;
+     int b_size = ((List *)b)->size;
 
-	return b_size - a_size;
+     return b_size - a_size;
+}
+
+/**
+ * @brief Score comparison for bsearch and qsort. 
+ *
+ * @param *a First score to compare
+ * @param *b Second score to compare
+ *
+ * @return 0 if the scores are equal, positive if the first score
+ *         is greater than the second and negative otherwise.
+ */
+int listdb_score_compare(const void *a, const void *b)
+{
+     double a_val = ((Score *)a)->value;
+     double b_val = ((Score *)b)->value;
+
+     if (a_val > b_val) 
+	  return -1;
+     else if (a_val < b_val) 
+	  return 1;
+     else
+	  return 0;
+}
+
+/**
+ * @brief Score comparison for bsearch and qsort. 
+ *
+ * @param *a First score to compare
+ * @param *b Second score to compare
+ *
+ * @return 0 if the scores are equal, positive if the second score
+ *         is greater than the first and negative otherwise.
+ */
+int listdb_score_compare_back(const void *a, const void *b)
+{
+     double a_val = ((Score *)a)->value;
+     double b_val = ((Score *)b)->value;
+
+     if (a_val > b_val) 
+	  return 1;
+     else if (a_val < b_val) 
+	  return -1;
+     else
+	  return 0;
 }
 
 /**
@@ -190,7 +244,7 @@ int listdb_size_compare_back(const void *a, const void *b)
  */
 void listdb_sort_by_size(ListDB *listdb)
 {
-	qsort(listdb->lists, listdb->size, sizeof(List), listdb_size_compare);
+     qsort(listdb->lists, listdb->size, sizeof(List), listdb_size_compare);
 }
 
 /**
@@ -200,7 +254,38 @@ void listdb_sort_by_size(ListDB *listdb)
  */
 void listdb_sort_by_size_back(ListDB *listdb)
 {
-	qsort(listdb->lists, listdb->size, sizeof(List), listdb_size_compare_back);
+     qsort(listdb->lists, listdb->size, sizeof(List), listdb_size_compare_back);
+}
+
+/**
+ * @brief Sorts a database of lists based on their size in ascending order
+ *
+ * @param *listdb Database to be sorted
+ */
+
+void listdb_sort_by_score(ListDB *listdb, double (*func)(List *))
+{
+     Score *scores = malloc(listdb->size);
+     
+     uint i;
+     for (i = 0; i < listdb->size; i++) {
+	  scores[i].index = i;
+	  scores[i].value = func(&listdb->lists[i]);
+     }
+
+     qsort(scores, listdb->size, sizeof(Score), listdb_score_compare);
+
+}
+
+void listdb_swap_all(ListDB *listdb, Score *scores)
+{
+     ListDB newlistdb = listdb_create(listdb->size, listdb->dim);
+     
+     uint i;
+     for (i = 0; i < listdb->size; i++) 
+	  newlistdb.lists[i] = listdb->lists[scores[i].index];
+     
+     listdb->lists
 }
 
 /**
@@ -211,9 +296,9 @@ void listdb_sort_by_size_back(ListDB *listdb)
  */
 void listdb_apply_to_all(ListDB *listdb, void (*func)(List *))
 {
-	uint i;
-	for (i = 0; i < listdb->size; i++)
-		func(&listdb->lists[i]);
+     uint i;
+     for (i = 0; i < listdb->size; i++)
+	  func(&listdb->lists[i]);
 }
 
 /**
@@ -225,15 +310,15 @@ void listdb_apply_to_all(ListDB *listdb, void (*func)(List *))
  * @param high End of the range
  */
 void listdb_apply_to_range(ListDB *listdb, void (*func)(List *), uint low,
-						   uint high)
+			   uint high)
 {
-	uint i;
-	if (low >= 0 && low <= high && high < listdb->size) {
-		for (i = low; i <= high; i++)
-			func(&listdb->lists[i]);
-	} else {
-		printf ("%d-%d-OOR\n", low, high);
-	}
+     uint i;
+     if (low >= 0 && low <= high && high < listdb->size) {
+	  for (i = low; i <= high; i++)
+	       func(&listdb->lists[i]);
+     } else {
+	  printf ("%d-%d-OOR\n", low, high);
+     }
 }
 
 /**
@@ -245,14 +330,14 @@ void listdb_apply_to_range(ListDB *listdb, void (*func)(List *), uint low,
  */
 void listdb_apply_to_multi(ListDB *listdb, void (*func)(List *), List *positions)
 {
-	uint i, pos;
-	for (i = 0; i < positions->size; i++) {
-		pos = positions->data[i].item;
-		if (pos >= 0 && pos < listdb->size)
-			func(&listdb->lists[pos]);
-		else
-			printf ("Position %d OOR\n", pos);
-	}
+     uint i, pos;
+     for (i = 0; i < positions->size; i++) {
+	  pos = positions->data[i].item;
+	  if (pos >= 0 && pos < listdb->size)
+	       func(&listdb->lists[pos]);
+	  else
+	       printf ("Position %d OOR\n", pos);
+     }
 }
 
 /**
@@ -263,10 +348,10 @@ void listdb_apply_to_multi(ListDB *listdb, void (*func)(List *), List *positions
  */
 void listdb_push(ListDB *listdb, List *list)
 {
-	uint newsize = listdb->size + 1;
-	listdb->lists = realloc(listdb->lists, newsize * sizeof(List));
-	listdb->lists[listdb->size] = *list;
-	listdb->size = newsize;
+     uint newsize = listdb->size + 1;
+     listdb->lists = realloc(listdb->lists, newsize * sizeof(List));
+     listdb->lists[listdb->size] = *list;
+     listdb->size = newsize;
 }
 
 /**
@@ -276,32 +361,35 @@ void listdb_push(ListDB *listdb, List *list)
  */
 void listdb_pop(ListDB *listdb)
 {
-	listdb->size--;
-	list_destroy(&listdb->lists[listdb->size]);
-	listdb->lists = realloc(listdb->lists, listdb->size * sizeof(List));
+     listdb->size--;
+     list_destroy(&listdb->lists[listdb->size]);
+     listdb->lists = realloc(listdb->lists, listdb->size * sizeof(List));
 }
 
 /**
  * @brief Deletes multiple lists at the end of a database
  *
  * @param *listdb List database where the lists will be deleted
+ * @param number Number of lists to be removed
  */
 void listdb_pop_multi(ListDB *listdb, uint number)
 {
-	listdb_apply_to_range(listdb, list_destroy, number, listdb->size - 1);
-	listdb->size -= number;
-	listdb->lists = realloc(listdb->lists, listdb->size * sizeof(List));
+     listdb_apply_to_range(listdb, list_destroy, listdb->size - number - 1, listdb->size - 1);
+     listdb->size -= number;
+     listdb->lists = realloc(listdb->lists, listdb->size * sizeof(List));
 }
 
 /**
  * @brief Deletes multiple lists at the end of a database
  *
- * @param *listdb Database where the lists will be deleted
+ * @param *listdb List database where the lists will be deleted
+ * @param last Last list to be removed
  */
 void listdb_pop_until(ListDB *listdb, uint last)
 {
-	listdb->size = last;
-	listdb->lists = realloc(listdb->lists, listdb->size * sizeof(List));
+     listdb_apply_to_range(listdb, list_destroy, last, listdb->size - 1);
+     listdb->size = last;
+     listdb->lists = realloc(listdb->lists, listdb->size * sizeof(List));
 }
 
 /**
@@ -312,15 +400,15 @@ void listdb_pop_until(ListDB *listdb, uint last)
  */
 void listdb_delete_position(ListDB *listdb, uint position)
 {
-	list_destroy(&listdb->lists[position]);
-	uint newsize = listdb->size - 1;
-	List *tmplists = (List *) malloc(newsize * sizeof(List));
-	memcpy(tmplists, listdb->lists, position * sizeof(List));
-	memcpy(tmplists + position, listdb->lists + position + 1, 
-		   (newsize - position) * sizeof(List));
-	free(listdb->lists);
-	listdb->lists = tmplists;
-	listdb->size = newsize;
+     list_destroy(&listdb->lists[position]);
+     uint newsize = listdb->size - 1;
+     List *tmplists = (List *) malloc(newsize * sizeof(List));
+     memcpy(tmplists, listdb->lists, position * sizeof(List));
+     memcpy(tmplists + position, listdb->lists + position + 1, 
+	    (newsize - position) * sizeof(List));
+     free(listdb->lists);
+     listdb->lists = tmplists;
+     listdb->size = newsize;
 }
 
 /**
@@ -332,16 +420,16 @@ void listdb_delete_position(ListDB *listdb, uint position)
  */
 void listdb_delete_range(ListDB *listdb, uint low, uint high)
 {    
-	listdb_apply_to_range(listdb, list_destroy, low, high);
-	uint range = high - low + 1;
-	uint newsize = listdb->size - range;
-	List *tmplists = (List *) malloc(newsize * sizeof(List));
-	memcpy(tmplists, listdb->lists, low * sizeof(List));
-	memcpy(tmplists + low, listdb->lists + high + 1, 
-		   (listdb->size - high - 1) * sizeof(List));
-	free(listdb->lists);
-	listdb->lists = tmplists;
-	listdb->size = newsize;
+     listdb_apply_to_range(listdb, list_destroy, low, high);
+     uint range = high - low + 1;
+     uint newsize = listdb->size - range;
+     List *tmplists = (List *) malloc(newsize * sizeof(List));
+     memcpy(tmplists, listdb->lists, low * sizeof(List));
+     memcpy(tmplists + low, listdb->lists + high + 1, 
+	    (listdb->size - high - 1) * sizeof(List));
+     free(listdb->lists);
+     listdb->lists = tmplists;
+     listdb->size = newsize;
 }
 
 /**
@@ -352,15 +440,15 @@ void listdb_delete_range(ListDB *listdb, uint low, uint high)
  */
 void listdb_delete_smallest(ListDB *listdb, uint min_size)
 {
-	int pos;
+     int pos;
 
-	listdb_sort_by_size_back(listdb);
-	for (pos = 0; pos < listdb->size; pos++)
-		if (listdb->lists[pos].size < min_size)
-			break;
+     listdb_sort_by_size_back(listdb);
+     for (pos = 0; pos < listdb->size; pos++)
+	  if (listdb->lists[pos].size < min_size)
+	       break;
 
-	if (pos < listdb->size) 
-		listdb_pop_until(listdb, pos);
+     if (pos < listdb->size) 
+	  listdb_pop_until(listdb, pos);
 }
 
 /**
@@ -371,15 +459,15 @@ void listdb_delete_smallest(ListDB *listdb, uint min_size)
  */
 void listdb_delete_largest(ListDB *listdb, uint max_size)
 {
-	int pos;
+     int pos;
 
-	listdb_sort_by_size(listdb);
-	for (pos = 0; pos < listdb->size; pos++)
-		if (listdb->lists[pos].size > max_size)
-			break;
+     listdb_sort_by_size(listdb);
+     for (pos = 0; pos < listdb->size; pos++)
+	  if (listdb->lists[pos].size > max_size)
+	       break;
 
-	if (pos < listdb->size) 
-		listdb_pop_until(listdb, pos);
+     if (pos < listdb->size) 
+	  listdb_pop_until(listdb, pos);
 }
 
 /**
@@ -391,18 +479,18 @@ void listdb_delete_largest(ListDB *listdb, uint max_size)
  */
 void listdb_insert(ListDB *listdb, List *new_list, uint position)
 {
-	uint newsize = listdb->size + 1;
-	List *tmplists;
-	tmplists = (List *) malloc(newsize * sizeof(List));
-	memcpy(tmplists, listdb->lists, position * sizeof(List));
-	tmplists[position] = *new_list;
-	if (position < listdb->size)
-		memcpy(tmplists + position + 1, listdb->lists + position, 
-			   (listdb->size - position) * sizeof(List));
+     uint newsize = listdb->size + 1;
+     List *tmplists;
+     tmplists = (List *) malloc(newsize * sizeof(List));
+     memcpy(tmplists, listdb->lists, position * sizeof(List));
+     tmplists[position] = *new_list;
+     if (position < listdb->size)
+	  memcpy(tmplists + position + 1, listdb->lists + position, 
+		 (listdb->size - position) * sizeof(List));
 
-	free(listdb->lists);
-	listdb->lists = tmplists;
-	listdb->size = newsize;
+     free(listdb->lists);
+     listdb->lists = tmplists;
+     listdb->size = newsize;
 }
 
 /**
@@ -413,11 +501,11 @@ void listdb_insert(ListDB *listdb, List *new_list, uint position)
  */
 void listdb_append(ListDB *listdb1, ListDB *listdb2)
 {
-	uint newsize = listdb1->size + listdb2->size;
+     uint newsize = listdb1->size + listdb2->size;
 
-	listdb1->lists = realloc(listdb1->lists, newsize * sizeof(List));
-	memcpy(listdb1->lists + listdb1->size, listdb2->lists, listdb2->size * sizeof(List));
-	listdb1->size = newsize;
+     listdb1->lists = realloc(listdb1->lists, newsize * sizeof(List));
+     memcpy(listdb1->lists + listdb1->size, listdb2->lists, listdb2->size * sizeof(List));
+     listdb1->size = newsize;
 }
 
 /**
@@ -429,8 +517,8 @@ void listdb_append(ListDB *listdb1, ListDB *listdb2)
  */
 void listdb_append_lists_delete(ListDB *listdb, uint position1, uint position2)
 {
-	list_append(&listdb->lists[position1], &listdb->lists[position2]);
-	listdb_delete_position(listdb, position2);
+     list_append(&listdb->lists[position1], &listdb->lists[position2]);
+     listdb_delete_position(listdb, position2);
 }
 
 /**
@@ -442,8 +530,8 @@ void listdb_append_lists_delete(ListDB *listdb, uint position1, uint position2)
  */
 void listdb_append_lists_destroy(ListDB *listdb, uint position1, uint position2)
 {
-	list_append(&listdb->lists[position1], &listdb->lists[position2]);
-	list_destroy(&listdb->lists[position2]);
+     list_append(&listdb->lists[position1], &listdb->lists[position2]);
+     list_destroy(&listdb->lists[position2]);
 }
 
 /**
@@ -455,8 +543,8 @@ void listdb_append_lists_destroy(ListDB *listdb, uint position1, uint position2)
  */
 void listdb_add_lists_delete(ListDB *listdb, uint position1, uint position2)
 {
-	list_add(&listdb->lists[position1], &listdb->lists[position2]);
-	listdb_delete_position(listdb, position2);
+     list_add(&listdb->lists[position1], &listdb->lists[position2]);
+     listdb_delete_position(listdb, position2);
 }
 
 /**
@@ -468,8 +556,8 @@ void listdb_add_lists_delete(ListDB *listdb, uint position1, uint position2)
  */
 void listdb_add_lists_destroy(ListDB *listdb, uint position1, uint position2)
 {
-	list_add(&listdb->lists[position1], &listdb->lists[position2]);
-	list_destroy(&listdb->lists[position2]);
+     list_add(&listdb->lists[position1], &listdb->lists[position2]);
+     list_destroy(&listdb->lists[position2]);
 }
 
 /**
@@ -484,44 +572,44 @@ void listdb_add_lists_destroy(ListDB *listdb, uint position1, uint position2)
  */
 ListDB listdb_load_from_file(char *filename)
 {
-	uint i, j;
-	FILE *file;
+     uint i, j;
+     FILE *file;
 
-	if (!(file = fopen(filename,"r"))) {
-		fprintf(stderr,"Error: Could not open file %s\n", filename);
-		exit(EXIT_FAILURE);
-	}
+     if (!(file = fopen(filename,"r"))) {
+	  fprintf(stderr,"Error: Could not open file %s\n", filename);
+	  exit(EXIT_FAILURE);
+     }
 
-	// checking the number of lists in the file
-	size_t len = 0;
-	ssize_t read;
-	char *line = NULL;
-	ListDB listdb;
-	listdb.size = 0;
-	while ((read = getline(&line, &len, file)) != -1)
-		listdb.size++;
-	rewind(file);
+     // checking the number of lists in the file
+     size_t len = 0;
+     ssize_t read;
+     char *line = NULL;
+     ListDB listdb;
+     listdb.size = 0;
+     while ((read = getline(&line, &len, file)) != -1)
+	  listdb.size++;
+     rewind(file);
 
-	// reading lists
-	listdb.dim = 0;
-	listdb.lists = (List *) malloc(listdb.size * sizeof(List));
-	for (i = 0; i < listdb.size; i ++) {
-		fscanf(file,"%u", &listdb.lists[i].size);
-		listdb.lists[i].data = (Item *) malloc(listdb.lists[i].size * sizeof(Item));
-		for (j = 0; j < listdb.lists[i].size; j++) {
-			char sep;
-			fscanf(file,"%u%c%u", &listdb.lists[i].data[j].item, &sep, &listdb.lists[i].data[j].freq);
-			if (listdb.dim < listdb.lists[i].data[j].item)
-				listdb.dim = listdb.lists[i].data[j].item;
-		}
-	}
+     // reading lists
+     listdb.dim = 0;
+     listdb.lists = (List *) malloc(listdb.size * sizeof(List));
+     for (i = 0; i < listdb.size; i ++) {
+	  fscanf(file,"%u", &listdb.lists[i].size);
+	  listdb.lists[i].data = (Item *) malloc(listdb.lists[i].size * sizeof(Item));
+	  for (j = 0; j < listdb.lists[i].size; j++) {
+	       char sep;
+	       fscanf(file,"%u%c%u", &listdb.lists[i].data[j].item, &sep, &listdb.lists[i].data[j].freq);
+	       if (listdb.dim < listdb.lists[i].data[j].item)
+		    listdb.dim = listdb.lists[i].data[j].item;
+	  }
+     }
      
-	if (fclose(file)) {
-		fprintf(stderr,"Error: Could not close file %s\n", filename);
-		exit(EXIT_FAILURE);
-	}
+     if (fclose(file)) {
+	  fprintf(stderr,"Error: Could not close file %s\n", filename);
+	  exit(EXIT_FAILURE);
+     }
      
-	return listdb;
+     return listdb;
 }
 
 /**
@@ -534,23 +622,23 @@ ListDB listdb_load_from_file(char *filename)
  */
 void listdb_save_to_file(char *filename, ListDB *listdb)
 {
-	uint i, j;
-	FILE *file;
+     uint i, j;
+     FILE *file;
      
-	if (!(file = fopen(filename,"w"))) {
-		fprintf(stderr,"Error: Could not create file %s\n", filename);
-		exit(EXIT_FAILURE);
-	}
+     if (!(file = fopen(filename,"w"))) {
+	  fprintf(stderr,"Error: Could not create file %s\n", filename);
+	  exit(EXIT_FAILURE);
+     }
      
-	for (i = 0; i < listdb->size; i++) {
-		fprintf(file,"%u", listdb->lists[i].size);
-		for (j = 0; j < listdb->lists[i].size; j++)
-			fprintf(file," %u:%u", listdb->lists[i].data[j].item, listdb->lists[i].data[j].freq);
-		fprintf(file,"\n");
-	}
+     for (i = 0; i < listdb->size; i++) {
+	  fprintf(file,"%u", listdb->lists[i].size);
+	  for (j = 0; j < listdb->lists[i].size; j++)
+	       fprintf(file," %u:%u", listdb->lists[i].data[j].item, listdb->lists[i].data[j].freq);
+	  fprintf(file,"\n");
+     }
 
-	if (fclose(file)) {
-		fprintf(stderr,"Error: Could not close file %s\n", filename);
-		exit(EXIT_FAILURE);
-	}
+     if (fclose(file)) {
+	  fprintf(stderr,"Error: Could not close file %s\n", filename);
+	  exit(EXIT_FAILURE);
+     }
 }

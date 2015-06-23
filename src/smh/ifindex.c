@@ -45,6 +45,7 @@ List ifindex_query(ListDB *ifindex, List *query)
 	return query_result;
 }
 
+
 /**
  * @brief Makes multiple queries to a database
  *
@@ -56,7 +57,7 @@ List ifindex_query(ListDB *ifindex, List *query)
 ListDB ifindex_query_multi(ListDB *ifindex, ListDB *queries)
 {
 	uint i;
-	ListDB query_results = listdb_create(queries->size);
+	ListDB query_results = listdb_create(queries->size, ifindex->dim);
 	for (i = 0; i < queries->size; i++) //retrieves each list in inverted
 		query_results.lists[i] = ifindex_query(ifindex, &queries->lists[i]);
      
@@ -112,8 +113,7 @@ ListDB ifindex_make_from_corpus(ListDB *corpus)
 	uint tid;
 	
 	// reads corpus and creates inverted file
-	ListDB ifindex = listdb_create(corpus->dim);
-	ifindex.dim = corpus->size;
+	ListDB ifindex = listdb_create(corpus->dim, corpus->size);
 	for (i = 0; i < corpus->size; i++) {
 		for (j = 0; j < corpus->lists[i].size; j++) {
 			tid = corpus->lists[i].data[j].freq;
