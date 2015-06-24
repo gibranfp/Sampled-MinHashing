@@ -47,7 +47,7 @@ ListDB listdb_create(uint size, uint dim)
 {     
 	ListDB listdb;
 	listdb.size = size;
-	listdb.dim = 0;
+	listdb.dim = dim;
 	listdb.lists = (List *) calloc(size, sizeof(List));
 
 	return listdb;
