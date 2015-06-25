@@ -6,6 +6,8 @@ if ( PYTHON_BINDINGS )
 	find_package ( PythonLibs )
 endif ()
 
+find_program(PYTHON "python")
+
 if ( SWIG_FOUND AND PYTHONLIBS_FOUND )
 	include ( UseSWIG )
   	include_directories ( BEFORE ${CMAKE_SOURCE_DIR}/include )
@@ -15,21 +17,12 @@ if ( SWIG_FOUND AND PYTHONLIBS_FOUND )
     swig_add_module(smh_api python smh_api.i)
     swig_link_libraries(smh_api ${PYTHON_LIBRARIES} smh)
     
-    set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
-    set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
-    set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/build/timestamp")
+	file(GLOB DEPS "*.py")
 
-    configure_file(${SETUP_PY_IN} ${SETUP_PY})
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/smh.py 
+                       COMMAND ${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/smh.py ${CMAKE_CURRENT_BINARY_DIR}/)
 
-    add_custom_command(OUTPUT ${OUTPUT}
-                       COMMAND ${PYTHON} ${SETUP_PY} build
-                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-                       DEPENDS ${DEPS})
-
-    add_custom_target(target ALL DEPENDS ${OUTPUT})
-
-    install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
-
+    add_custom_target(copy ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/smh.py )
 else ()
   message(STATUS "Not building python bindings")
 endif ()
