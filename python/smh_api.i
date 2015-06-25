@@ -1,4 +1,4 @@
 /* smh.i */
-%module smh
+%module smh_api
 %include listdb.i
 %include sampledmh.i
