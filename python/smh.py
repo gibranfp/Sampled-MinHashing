@@ -26,6 +26,9 @@ class SMH:
     def show(self):
         sa.listdb_print(self.ldb)
 
+    def mine(self,tuple_size,num_tuples,table_size=2**19):
+        ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
+        return SMH(ldb=ldb)
 
 # MAIN program
 if __name__ == "__main__":
@@ -37,7 +40,8 @@ if __name__ == "__main__":
     opts = p.parse_args()
 
     s=smh_load(opts.file)
-    s.show()
+    m=s.mine(10,10)
+    m.show()
 
 
 
