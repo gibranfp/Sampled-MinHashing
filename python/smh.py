@@ -15,6 +15,8 @@ def smh_load(filename):
 
 class SMH:
     def __init__(self,size=0,dim=0,ldb=None):
+        self._inverted=False
+        self._original=None
         if ldb:
             self.ldb=ldb
         else:
@@ -30,17 +32,29 @@ class SMH:
         ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
         return SMH(ldb=ldb)
 
+    def invert(self):
+        ldb=sa.sampledmh_mine(self.ldb)
+        ldb._inverted=True
+        ldb._original=self
+        return SMH(ldb=ldb)
+
+
+
 # MAIN program
 if __name__ == "__main__":
     import argparse
     p = argparse.ArgumentParser("Mines")
+    p.add_argument("-r","--tuple_size",default=4,
+        action="store", dest='r',help="Size of the tupple")
+    p.add_argument("-l","--number_tuples",default=10,
+        action="store", dest='l',help="Number of the tupple")
     p.add_argument("file",default=None,
         action="store", help="File for mining")
 
     opts = p.parse_args()
 
     s=smh_load(opts.file)
-    m=s.mine(10,10)
+    m=s.mine(opts.r,opts.l)
     m.show()
 
 
