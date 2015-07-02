@@ -38,24 +38,42 @@ class SMH:
         ldb._original=self
         return SMH(ldb=ldb)
 
+    def cutoff(self,min=5,max=None):
+        if min:
+            sa.listdb_delete_smallest(self.ldb,min)
+        if max:
+            sa.listdb_delete_largest(self.ldb,max)
+
+    def size(self):
+        return self.ldb.size
+
+    def dim(self):
+        return self.ldb.dim
 
 
 # MAIN program
 if __name__ == "__main__":
     import argparse
     p = argparse.ArgumentParser("Mines")
-    p.add_argument("-r","--tuple_size",default=4,
+    p.add_argument("-r","--tuple_size",default=4,type=int,
         action="store", dest='r',help="Size of the tupple")
-    p.add_argument("-l","--number_tuples",default=10,
+    p.add_argument("-l","--number_tuples",default=10,type=int,
         action="store", dest='l',help="Number of the tupple")
+    p.add_argument("--output",default=None,type=str,
+        action="store", dest='output',help="Filename to save mined model")
+    p.add_argument("--min",default=1000,type=int,
+        action="store", dest='min',help="Minimum number of items")
     p.add_argument("file",default=None,
-        action="store", help="File for mining")
+        action="store", help="File to mine")
 
     opts = p.parse_args()
 
     s=smh_load(opts.file)
+    print "Size of loaded file:",s.size()
     m=s.mine(opts.r,opts.l)
-    m.show()
-
-
-
+    print "Size of original mined topics:",m.size()
+    m.cutoff(min=opts.min)
+    print "Size of cutted off mined topics:",m.size()
+    if opts.output:
+        print "Saving resulting model to",opts.output
+        m.save(opts.output)
