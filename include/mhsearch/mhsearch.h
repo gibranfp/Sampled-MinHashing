@@ -20,7 +20,7 @@
 #ifndef MHSEARCH_H
 #define MHSEARCH_H
 
-#include "minhash.h"
+#include <smh/minhash.h>
 
 HashIndex mhsearch_build(ListDB *listdb, uint number_of_tuples, uint tuple_size, uint table_size);
 List mhsearch_query(List *query, HashIndex *hash_index);

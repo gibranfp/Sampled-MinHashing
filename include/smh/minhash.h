@@ -20,8 +20,6 @@
 #ifndef MINHASH_H
 #define MINHASH_H
 
-#include <inttypes.h>
-#include "types.h"
 #include "listdb.h"
 
 typedef struct RandomValue

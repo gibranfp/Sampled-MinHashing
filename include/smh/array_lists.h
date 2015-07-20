@@ -1,7 +1,7 @@
 /**
  * @file array_lists.h
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2013
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -20,7 +20,6 @@
 #ifndef ARRAY_LISTS_H
 #define ARRAY_LISTS_H
 
-#include <stdlib.h>
 #include "types.h"
 
 typedef struct Item {
@@ -33,6 +32,11 @@ typedef struct List{
      uint size;
      Item *data;
 }List;
+
+typedef struct Score{
+	double value;
+	uint index;
+}Score;
 
 /************************ Function prototypes ************************/
 void list_init(List *);
