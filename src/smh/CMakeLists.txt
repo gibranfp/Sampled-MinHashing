@@ -1,6 +1,5 @@
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 include_directories( ${PROJECT_SOURCE_DIR}/include )
-
 add_library(array_lists array_lists)
 add_library(listdb listdb)
 add_library(weights weights)
@@ -13,3 +12,6 @@ add_library(mhlink mhlink)
 add_library(smh SHARED textio mhlink sampledmh minhash ifindex weights listdb array_lists)
 add_executable( smhcmd smhcmd )
 target_link_libraries( smhcmd mhlink sampledmh minhash ifindex weights listdb array_lists m)
+install(TARGETS smhcmd RUNTIME DESTINATION /usr/bin)
+install(TARGETS smh LIBRARY DESTINATION /usr/lib)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/smh DESTINATION /usr/include)
