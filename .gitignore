@@ -2,6 +2,7 @@
 
 # C extensions
 *.so
+*.[oa]
 
 # Packages
 *.egg
@@ -41,3 +42,5 @@ report.pdf
 report.rst
 *.swo
 *.swp
+Makefile
+.clang_complete
