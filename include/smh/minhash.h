@@ -1,7 +1,7 @@
 /**
  * @file minhash.h
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2013
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -15,7 +15,7 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief Declaration of structures and functions for the Min-Hash-based clustering.
+ * @brief Declaration of structures and functions for Min-Hashing
  */
 #ifndef MINHASH_H
 #define MINHASH_H
@@ -57,6 +57,8 @@ HashTable mh_create(uint, uint, uint);
 void mh_destroy(HashTable *);
 void mh_erase_from_list(List *, HashTable *);
 void mh_erase_from_index(uint, HashTable *);
+void mh_clear_table(HashTable *);
+void mh_destroy(HashTable *);
 void mh_generate_permutations(uint, uint, RandomValue *);
 int mh_random_value_compare(const void *, const void *);
 uint mh_compute_minhash(List *, RandomValue *);

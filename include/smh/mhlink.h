@@ -1,7 +1,7 @@
 /**
  * @file mhlink.h
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2014
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -15,7 +15,7 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief Declaration of functios to performing single-link clustering
+ * @brief Declaration of functions for performing single-link clustering
  *        accelerated by Min-Hashing
  */
 #ifndef MHLINK_H
