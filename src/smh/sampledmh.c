@@ -15,11 +15,11 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief Functions to perform Sampled Min-Hashing
+ * @brief Functions to perform Sampled Min-Hashing (SMH)
  */
 #include <math.h>
-#include "ifindex.h"
-#include "sampledmh.h"
+#include "smh/ifindex.h"
+#include "smh/sampledmh.h"
 
 /**
  * @brief Retrieves the items that were 
@@ -56,6 +56,7 @@ ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
 	uint *indices = (uint *) malloc(listdb->size * sizeof(uint));
 
 	ListDB coitems;
+   
 	listdb_init(&coitems);
 
 	// Hashing database & storing candidates

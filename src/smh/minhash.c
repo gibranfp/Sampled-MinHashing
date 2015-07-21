@@ -24,11 +24,10 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include "types.h"
-#include "minhash.h"
+#include "smh/minhash.h"
 
 /**
- * @brief Prints head of a hash table structure
+ * @Brief Prints head of a hash table structure
  *
  * @param hash_table Hash table structure
  */

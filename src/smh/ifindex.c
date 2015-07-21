@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
-#include "ifindex.h"
+#include "smh/ifindex.h"
 
 /**
  * @brief Makes a query to the database
@@ -35,7 +35,7 @@ List ifindex_query(ListDB *ifindex, List *query)
 {
 	uint i;
 	List query_result;
-
+	
 	list_init(&query_result);
 	for (i = 0; i < query->size; i++) //retrieves each list in inverted
 		list_append(&query_result, &ifindex->lists[query->data[i].item]);
@@ -44,7 +44,6 @@ List ifindex_query(ListDB *ifindex, List *query)
 
 	return query_result;
 }
-
 
 /**
  * @brief Makes multiple queries to a database
@@ -126,7 +125,7 @@ ListDB ifindex_make_from_corpus(ListDB *corpus)
 }
 
 /**
- * @brief Computes weights of inverted file structure
+ * @brief Computes weights of an inverted file structure
  *
  * @param ifindex Inverted file index
  * @param corpus Corpus

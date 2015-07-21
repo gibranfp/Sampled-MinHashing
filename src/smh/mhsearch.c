@@ -1,5 +1,5 @@
 /**
- * @file mhsearch.c 
+ * @file mhsearch.c
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
  * @date 2015
  *
@@ -23,8 +23,8 @@
 #include <time.h>
 #include <getopt.h>
 #include <inttypes.h>
-#include "ifindex.h"
-#include "mhsearch.h"
+#include <smh/ifindex.h>
+#include "mhsearch/mhsearch.h"
 
 /**
  * @brief Builds a MinHash index
@@ -32,7 +32,7 @@
  * @param listdb Database of lists to be hashed
  * @param number_of_tuples Number of tuples
  * @param tuple_size Number of MinHash values per tuple
- * @param table_size Number of buckets in the hash table 
+ * @param table_size Number of buckets in the hash table
  */
 HashIndex mhsearch_build(ListDB *listdb, uint number_of_tuples, uint tuple_size, uint table_size)
 {
@@ -67,15 +67,15 @@ List mhsearch_query(List *query, HashIndex *hash_index)
 	  uint index = mh_compute_minhash(query, hash_index->hash_tables[i].permutations);
 	  list_append(&neighbors, &hash_index->hash_tables[i].buckets[index].items);
      }
-	
+
      list_sort_by_item(&neighbors);
      list_unique(&neighbors);
-	
+
      return neighbors;
 }
 
 /**
- * @brief Sorts results of queries 
+ * @brief Sorts results of queries
  *
  * @param query Query list
  * @param neighbors ID's of neighbors found by Min-Hashing
@@ -108,9 +108,8 @@ ListDB mhsearch_query_multi(ListDB *queries, HashIndex *hash_index)
      ListDB neighbors = listdb_create(queries->size, queries->dim);
 
      uint i;
-     for (i = 0; i < queries->size; i++) 
+     for (i = 0; i < queries->size; i++)
 	  neighbors.lists[i] = mhsearch_query(&queries->lists[i], hash_index);
-	
+
      return neighbors;
 }
-

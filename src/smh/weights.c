@@ -20,8 +20,7 @@
  */
 #include <math.h>
 #include <inttypes.h>
-#include "types.h"
-#include "weights.h"
+#include "smh/weights.h"
 
 /**
  * @brief Term frequency weighting
