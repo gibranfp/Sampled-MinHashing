@@ -22,7 +22,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <float.h>
-#include "smh/listdb.h"
+#include "listdb.h"
 
 /**
  * @brief Initializes a list database structure to zero

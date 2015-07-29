@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include "smh/minhash.h"
+#include "minhash.h"
 
 /**
  * @Brief Prints head of a hash table structure

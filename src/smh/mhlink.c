@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include "smh/mhlink.h"
+#include "mhlink.h"
 
 /**
  * @brief Converts clusters (lists of ids) to lists of items.

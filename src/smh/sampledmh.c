@@ -18,8 +18,8 @@
  * @brief Functions to perform Sampled Min-Hashing (SMH)
  */
 #include <math.h>
-#include "smh/ifindex.h"
-#include "smh/sampledmh.h"
+#include "ifindex.h"
+#include "sampledmh.h"
 
 /**
  * @brief Retrieves the items that were 

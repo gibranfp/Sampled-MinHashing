@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
-#include "smh/ifindex.h"
+#include "ifindex.h"
 
 /**
  * @brief Makes a query to the database
