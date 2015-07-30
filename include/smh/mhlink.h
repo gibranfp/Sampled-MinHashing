@@ -1,7 +1,7 @@
 /**
- * @file textio.h
+ * @file mhlink.h
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2014
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -15,15 +15,16 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief Declaration of structures for handling text corpora
+ * @brief Declaration of functions for performing single-link clustering
+ *        accelerated by Min-Hashing
  */
-#ifndef TEXTIO_H
-#define TEXTIO_H
+#ifndef MHLINK_H
+#define MHLINK_H
 
-#include "listdb.h"
+#include "minhash.h"
 
-void textio_load_vocabulary(char *, char ***, uint **, uint **, uint **, uint *);
-void textio_print_idlist_as_words(List *, char **);
-void textio_print_idlistdb_as_words(ListDB *, char **);
-void textio_save_idlistdb_as_words(char *, ListDB *, char **);
+ListDB mhlink_make_model(ListDB *, ListDB *);
+void mhlink_add_neighbors(ListDB *, ListDB *, uint , List *, uint *, uint *, 
+			  double (*)(List *, List *), double);
+ListDB mhlink_cluster(ListDB *, uint, uint, uint, double (*)(List *, List *), double);
 #endif

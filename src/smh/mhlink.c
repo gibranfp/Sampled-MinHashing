@@ -15,14 +15,12 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief Functions for performing single-link clustering based on Min-Hashing
+ * @brief Functions for performing single-link clustering accelerated by Min-Hashing
  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
-#include <inttypes.h>
-#include "types.h"
 #include "mhlink.h"
 
 /**

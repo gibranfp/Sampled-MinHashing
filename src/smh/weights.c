@@ -20,7 +20,6 @@
  */
 #include <math.h>
 #include <inttypes.h>
-#include "types.h"
 #include "weights.h"
 
 /**

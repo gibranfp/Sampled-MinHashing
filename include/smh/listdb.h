@@ -17,8 +17,8 @@
  *
  * @brief Declaration of structures and functions on list databases
  */
-#ifndef LIST_DB_H
-#define LIST_DB_H
+#ifndef LISTDB_H
+#define LISTDB_H
 
 #include "array_lists.h"
 
@@ -28,30 +28,25 @@ typedef struct ListDB{
      List *lists;
 }ListDB;
 
-typedef struct Score{
-	double value;
-	uint index;
-}Score;
-
 /************************ Function prototypes ************************/
 void listdb_init(ListDB *);
 ListDB listdb_create(uint, uint);
 ListDB listdb_random(uint, uint, uint);
-void listdb_clear(ListDB *listdb);
+void listdb_clear(ListDB *);
 void listdb_destroy(ListDB *);
 void listdb_print(ListDB *);
 void listdb_print_multi(ListDB *, List *);
 void listdb_print_range(ListDB *, uint, uint);
 int listdb_size_compare(const void *, const void *);
 int listdb_size_compare_back(const void *, const void *);
-int listdb_score_compare(const void *a, const void *b);
-int listdb_score_compare_back(const void *a, const void *b);
+int listdb_score_compare(const void *, const void *);
+int listdb_score_compare_back(const void *, const void *);
 void listdb_sort_by_size(ListDB *);
 void listdb_sort_by_size_back(ListDB *);
-Score *listdb_compute_scores(ListDB *listdb, double (*func)(List *));
-void listdb_swap_all(ListDB *listdb, Score *scores);
-void listdb_sort_by_score(ListDB *listdb, double (*func)(List *));
-void listdb_sort_by_score_back(ListDB *listdb, double (*func)(List *));
+Score *listdb_compute_scores(ListDB *, double (*)(List *));
+void listdb_swap_all(ListDB *, Score *);
+void listdb_sort_by_score(ListDB *, double (*)(List *));
+void listdb_sort_by_score_back(ListDB *, double (*)(List *));
 void listdb_apply_to_all(ListDB *, void (*)(List *));
 void listdb_apply_to_range(ListDB *, void (*)(List *), uint, uint);
 void listdb_apply_to_multi(ListDB *, void (*)(List *), List *);
@@ -64,11 +59,9 @@ void listdb_delete_range(ListDB *, uint, uint);
 void listdb_delete_smallest(ListDB *, uint);
 void listdb_delete_largest(ListDB *, uint);
 void listdb_insert(ListDB *, List *, uint);
-void listdb_append_delete(ListDB *, uint, uint);
-void listdb_append_destroy(ListDB *, uint, uint);
-void listdb_add_delete(ListDB *, uint, uint);
-void listdb_add_destroy(ListDB *, uint, uint);
 void listdb_append(ListDB *, ListDB *);
+void listdb_append_lists_delete(ListDB *, uint, uint);
+void listdb_append_lists_destroy(ListDB *, uint, uint);
 ListDB listdb_load_from_file(char *);
 void listdb_save_to_file(char *, ListDB *);
 #endif

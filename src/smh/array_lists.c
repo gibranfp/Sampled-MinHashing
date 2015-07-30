@@ -1,7 +1,7 @@
 /**
  * @file array_lists.c
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2013
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -23,8 +23,6 @@
 #include <inttypes.h>
 #include <float.h>
 #include "array_lists.h"
-#include "listdb.h"
-
 
 /**
  * @brief Initializes a list
@@ -440,7 +438,7 @@ void list_delete_item(List *list, Item item)
 }
 
 /**
- * @brief Deletes items in a given range of a list
+ * @brief Deletes items in a given position range of a list
  *
  * @param list List where the items will be deleted
  * @param low Start position of the range

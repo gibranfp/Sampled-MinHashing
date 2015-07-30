@@ -1,7 +1,7 @@
 /**
  * @file ifindex.h
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2013
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -12,7 +12,7 @@
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details at
+ * General Public License for mor e details at
  * http://www.gnu.org/copyleft/gpl.html
  *
  * @brief Declaration of structures for handling lists and inverted file structures.

@@ -8,6 +8,9 @@
 # ----------------------------------------------------------------------
 
 import smh_api as sa
+import numpy as np
+import sys
+import pylab as pl
 
 def smh_load(filename):
     ldb = sa.listdb_load_from_file(filename)
@@ -38,6 +41,17 @@ class SMH:
         ldb._original=self
         return SMH(ldb=ldb)
 
+    def cutoff(self,min=5,max=None):
+        if min:
+            sa.listdb_delete_smallest(self.ldb,min)
+        if max:
+            sa.listdb_delete_largest(self.ldb,max)
+
+    def size(self):
+        return self.ldb.size
+
+    def dim(self):
+        return self.ldb.dim
 
 
 # MAIN program
@@ -54,8 +68,26 @@ if __name__ == "__main__":
     opts = p.parse_args()
 
     s=smh_load(opts.file)
+    print "Size of loaded file:",s.size()
     m=s.mine(opts.r,opts.l)
-    m.show()
+    print "Size of original mined topics:",m.size()
+    m.cutoff(min=1000)
+    print "Size of cutted off mined topics:",m.size()
+
+    for l in m.ldb:
+        avgimgs=np.zeros(784)
+        n=0
+        for i in l:
+            img=np.zeros(784)
+            img[[pix.item for pix in s.ldb[i.item]]]=1
+            avgimgs+=img
+            n+=1
+        avgimgs=avgimgs/60000
+        avgimgs=avgimgs.reshape((28,28))
+        pl.figure()
+        pl.imshow(avgimgs)
+        pl.show()
+    #m.show()
 
 
 

@@ -1,7 +1,7 @@
 /**
- * @file mhlink.h
+ * @file sampledmh.h
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2014
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -15,16 +15,14 @@
  * General Public License for more details at
  * http://www.gnu.org/copyleft/gpl.html
  *
- * @brief Declaration of functios to performing single-link clustering
- *        accelerated by Min-Hashing
+ * @brief Declaration of functios for Sampled Min-Hashing (SMH)
  */
-#ifndef MHLINK_H
-#define MHLINK_H
+#ifndef SAMPLEDMH_H
+#define  SAMPLEDMH_H
 
 #include "minhash.h"
 
-ListDB mhlink_make_model(ListDB *, ListDB *);
-void mhlink_add_neighbors(ListDB *, ListDB *, uint , List *, uint *, uint *, 
-			  double (*)(List *, List *), double);
-ListDB mhlink_cluster(ListDB *, uint, uint, uint, double (*)(List *, List *), double);
+void sampledmh_get_coitems(ListDB *, HashTable *);
+ListDB sampledmh_mine(ListDB *, uint, uint, uint);
+void sampledmh_prune(ListDB *, ListDB *, uint, uint, double, double);
 #endif

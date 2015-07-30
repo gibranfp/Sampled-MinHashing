@@ -1,5 +1,5 @@
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
-include_directories( ${PROJECT_SOURCE_DIR}/include )
+include_directories( ${PROJECT_SOURCE_DIR}/include/smh )
 add_executable( test_array_lists test_array_lists )
 target_link_libraries( test_array_lists array_lists)
 add_executable( test_listdb test_listdb )
