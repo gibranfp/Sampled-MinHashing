@@ -69,7 +69,7 @@ void usage(void)
  */
 void smhcmd_ifindex(int opnum, char **opts)
 {
-     char *weight;
+     char *weight = NULL;
      char *input, *output;     
      int op;
      int option_index = 0;
@@ -109,6 +109,8 @@ void smhcmd_ifindex(int opnum, char **opts)
           output = opts[optind++];
           ListDB corpus = listdb_load_from_file(input);
           ListDB ifindex = ifindex_make_from_corpus(&corpus);
+          if (weight != NULL)
+               ifindex_weight(&ifindex, &corpus, weight);
           listdb_save_to_file(output, &ifindex);
      } else {
           if (optind + 2 > opnum)
