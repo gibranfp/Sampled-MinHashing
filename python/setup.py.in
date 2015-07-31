@@ -3,13 +3,6 @@ from distutils.core import setup, Extension
 setup(
     name='smh',
     version='${PACKAGE_VERSION}',
-    ext_modules=[
-        Extension('array_lists', ['/home/gibran/Dropbox/projects/Sampled-MinHashing/python/smh/array_lists.i'], swig_opts=['-modern', '-I/home/gibran/Dropbox/projects/Sampled-MinHashing/include/smh/']),
-        Extension('listdb', ['listdb.i'], swig_opts=['-modern', '-I../include']),
-        Extension('ifindex', ['ifindex.i'], swig_opts=['-modern', '-I../include']),
-        Extension('sampledmh', ['sampledmh.i'], swig_opts=['-modern', '-I../include']),
-        Extension('smh_api', ['smh_api.i'], swig_opts=['-modern', '-I../include'])
-    ],
-    package_dir={'': '${CMAKE_CURRENT_SOURCE_DIR}'},
+    package_dir={'': '${CMAKE_CURRENT_BINARY_DIR}'},
     packages=['smh']
 )

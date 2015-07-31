@@ -9,10 +9,9 @@
 
 import numpy as np
 import pylab as pl
+from mpl_toolkits.mplot3d import Axes3D
 
-import sys
-sys.path.append("../build/python")
-import smh
+from smh import smh
 
 # MAIN program
 if __name__ == "__main__":
@@ -67,18 +66,29 @@ if __name__ == "__main__":
                 classes_img[-1][classes[i.item]]+=1.0
             except KeyError:
                 classes_img[-1][classes[i.item]]=1.0
-        avgimgs=avgimgs/s.size()
+        #avgimgs=avgimgs/s.size()
+        avgimgs=avgimgs/n
+        maxi=0
         for key in classes_img[-1].keys():
             classes_img[-1][key]=classes_img[-1][key]/l.size
+            if classes_img[-1][key]/l.size > maxi:
+                maxi=classes_img[-1][key]/l.size 
+
         avgimgs=avgimgs.reshape((opts.xdim,opts.ydim))
         model_img.append(avgimgs)
         print "For element",ii
         for k,i in classes_img[-1].iteritems():
                 print "{0} -> {1:1.3f}".format(k,i)
         if opts.show:
-            pl.figure()
-            pl.imshow(model_img[-1])
+            fig=pl.figure()
+            ax = fig.gca(projection='3d')
+            X = np.arange( 28)
+            Y = np.arange( 28)
+            X, Y = np.meshgrid(X, Y)
+            ax.plot_surface(X,Y,avgimgs.reshape((28,28)),rstride=1,
+                    cstride=1, cmap='hot')
             pl.show()
+ 
     if opts.output:
         import pickle
         print "Saving resulting model to",opts.output
