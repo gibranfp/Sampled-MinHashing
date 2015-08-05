@@ -115,7 +115,7 @@ ListDB ifindex_make_from_corpus(ListDB *corpus)
 	ListDB ifindex = listdb_create(corpus->dim, corpus->size);
 	for (i = 0; i < corpus->size; i++) {
 		for (j = 0; j < corpus->lists[i].size; j++) {
-			tid = corpus->lists[i].data[j].freq;
+			tid = corpus->lists[i].data[j].item;
 			Item item = {i, corpus->lists[i].data[j].freq};
 			list_push(&ifindex.lists[tid], item);
 		}
