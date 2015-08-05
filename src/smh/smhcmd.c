@@ -32,10 +32,10 @@
  */
 void usage(void)
 {
-     printf("usage: smhcmd mine [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
+     printf("usage: smhcmd ifindex [OPTIONS]... [CORPUS_FILE] [INVERTED_FILE]\n"
+            "       smhcmd mine [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
             "       smhcmd prune [OPTIONS]... [INVERTED_FILE] [INPUT_FILE] [OUTPUT_FILE]\n"
             "       smhcmd cluster [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
-            "       smhcmd ifindex [OPTIONS]... [CORPUS_FILE] [INVERTED_FILE]\n"
             "Mines inverted file structures, prunes and clusters mined sets,"
             "and writes the output to a file .\n\n"
             "General options:\n"
@@ -107,10 +107,19 @@ void smhcmd_ifindex(int opnum, char **opts)
      if (optind + 2 == opnum){ 
           input = opts[optind++];
           output = opts[optind++];
+
+          printf("Reading corpus file %s . . .\n", input);
           ListDB corpus = listdb_load_from_file(input);
+          printf("\tNumber of documents: %d\tVocabulary size: %d\n", corpus.size, corpus.dim);
+
+          printf("Creating inverted file . . .\n");
           ListDB ifindex = ifindex_make_from_corpus(&corpus);
-          if (weight != NULL)
+          if (weight != NULL){
+               printf("Computing weights . . .\n");
                ifindex_weight(&ifindex, &corpus, weight);
+          }
+          
+          printf("Saving inverted file into %s\n",output);
           listdb_save_to_file(output, &ifindex);
      } else {
           if (optind + 2 > opnum)
@@ -180,9 +189,19 @@ void smhcmd_mine(int opnum, char **opts)
      if (optind + 2 == opnum){
           input = opts[optind++];
           output = opts[optind++];
+
+          printf("Reading sets from %s . . .\n", input);
           ListDB listdb = listdb_load_from_file(input);
+          printf("\tNumber of documents: %d\tVocabulary size: %d\n", corpus.size, corpus.dim);
+
+          printf("Mining . . .\n");
           ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
+          printf("\tNumber of mined sets: %d\tDimensionality: %d\n", coitems.size, coitems.dim);
+
+          printf("Sorting items by size . . .\n");
           listdb_sort_by_size_back(&coitems);
+
+          printf("Saving file in %s . . .\n", output);
           listdb_save_to_file(output,&coitems);
      } else {
           if (optind + 2 > opnum)
@@ -271,10 +290,18 @@ void smhcmd_prune(int opnum, char **opts)
           inv_file = opts[optind++];
           mined_file = opts[optind++];
           pruned_file = opts[optind++];
+
+          printf("Reading inverted file %s . . .\n", input);
           ListDB ifindex = listdb_load_from_file(inv_file);
+
+          printf("Reading mined sets from %s . . .\n", mined);
           ListDB mined = listdb_load_from_file(mined_file);
 
+          printf("Pruning sets . . .\n");          
           sampledmh_prune(&ifindex, &mined, stop, dochits, ovr, coocc);
+          printf("\tNumber of sets after pruning: %d\tDimensionality: %d\n", mined.size, mined.dim);
+
+          printf("Saving file in %s . . .\n", pruned_file);
           listdb_save_to_file(pruned_file, &mined);
      } else {
           if (optind + 3 > opnum)
@@ -351,12 +378,23 @@ void smhcmd_cluster(int opnum, char **opts)
           clusters_file = opts[optind++];	  
           models_file = opts[optind++];	  
 
+          printf("Reading mined sets from %s . . .\n", input);
           ListDB mined = listdb_load_from_file(mined_file);
+
+
+          printf("Clustering sets . . .\n");
           ListDB clusters = mhlink_cluster(&mined, table_size, number_of_tuples, tuple_size, list_overlap, ovr);
+
+          printf("Deleting smallest clusters . . .\n");
           listdb_delete_smallest(&clusters, 1);
+          
+          printf("Saving clusters in %s\n", clusters_file);
           listdb_save_to_file(clusters_file, &clusters);
 
+          printf("Creating models . . . \n");
           ListDB models = mhlink_make_model(&mined, &clusters);
+
+          printf("Saving models in %s\n", models_file);
           listdb_save_to_file(models_file, &models);
      }
      else{
