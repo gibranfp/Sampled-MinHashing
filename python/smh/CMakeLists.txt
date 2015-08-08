@@ -4,6 +4,7 @@ option ( LINK_PYTHON_LIBRARY "Link against python libraries" ON )
 if ( PYTHON_BINDINGS )
 	find_package ( SWIG )
 	find_package ( PythonLibs )
+    find_package ( PythonInterp )
 endif ()
 
 find_program(PYTHON "python")
@@ -14,16 +15,26 @@ if ( PYTHON AND SWIG_FOUND AND PYTHONLIBS_FOUND )
   	include_directories ( ${PYTHON_INCLUDE_DIRS} )
   	link_directories ( ${CMAKE_CURRENT_BINARY_DIR}/src/smh )
 
-   swig_add_module(smh_api python smh_api.i)
-   swig_link_libraries(smh_api ${PYTHON_LIBRARIES} smh)
+    swig_add_module(smh_api python smh_api.i)
+    swig_link_libraries(smh_api ${PYTHON_LIBRARIES} smh)
     
-	file(GLOB DEPS "*.py")
+    file(GLOB DEPS "*.py")
+	file(COPY ${DEPS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
-   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/smh.py 
-     COMMAND ${CMAKE_COMMAND} ARGS -E copy ${CMAKE_CURRENT_SOURCE_DIR}/smh.py ${CMAKE_CURRENT_BINARY_DIR}/)
 
-   add_custom_target(copy ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/smh.py )
-                   
+	execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print( sysconfig.get_python_lib( plat_specific=True, prefix='${CMAKE_INSTALL_PREFIX}' ) )"
+             OUTPUT_VARIABLE _ABS_PYTHON_MODULE_PATH
+             OUTPUT_STRIP_TRAILING_WHITESPACE )
+  
+    get_filename_component ( _ABS_PYTHON_MODULE_PATH ${_ABS_PYTHON_MODULE_PATH} ABSOLUTE )
+    file ( RELATIVE_PATH _REL_PYTHON_MODULE_PATH ${CMAKE_INSTALL_PREFIX} ${_ABS_PYTHON_MODULE_PATH} )
+   
+    set ( PYTHON_MODULE_PATH
+         ${_REL_PYTHON_MODULE_PATH}
+    )
+
+	INSTALL ( FILES ${CMAKE_BINARY_DIR}/python/smh/_smh_api.so ${CMAKE_BINARY_DIR}/python/smh/smh_api.py ${CMAKE_BINARY_DIR}/python/smh/__init__.py ${CMAKE_BINARY_DIR}/python/smh/smh.py DESTINATION ${PYTHON_MODULE_PATH}/smh )
+	
 else ()
   message(STATUS "Not building python bindings")
 endif ()
