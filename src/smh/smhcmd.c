@@ -27,6 +27,8 @@
 #include "sampledmh.h"
 #include "mhlink.h"
 
+enum WeightScheme {TF, LOGTF, BINTF, IDF, TFIDF};
+
 /**
  * @brief Prints help in screen.
  */
@@ -69,7 +71,7 @@ void usage(void)
  */
 void smhcmd_ifindex(int opnum, char **opts)
 {
-     char *weight = NULL;
+     enum WeightScheme weight_scheme = TF;
      char *input, *output;     
      int op;
      int option_index = 0;
@@ -85,8 +87,7 @@ void smhcmd_ifindex(int opnum, char **opts)
      while((op = getopt_long( opnum, opts, "hw:", long_options, 
                               &option_index)) != -1){
           int this_option_optind = optind ? optind : 1;
-          switch (op)
-          {
+          switch (op) {
           case 0:
                break;
           case 'h':
@@ -94,7 +95,7 @@ void smhcmd_ifindex(int opnum, char **opts)
                exit(EXIT_SUCCESS);
                break;
           case 'w':
-               weight = optarg;
+               weight_scheme = atoi(optarg);
                break;
           case '?':
                fprintf(stderr,"Error: Unknown options.\n"
@@ -114,9 +115,30 @@ void smhcmd_ifindex(int opnum, char **opts)
 
           printf("Creating inverted file . . .\n");
           ListDB ifindex = ifindex_make_from_corpus(&corpus);
-          if (weight != NULL){
+          if (weight_scheme != TF){
                printf("Computing weights . . .\n");
-               ifindex_weight(&ifindex, &corpus, weight);
+               double (*weighting)(uint *, uint *, uint *);
+               switch (weight_scheme){
+               case LOGTF:
+                    weighting = &logtf;
+                    break;
+               case BINTF:
+                    weighting = &bintf;
+                    break;
+               case IDF:
+                    weighting = &idf;
+                    break;
+               case TFIDF:
+                    weighting = &tfidf;
+                    break;
+               case '?':
+                    fprintf(stderr,"Error: Unknown type of weighting.\n"
+                            "Try `smhcmd ifindex --help' for more information.\n");
+                    exit(EXIT_FAILURE);
+               default:
+                    abort ();
+               }
+               ifindex_weight(&ifindex, &corpus, weighting);
           }
           
           printf("Saving inverted file into %s\n",output);
@@ -191,18 +213,18 @@ void smhcmd_mine(int opnum, char **opts)
           output = opts[optind++];
 
           printf("Reading sets from %s . . .\n", input);
-          ListDB listdb = listdb_load_from_file(input);
+          ListDB corpus = listdb_load_from_file(input);
           printf("\tNumber of documents: %d\tVocabulary size: %d\n", corpus.size, corpus.dim);
 
           printf("Mining . . .\n");
-          ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
-          printf("\tNumber of mined sets: %d\tDimensionality: %d\n", coitems.size, coitems.dim);
+          ListDB mined = sampledmh_mine(&corpus, tuple_size, number_of_tuples, table_size);
+          printf("\tNumber of mined sets: %d\tDimensionality: %d\n", mined.size, mined.dim);
 
           printf("Sorting items by size . . .\n");
-          listdb_sort_by_size_back(&coitems);
+          listdb_sort_by_size_back(&mined);
 
           printf("Saving file in %s . . .\n", output);
-          listdb_save_to_file(output,&coitems);
+          listdb_save_to_file(output, &mined);
      } else {
           if (optind + 2 > opnum)
                fprintf(stderr, "Error: Missing argumets.\n"
@@ -291,10 +313,10 @@ void smhcmd_prune(int opnum, char **opts)
           mined_file = opts[optind++];
           pruned_file = opts[optind++];
 
-          printf("Reading inverted file %s . . .\n", input);
+          printf("Reading inverted file %s . . .\n", inv_file);
           ListDB ifindex = listdb_load_from_file(inv_file);
 
-          printf("Reading mined sets from %s . . .\n", mined);
+          printf("Reading mined sets from %s . . .\n", mined_file);
           ListDB mined = listdb_load_from_file(mined_file);
 
           printf("Pruning sets . . .\n");          
@@ -378,7 +400,7 @@ void smhcmd_cluster(int opnum, char **opts)
           clusters_file = opts[optind++];	  
           models_file = opts[optind++];	  
 
-          printf("Reading mined sets from %s . . .\n", input);
+          printf("Reading mined sets from %s . . .\n", mined_file);
           ListDB mined = listdb_load_from_file(mined_file);
 
 
