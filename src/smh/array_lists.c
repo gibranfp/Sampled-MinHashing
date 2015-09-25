@@ -216,6 +216,40 @@ int list_frequency_compare_back(const void *a, const void *b)
 }
 
 /**
+ * @brief Score comparison for bsearch and qsort. 
+ *
+ * @param *a First score to compare
+ * @param *b Second score to compare
+ *
+ * @return 0 if the scores are equal, positive if the first score
+ *         is greater than the second and negative otherwise.
+ */
+int list_score_compare(const void *a, const void *b)
+{
+     double a_val = ((Score *)a)->value;
+     double b_val = ((Score *)b)->value;
+
+     return a_val - b_val;
+}
+
+/**
+ * @brief Score comparison for bsearch and qsort. 
+ *
+ * @param *a First score to compare
+ * @param *b Second score to compare
+ *
+ * @return 0 if the scores are equal, positive if the second score
+ *         is greater than the first and negative otherwise.
+ */
+int list_score_compare_back(const void *a, const void *b)
+{
+     double a_val = ((Score *)a)->value;
+     double b_val = ((Score *)b)->value;
+
+     return b_val - a_val;
+}
+
+/**
  * @brief Searches for an item in a sorted list using the binary search algorithm.
  *
  * @param list List where the item is to be searched

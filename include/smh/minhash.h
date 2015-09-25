@@ -24,12 +24,12 @@
 
 typedef struct RandomValue
 {
-     uint random_int;
+     ullong random_int;
      double random_double;
 } RandomValue;
 
 typedef struct Bucket{
-     uint hash_value;
+     ullong hash_value;
      List items;
 } Bucket;
 

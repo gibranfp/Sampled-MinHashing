@@ -35,8 +35,8 @@ void test_init_create_print(void)
 	for (i = 0; i < htable2.tuple_size; i++){
 		printf("tuple %d: {",i);
 		for (j = 0; j < htable2.dim; j++)
-			printf("[%d]%d ", j,
-				   htable2.permutations[i * htable2.dim + j].random_int);
+			printf("[%d]%llu ", j,
+                htable2.permutations[i * htable2.dim + j].random_int);
 		printf("}\n");
 	}
 
@@ -69,7 +69,7 @@ void test_hash(void)
 	for (i = 0; i < htable.tuple_size; i++){
 		printf("tuple %d: {",i);
 		for (j = 0; j < htable.dim; j++)
-			printf("[%d]%d ", j,
+			printf("[%d]%llu ", j,
 				   htable.permutations[i * htable.dim + j].random_int);
 		printf("}\n");
 	}
@@ -95,7 +95,7 @@ void test_hash(void)
 	for (i = 0; i < htable.tuple_size; i++) {
 		printf("\t");
 		for (j = 0; j < list.size; j++) 
-			printf("Perm[%u][%u]%u ", i * htable.dim, list.data[j].item, htable.permutations[list.data[j].item].random_int);
+			printf("Perm[%u][%u]%llu ", i * htable.dim, list.data[j].item, htable.permutations[list.data[j].item].random_int);
 		printf("\n\t");
 
 		for (j = 0; j < list.size; j++) 
@@ -108,7 +108,7 @@ void test_hash(void)
 	uint hash_value, bucket1, bucket2;
 	mh_univhash(&list, &htable, &hash_value, &bucket1);
 	bucket2 = mh_get_index(&list, &htable);
-	printf("\nhash_value = %u Candidate bucket = %u Final bucket = %u Table hash_value = %u\n", hash_value, bucket1, bucket2, htable.buckets[bucket2].hash_value);
+	printf("\nhash_value = %u Candidate bucket = %u Final bucket = %u Table hash_value = %llu\n", hash_value, bucket1, bucket2, htable.buckets[bucket2].hash_value);
 }
 
 void test_store(void)

@@ -27,8 +27,13 @@
 #define LARGEST_INT 4294967295 //Largest 32-bit unsigned integer
 #define LARGEST_PRIME 4294967291 //Largest 32-bit prime number (2^32-5) 
                                  //[E2LSH Manual, Andoni and Indyk 2005]
+
+#define LARGEST_INT64 18446744073709551615ULL
+#define LARGEST_PRIME64 18446744073709551557ULL
+
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
+typedef unsigned long long ullong;
 #endif

@@ -194,50 +194,6 @@ int listdb_size_compare_back(const void *a, const void *b)
 }
 
 /**
- * @brief Score comparison for bsearch and qsort. 
- *
- * @param *a First score to compare
- * @param *b Second score to compare
- *
- * @return 0 if the scores are equal, positive if the first score
- *         is greater than the second and negative otherwise.
- */
-int listdb_score_compare(const void *a, const void *b)
-{
-     double a_val = ((Score *)a)->value;
-     double b_val = ((Score *)b)->value;
-
-     if (a_val > b_val) 
-          return -1;
-     else if (a_val < b_val) 
-          return 1;
-     else
-          return 0;
-}
-
-/**
- * @brief Score comparison for bsearch and qsort. 
- *
- * @param *a First score to compare
- * @param *b Second score to compare
- *
- * @return 0 if the scores are equal, positive if the second score
- *         is greater than the first and negative otherwise.
- */
-int listdb_score_compare_back(const void *a, const void *b)
-{
-     double a_val = ((Score *)a)->value;
-     double b_val = ((Score *)b)->value;
-
-     if (a_val > b_val) 
-          return 1;
-     else if (a_val < b_val) 
-          return -1;
-     else
-          return 0;
-}
-
-/**
  * @brief Sorts a database of lists based on their size in ascending order
  *
  * @param *listdb Database to be sorted
@@ -282,7 +238,7 @@ Score *listdb_compute_scores(ListDB *listdb, double (*func)(List *))
  * @param *listdb Database of lists
  * @param *scores Scores of the lists
  */
-void listdb_swap_all(ListDB *listdb, Score *scores)
+void listdb_swap_by_score(ListDB *listdb, Score *scores)
 {
      ListDB newlistdb = listdb_create(listdb->size, listdb->dim);
      
@@ -302,8 +258,8 @@ void listdb_swap_all(ListDB *listdb, Score *scores)
 void listdb_sort_by_score(ListDB *listdb, double (*func)(List *))
 {
      Score *scores = listdb_compute_scores(listdb, func);
-     qsort(scores, listdb->size, sizeof(Score), listdb_score_compare);	
-     listdb_swap_all(listdb, scores);
+     qsort(scores, listdb->size, sizeof(Score), list_score_compare);	
+     listdb_swap_by_score(listdb, scores);
 }
 
 /**
@@ -314,8 +270,8 @@ void listdb_sort_by_score(ListDB *listdb, double (*func)(List *))
 void listdb_sort_by_score_back(ListDB *listdb, double (*func)(List *))
 {
      Score *scores = listdb_compute_scores(listdb, func);
-     qsort(scores, listdb->size, sizeof(Score), listdb_score_compare_back);	
-     listdb_swap_all(listdb, scores);
+     qsort(scores, listdb->size, sizeof(Score), list_score_compare_back);	
+     listdb_swap_by_score(listdb, scores);
 }
 
 /**

@@ -17,6 +17,8 @@
  *
  * @brief Functions to perform Sampled Min-Hashing (SMH)
  */
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "ifindex.h"
 #include "sampledmh.h"
@@ -29,15 +31,15 @@
  */ 
 void sampledmh_get_coitems(ListDB *coitems, HashTable *hash_table)
 {
-	uint i;
+     uint i;
 
-	for (i = 0; i < hash_table->used_buckets.size; i++){ // scan buckets to find co-occurring items
-		listdb_push(coitems, &hash_table->buckets[hash_table->used_buckets.data[i].item].items);
-		list_init(&hash_table->buckets[hash_table->used_buckets.data[i].item].items);
-		hash_table->buckets[hash_table->used_buckets.data[i].item].hash_value = 0;
-	}
+     for (i = 0; i < hash_table->used_buckets.size; i++){ // scan buckets to find co-occurring items
+          listdb_push(coitems, &hash_table->buckets[hash_table->used_buckets.data[i].item].items);
+          list_init(&hash_table->buckets[hash_table->used_buckets.data[i].item].items);
+          hash_table->buckets[hash_table->used_buckets.data[i].item].hash_value = 0;
+     }
 
-	list_destroy(&hash_table->used_buckets);
+     list_destroy(&hash_table->used_buckets);
 }
 
 
@@ -51,25 +53,25 @@ void sampledmh_get_coitems(ListDB *coitems, HashTable *hash_table)
  */
 ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, uint table_size)
 {
-	uint i;
-	HashTable hash_table = mh_create(table_size, tuple_size, listdb->dim);
-	uint *indices = (uint *) malloc(listdb->size * sizeof(uint));
+     uint i;
+     HashTable hash_table = mh_create(table_size, tuple_size, listdb->dim);
+     uint *indices = (uint *) malloc(listdb->size * sizeof(uint));
 
-	ListDB coitems;
+     ListDB coitems;
    
-	listdb_init(&coitems);
+     listdb_init(&coitems);
 
-	// Hashing database & storing candidates
-	for (i = 0; i < number_of_tuples; i++){
-		mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
-		mh_store_listdb(listdb, &hash_table, indices);
-		sampledmh_get_coitems(&coitems, &hash_table);
-	}
+     // Hashing database & storing candidates
+     for (i = 0; i < number_of_tuples; i++){
+          mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
+          mh_store_listdb(listdb, &hash_table, indices);
+          sampledmh_get_coitems(&coitems, &hash_table);
+     }
 
-	mh_destroy(&hash_table);
-	free(indices);
+     mh_destroy(&hash_table);
+     free(indices);
 
-	return coitems;
+     return coitems;
 }
 
 /**
@@ -84,32 +86,33 @@ ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
  */
 void sampledmh_prune(ListDB *ifindex, ListDB *mined, uint stop, uint hits, double ovr, double cooc)
 {
-	// query inverted file with mined sets
-	ListDB retdocs = ifindex_query_multi(ifindex, mined);
+     // query inverted file with mined sets
+     ListDB retdocs = ifindex_query_multi(ifindex, mined);
 
-	// leaves documents in which at least ovr_th percent of the mined sets occurred
-	uint i, j;
-	for (i = 0; i < mined->size; i++) {
-		uint ovr_th = (uint) ceil(mined->lists[i].size * ovr);
-		list_delete_less_frequent(&retdocs.lists[i], ovr_th);
+     // leaves documents in which at least ovr_th percent of the mined sets occurred
+     uint i, j;
+     for (i = 0; i < mined->size; i++) {
+          printf("Pruning set %d of %d\n",i, mined->size);
+          uint ovr_th = (uint) ceil(mined->lists[i].size * ovr);
+          list_delete_less_frequent(&retdocs.lists[i], ovr_th);
 
-		double cooc_th = retdocs.lists[i].size * cooc;
-		for (j = 0; j < mined->lists[i].size; j++){
-			// removes items from sets which co-occured in very few documents with the rest
-			uint curr_item = mined->lists[i].data[j].item;
-			if (list_intersection_size(&ifindex->lists[curr_item], &retdocs.lists[i]) < cooc_th)
-				list_delete_position(&mined->lists[i], j);
-		}
-	}
+          double cooc_th = retdocs.lists[i].size * cooc;
+          for (j = 0; j < mined->lists[i].size; j++){
+               // removes items from sets which co-occured in very few documents with the rest
+               uint curr_item = mined->lists[i].data[j].item;
+               if (list_intersection_size(&ifindex->lists[curr_item], &retdocs.lists[i]) < cooc_th)
+                    list_delete_position(&mined->lists[i], j);
+          }
+     }
 
-	// removes sets which occured in very few documents
-	for (i = 0; i < mined->size; i++){
-		if (retdocs.lists[i].size < hits){
-			listdb_delete_position(mined, i);
-			i--;
-		}
-	}
+     // removes sets which occured in very few documents
+     for (i = 0; i < mined->size; i++){
+          if (retdocs.lists[i].size < hits){
+               listdb_delete_position(mined, i);
+               i--;
+          }
+     }
 
-	// removes small sets
-	listdb_delete_smallest(mined, stop);
+     // removes small sets
+     listdb_delete_smallest(mined, stop);
 }

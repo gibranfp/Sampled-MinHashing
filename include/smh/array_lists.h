@@ -50,6 +50,8 @@ int list_item_compare(const void *, const void *);
 int list_item_compare_back(const void *, const void *);
 int list_frequency_compare(const void *, const void *);
 int list_frequency_compare_back(const void *, const void *);
+int list_score_compare(const void *a, const void *b);
+int list_score_compare_back(const void *a, const void *b);
 Item *list_binary_search(List *, Item);
 void list_sort_by_item(List *);
 void list_sort_by_item_back(List *);

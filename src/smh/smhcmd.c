@@ -45,7 +45,7 @@ void usage(void)
             "ifindex options:\n"
             "   -w, --weight[=binary]\tWeighting scheme to use."
             "mine options:\n"
-            "   -s, --size[=1048576]\tNumber of buckets in hash"
+            "   -s, --size[=20(2^20 = 1048576)]\tNumber of buckets in hash"
             "table (power of 2)\n"
             "   -r, --hashes[=4]\tNumber of hashes per tuple\n"
             "   -l, --tuples[=500]\tNumber of tuples\n"
@@ -180,7 +180,7 @@ void smhcmd_mine(int opnum, char **opts)
           };
 
      //Command-line option parser
-     while((op = getopt_long( opnum, opts, "hws:l:r:", long_options, 
+     while((op = getopt_long( opnum, opts, "hr:l:t:", long_options, 
                               &option_index)) != -1){
           int this_option_optind = optind ? optind : 1;
           switch (op)
@@ -198,7 +198,7 @@ void smhcmd_mine(int opnum, char **opts)
                number_of_tuples = atoi(optarg);
                break;
           case 't':
-               table_size = (uint) pow(2, ceil(log(atoi(optarg)) / log(2)));
+               table_size = (uint) pow(2, atoi(optarg));
                break;
           case '?':
                fprintf(stderr,"Error: Unknown options.\n"
@@ -222,7 +222,8 @@ void smhcmd_mine(int opnum, char **opts)
 
           printf("Sorting items by size . . .\n");
           listdb_sort_by_size_back(&mined);
-
+          listdb_delete_smallest(&mined,5);
+          
           printf("Saving file in %s . . .\n", output);
           listdb_save_to_file(output, &mined);
      } else {
@@ -319,7 +320,7 @@ void smhcmd_prune(int opnum, char **opts)
           printf("Reading mined sets from %s . . .\n", mined_file);
           ListDB mined = listdb_load_from_file(mined_file);
 
-          printf("Pruning sets . . .\n");          
+          printf("Pruning sets . . .\n");
           sampledmh_prune(&ifindex, &mined, stop, dochits, ovr, coocc);
           printf("\tNumber of sets after pruning: %d\tDimensionality: %d\n", mined.size, mined.dim);
 
@@ -437,6 +438,13 @@ void smhcmd_cluster(int opnum, char **opts)
  */
 int main(int argc, char **argv)
 {
+     // initialize built-in random number generator
+     srand((unsigned int) 123456);
+     
+     // initialize Mersenne Twister random number generator
+    unsigned long long init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL}, length=4;
+    init_by_array64(init, length);
+
      if ( argc > 1 ){
           if ( strcmp(argv[1], "mine") == 0 )
                smhcmd_mine(argc - 1, &argv[1]);
