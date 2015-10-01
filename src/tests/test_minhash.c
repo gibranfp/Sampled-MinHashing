@@ -18,156 +18,206 @@
 
 void test_init_create_print(void)
 {
-	HashTable htable1;
-	mh_init(&htable1);
-	mh_print_head(&htable1);
-	mh_print_table(&htable1);
+     HashTable htable1;
+     mh_init(&htable1);
+     mh_print_head(&htable1);
+     mh_print_table(&htable1);
 
 	
-	HashTable htable2 = mh_create(256, 3, 100);
-	mh_print_head(&htable2);
+     HashTable htable2 = mh_create(256, 3, 100);
+     mh_print_head(&htable2);
 
-	mh_generate_permutations(htable2.dim, htable2.tuple_size, htable2.permutations);
+     mh_generate_permutations(htable2.dim, htable2.tuple_size, htable2.permutations);
 
-	uint i, j;
-	printf("================= Permutations ==================\n");
-	printf("Integers\n");
-	for (i = 0; i < htable2.tuple_size; i++){
-		printf("tuple %d: {",i);
-		for (j = 0; j < htable2.dim; j++)
-			printf("[%d]%llu ", j,
-                htable2.permutations[i * htable2.dim + j].random_int);
-		printf("}\n");
-	}
+     uint i, j;
+     printf("================= Permutations ==================\n");
+     printf("Integers\n");
+     for (i = 0; i < htable2.tuple_size; i++){
+          printf("tuple %d: {",i);
+          for (j = 0; j < htable2.dim; j++)
+               printf("[%d]%llu ", j,
+                      htable2.permutations[i * htable2.dim + j].random_int);
+          printf("}\n");
+     }
 
-	printf("Double\n");
-	for (i = 0; i < htable2.tuple_size; i++){
-		printf("tuple %d: {",i);
-		for (j = 0; j < htable2.dim; j++){
-			printf("[%d]%lf ", j,
-				   htable2.permutations[i * htable2.dim + j].random_double);
-		}
-		printf("}\n");
-	}
+     printf("Double\n");
+     for (i = 0; i < htable2.tuple_size; i++){
+          printf("tuple %d: {",i);
+          for (j = 0; j < htable2.dim; j++){
+               printf("[%d]%lf ", j,
+                      htable2.permutations[i * htable2.dim + j].random_double);
+          }
+          printf("}\n");
+     }
 
-	mh_destroy(&htable2);
-	mh_print_head(&htable2);
-	printf("%s", none);
+     mh_destroy(&htable2);
+     mh_print_head(&htable2);
+     printf("%s", none);
 
 }
 
 void test_hash(void)
 {
-	HashTable htable = mh_create(256, 3, 12);
-	mh_print_head(&htable);
+     HashTable htable = mh_create(256, 3, 12);
+     mh_print_head(&htable);
 
-	mh_generate_permutations(htable.dim, htable.tuple_size, htable.permutations);
+     mh_generate_permutations(htable.dim, htable.tuple_size, htable.permutations);
 
-	uint i, j;
-	printf("================= Permutations ==================\n");
-	printf("Integers\n");
-	for (i = 0; i < htable.tuple_size; i++){
-		printf("tuple %d: {",i);
-		for (j = 0; j < htable.dim; j++)
-			printf("[%d]%llu ", j,
-				   htable.permutations[i * htable.dim + j].random_int);
-		printf("}\n");
-	}
+     uint i, j;
+     printf("================= Permutations ==================\n");
+     printf("Integers\n");
+     for (i = 0; i < htable.tuple_size; i++){
+          printf("tuple %d: {",i);
+          for (j = 0; j < htable.dim; j++)
+               printf("[%d]%llu ", j,
+                      htable.permutations[i * htable.dim + j].random_int);
+          printf("}\n");
+     }
 
-	printf("Double\n");
-	for (i = 0; i < htable.tuple_size; i++){
-		printf("tuple %d: {",i);
-		for (j = 0; j < htable.dim; j++){
-			printf("[%d]%lf ", j,
-				   htable.permutations[i * htable.dim + j].random_double);
-		}
-		printf("}\n");
-	}
+     printf("Double\n");
+     for (i = 0; i < htable.tuple_size; i++){
+          printf("tuple %d: {",i);
+          for (j = 0; j < htable.dim; j++){
+               printf("[%d]%lf ", j,
+                      htable.permutations[i * htable.dim + j].random_double);
+          }
+          printf("}\n");
+     }
 
-	printf("\nList = ");
-	List list = list_random(5,12);
-	while (list.size == 0)
-		list = list_random(5,12);
+     printf("\nList = ");
+     List list = list_random(5,12);
+     while (list.size == 0)
+          list = list_random(5,12);
 
-	list_unique(&list);
-	list_print(&list);
+     list_unique(&list);
+     list_print(&list);
 	
-	for (i = 0; i < htable.tuple_size; i++) {
-		printf("\t");
-		for (j = 0; j < list.size; j++) 
-			printf("Perm[%u][%u]%llu ", i * htable.dim, list.data[j].item, htable.permutations[list.data[j].item].random_int);
-		printf("\n\t");
+     for (i = 0; i < htable.tuple_size; i++) {
+          printf("\t");
+          for (j = 0; j < list.size; j++) 
+               printf("Perm[%u][%u]%llu ", i * htable.dim, list.data[j].item, htable.permutations[list.data[j].item].random_int);
+          printf("\n\t");
 
-		for (j = 0; j < list.size; j++) 
-			printf("Perm[%u][%u]%lf ", i * htable.dim, list.data[j].item, htable.permutations[list.data[j].item].random_double);
+          for (j = 0; j < list.size; j++) 
+               printf("Perm[%u][%u]%lf ", i * htable.dim, list.data[j].item, htable.permutations[list.data[j].item].random_double);
 
-		uint index = mh_compute_minhash(&list, &htable.permutations[i * htable.dim]);
-		printf("\n\tindex[%u] = %u\n", i, index);
-	}
+         
+          uint index = mh_compute_minhash(&list, &htable.permutations[i * htable.dim]);
+          printf("\n\tindex[%u] = %u\n", i, index);
+     }
 
-	uint hash_value, bucket1, bucket2;
-	mh_univhash(&list, &htable, &hash_value, &bucket1);
-	bucket2 = mh_get_index(&list, &htable);
-	printf("\nhash_value = %u Candidate bucket = %u Final bucket = %u Table hash_value = %llu\n", hash_value, bucket1, bucket2, htable.buckets[bucket2].hash_value);
+     uint hash_value, bucket1, bucket2;
+     mh_univhash(&list, &htable, &hash_value, &bucket1);
+     bucket2 = mh_get_index(&list, &htable);
+     printf("\nhash_value = %u Candidate bucket = %u Final bucket = %u Table hash_value = %llu\n", hash_value, bucket1, bucket2, htable.buckets[bucket2].hash_value);
 }
 
 void test_store(void)
 {
-	List list = list_random(5,12);
-	while (list.size == 0)
-		list = list_random(5,12);
+     List list = list_random(5,12);
+     while (list.size == 0)
+          list = list_random(5,12);
 
-	list_unique(&list);
-	printf("List = ");
-	list_print(&list);
+     list_unique(&list);
+     printf("List = ");
+     list_print(&list);
 
-	HashTable htable = mh_create(256, 3, 12);
-	mh_generate_permutations(htable.dim, htable.tuple_size, htable.permutations);
-	uint index = mh_store_list(&list, 0, &htable);
-	uint i;
-	printf("Index = %u\n", index);
-	for (i = 0; i < htable.table_size; i++) {
-		printf("[ %u ] ", i);
-		list_print(&htable.buckets[i].items);
-	}
+     HashTable htable = mh_create(256, 3, 12);
+     mh_generate_permutations(htable.dim, htable.tuple_size, htable.permutations);
+     uint index = mh_store_list(&list, 0, &htable);
+     uint i;
+     printf("Index = %u\n", index);
+     for (i = 0; i < htable.table_size; i++) {
+          printf("[ %u ] ", i);
+          list_print(&htable.buckets[i].items);
+     }
 
-	printf("Removing list ");
-	list_print(&list);
-	mh_erase_from_list(&list, &htable);
-	for (i = 0; i < htable.table_size; i++) {
-		printf("[ %u ] ", i);
-		list_print(&htable.buckets[i].items);
-	}
+     printf("Removing list ");
+     list_print(&list);
+     mh_erase_from_list(&list, &htable);
+     for (i = 0; i < htable.table_size; i++) {
+          printf("[ %u ] ", i);
+          list_print(&htable.buckets[i].items);
+     }
 
-	ListDB listdb = listdb_random(12, 12, 12);
-	listdb_apply_to_all(&listdb, list_sort_by_item);
-	listdb_apply_to_all(&listdb, list_unique);
-	listdb_print(&listdb);
+     ListDB listdb = listdb_random(12, 12, 12);
+     listdb_apply_to_all(&listdb, list_sort_by_item);
+     listdb_apply_to_all(&listdb, list_unique);
+     listdb_print(&listdb);
 
-	uint *indices;
-	indices = malloc(listdb.size * sizeof(uint));
-	mh_store_listdb(&listdb, &htable, indices);
-	for (i = 0; i < htable.used_buckets.size; i++) {
-		printf("[ %u ] ", htable.used_buckets.data[i].item);
-		list_print(&htable.buckets[htable.used_buckets.data[i].item].items);
-	}
+     uint *indices;
+     indices = malloc(listdb.size * sizeof(uint));
+     mh_store_listdb(&listdb, &htable, indices);
+     for (i = 0; i < htable.used_buckets.size; i++) {
+          printf("[ %u ] ", htable.used_buckets.data[i].item);
+          list_print(&htable.buckets[htable.used_buckets.data[i].item].items);
+     }
 	
-	mh_print_head(&htable);
-	mh_erase_from_list(&listdb.lists[2], &htable);
-	for (i = 0; i < htable.used_buckets.size; i++) {
-		printf("[ %u ] ", htable.used_buckets.data[i].item);
-		list_print(&htable.buckets[htable.used_buckets.data[i].item].items);
-	}
-	mh_print_head(&htable);
+     mh_print_head(&htable);
+     mh_erase_from_list(&listdb.lists[2], &htable);
+     for (i = 0; i < htable.used_buckets.size; i++) {
+          printf("[ %u ] ", htable.used_buckets.data[i].item);
+          list_print(&htable.buckets[htable.used_buckets.data[i].item].items);
+     }
+     mh_print_head(&htable);
 }
 
-int main()
+void test_hashes(uint number_of_hashes)
+{
+     ListDB listdb = listdb_random(50,8,20);               
+     listdb_delete_smallest(&listdb, 3);
+     listdb_apply_to_all(&listdb, list_sort_by_item);
+     listdb_apply_to_all(&listdb, list_unique);
+
+     uint i, j;
+     for (i = 0; i < listdb.size; i++) 
+          for (j = 0; j < listdb.lists[i].size; j++) 
+               listdb.lists[i].data[j].freq = 1;
+
+     listdb_print(&listdb);
+     
+     RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * listdb.dim * sizeof(RandomValue));
+     ullong *mhdb = calloc(number_of_hashes * listdb.size, sizeof(ullong));
+     mh_generate_permutations(listdb.dim, number_of_hashes, permutations);
+
+     for (i = 0; i < listdb.size; i++) {
+          for (j = 0; j < number_of_hashes; j++) 
+               mhdb[i * number_of_hashes + j] = mh_compute_minhash(&listdb.lists[i], &permutations[j * listdb.dim]);
+     }
+          
+     double dist[listdb.size][listdb.size];
+     uint collisions[listdb.size][listdb.size];
+     uint inter[listdb.size][listdb.size];
+     uint uni[listdb.size][listdb.size];
+
+     for (i = 0; i < listdb.size - 1; i++) 
+          for (j = i + 1; j < listdb.size; j++) {
+               dist[i][j] = list_jaccard(&listdb.lists[i], &listdb.lists[j]);
+               inter[i][j] = list_intersection_size(&listdb.lists[i], &listdb.lists[j]);
+               uni[i][j] = list_union_size(&listdb.lists[i], &listdb.lists[j]);
+
+               uint k;
+               for (k = 0; k < number_of_hashes; k++)
+                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k]) 
+                    collisions[i][j]++;
+          }
+     
+     for (i = 0; i < listdb.size - 1; i++) 
+          for (j = i + 1; j < listdb.size; j++) 
+               printf("Pair (%d, %d): sim = %lf, intersection = %u, union = %u,"
+                      " collisions(%d,%d) = %u avg collisions(%d, %d) = %lf\n",
+                      i, j, dist[i][j], inter[i][j], uni[i][j],
+                      collisions[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
+}
+
+int main(int argc, char **argv)
 {
      srand((long int) time(NULL));
      
      /* test_init_create_print(); */
-	 /* test_hash(); */
-	 test_store();
+     /* test_hash(); */
+     /* test_store(); */
+     test_hashes(1000000);
  
      return 0;
 }

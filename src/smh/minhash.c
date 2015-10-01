@@ -234,15 +234,14 @@ void mh_generate_permutations(uint dim, uint tuple_size, RandomValue *permutatio
  * @param permutations Random permutations
  * @param dim Dimensionality of the data (number of lists)
  */
-uint mh_compute_minhash(List *list, RandomValue *permutations)
+ullong mh_compute_minhash(List *list, RandomValue *permutations)
 {
      uint i;
-     double *values;
 
      // get randomly assigned values for list
      // and find minimum value
      ullong min_int = permutations[list->data[0].item].random_int;
-     double min_double = permutations[list->data[0].item].random_double / list->data[0].freq;
+     double min_double = permutations[list->data[0].item].random_double / (double) list->data[0].freq;
      for (i = 1; i < list->size; i++){
           double current_value = permutations[list->data[i].item].random_double / (double) list->data[i].freq;
           if (min_double > current_value){
@@ -271,7 +270,7 @@ void mh_univhash(List *list, HashTable *hash_table, uint *hash_value, uint *inde
 
      // computes MinHash values
      for (i = 0; i < hash_table->tuple_size; i++){
-          minhash = mh_compute_minhash(list, hash_table->permutations + i * hash_table->dim);
+          minhash = mh_compute_minhash(list, &hash_table->permutations[i * hash_table->dim]);
           temp_index += ((ullong) hash_table->a[i]) * minhash;
           temp_hv += ((ullong) hash_table->b[i]) * minhash; 
      }

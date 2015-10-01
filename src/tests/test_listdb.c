@@ -155,7 +155,6 @@ int main(int argc, char **argv)
 	/* test_delete_insert_push(); */
 	/* test_append_add();  */
 	test_random_sort_delete_print();
-     
 
 	return 0;
 }

@@ -61,7 +61,7 @@ void mh_clear_table(HashTable *);
 void mh_destroy(HashTable *);
 void mh_generate_permutations(uint, uint, RandomValue *);
 int mh_random_value_compare(const void *, const void *);
-uint mh_compute_minhash(List *, RandomValue *);
+ullong mh_compute_minhash(List *, RandomValue *);
 void mh_univhash(List *, HashTable *, uint *, uint *);
 uint mh_get_index(List *, HashTable *);
 uint mh_store_list(List *, uint, HashTable *);

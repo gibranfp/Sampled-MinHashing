@@ -585,8 +585,8 @@ ListDB listdb_load_from_file(char *filename)
           for (j = 0; j < listdb.lists[i].size; j++) {
                char sep;
                fscanf(file,"%u%c%u", &listdb.lists[i].data[j].item, &sep, &listdb.lists[i].data[j].freq);
-               if (listdb.dim < listdb.lists[i].data[j].item)
-                    listdb.dim = listdb.lists[i].data[j].item;
+               if (listdb.dim < listdb.lists[i].data[j].item + 1)
+                    listdb.dim = listdb.lists[i].data[j].item + 1;
           }
      }
      
