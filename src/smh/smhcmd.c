@@ -111,24 +111,28 @@ void smhcmd_ifindex(int opnum, char **opts)
 
           printf("Reading corpus file %s . . .\n", input);
           ListDB corpus = listdb_load_from_file(input);
-          printf("\tNumber of documents: %d\tVocabulary size: %d\n", corpus.size, corpus.dim);
+          printf("Number of documents: %d\nVocabulary size: %d\n", corpus.size, corpus.dim);
 
           printf("Creating inverted file . . .\n");
           ListDB ifindex = ifindex_make_from_corpus(&corpus);
+
           if (weight_scheme != TF){
-               printf("Computing weights . . .\n");
-               double (*weighting)(uint *, uint *, uint *);
+               double (*weighting)(uint, uint, uint);
                switch (weight_scheme){
                case LOGTF:
+                    printf("logtf weights\n");
                     weighting = &logtf;
                     break;
                case BINTF:
+                    printf("Binary weights\n"); 
                     weighting = &bintf;
                     break;
                case IDF:
+                    printf("idf weights\n"); 
                     weighting = &idf;
                     break;
                case TFIDF:
+                    printf("tfidf weights\n"); 
                     weighting = &tfidf;
                     break;
                case '?':
@@ -139,7 +143,10 @@ void smhcmd_ifindex(int opnum, char **opts)
                     abort ();
                }
                ifindex_weight(&ifindex, &corpus, weighting);
+          } else {
+               printf("tf weights\n"); 
           }
+          
           
           printf("Saving inverted file into %s\n",output);
           listdb_save_to_file(output, &ifindex);
@@ -165,6 +172,7 @@ void smhcmd_mine(int opnum, char **opts)
      uint tuple_size = 4; // default tuple size
      uint number_of_tuples = 500; // default number of tuples
      uint table_size = 1048576; // default table size
+     uint min_set_size = 3; 
      char *input, *output;
      
      int op;
@@ -176,6 +184,7 @@ void smhcmd_mine(int opnum, char **opts)
                {"tuple_size", required_argument, 0, 'r'},
                {"number_of_tuples", required_argument, 0, 'l'},
                {"table_size", required_argument, 0, 't'},
+               {"min_set_size", required_argument, 0, 'm'},
                {0, 0, 0, 0}
           };
 
@@ -200,6 +209,9 @@ void smhcmd_mine(int opnum, char **opts)
           case 't':
                table_size = (uint) pow(2, atoi(optarg));
                break;
+          case 'm':
+               min_set_size = atoi(optarg);
+               break;
           case '?':
                fprintf(stderr,"Error: Unknown options.\n"
                        "Try `smhcmd --help' for more information.\n");
@@ -214,15 +226,15 @@ void smhcmd_mine(int opnum, char **opts)
 
           printf("Reading sets from %s . . .\n", input);
           ListDB corpus = listdb_load_from_file(input);
-          printf("\tNumber of documents: %d\tVocabulary size: %d\n", corpus.size, corpus.dim);
+          printf("Number of documents: %d\nVocabulary size: %d\n", corpus.size, corpus.dim);
 
-          printf("Mining . . .\n");
+          printf("Mining . . . ");
           ListDB mined = sampledmh_mine(&corpus, tuple_size, number_of_tuples, table_size);
-          printf("\tNumber of mined sets: %d\tDimensionality: %d\n", mined.size, mined.dim);
+          printf("Number of mined sets: %d\nDimensionality: %d\n", mined.size, mined.dim);
 
           printf("Sorting items by size . . .\n");
           listdb_sort_by_size_back(&mined);
-          listdb_delete_smallest(&mined,5);
+          listdb_delete_smallest(&mined, min_set_size);
           
           printf("Saving file in %s . . .\n", output);
           listdb_save_to_file(output, &mined);
@@ -322,7 +334,7 @@ void smhcmd_prune(int opnum, char **opts)
 
           printf("Pruning sets . . .\n");
           sampledmh_prune(&ifindex, &mined, stop, dochits, ovr, coocc);
-          printf("\tNumber of sets after pruning: %d\tDimensionality: %d\n", mined.size, mined.dim);
+          printf("Number of sets after pruning: %d\nDimensionality: %d\n", mined.size, mined.dim);
 
           printf("Saving file in %s . . .\n", pruned_file);
           listdb_save_to_file(pruned_file, &mined);
@@ -438,12 +450,10 @@ void smhcmd_cluster(int opnum, char **opts)
  */
 int main(int argc, char **argv)
 {
-     // initialize built-in random number generator
-     srand((unsigned int) 123456);
      
      // initialize Mersenne Twister random number generator
-    unsigned long long init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL}, length=4;
-    init_by_array64(init, length);
+     unsigned long long init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL}, length=4;
+     init_by_array64(init, length);
 
      if ( argc > 1 ){
           if ( strcmp(argv[1], "mine") == 0 )

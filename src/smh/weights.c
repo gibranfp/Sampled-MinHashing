@@ -1,7 +1,7 @@
 /**
- * @file make_ifs.c 
+ * @file weights.c 
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2013
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -25,41 +25,41 @@
 /**
  * @brief Term frequency weighting
  */
-double termfreq(uint *tf, uint *df, uint *corpsize)
+double termfreq(uint tf, uint df, uint corpsize)
 {
-	return *(uint *)tf;
+     return (double) tf;
 }
 
 /**
  * @brief Logarithmic term frequency
  */
-double logtf(uint *tf, uint *df, uint *corpsize)
+double logtf(uint tf, uint df, uint corpsize)
 {
-	return log(*(uint *)tf + 1);
+     return log((double)tf + 1.0);
 }
 
 /**
  * @brief Binary term frequency
  */
-double bintf(uint *tf, uint *df, uint *corpsize)
+double bintf(uint tf, uint df, uint corpsize)
 {
-	return 1.0;
+	return 0.000000001;
 }
 
 /**
  * @brief Inverse document frequency
  */
-double idf(uint *tf, uint *df, uint *corpsize)
+double idf(uint tf, uint df, uint corpsize)
 {
-	return log (*(uint *)corpsize / *(uint *)df);
+     return log ((double)corpsize / (double)df);
 }
 
 /**
  * @brief Term frequency inverse document frequency
  */
-double tfidf(uint *tf, uint *df, uint *corpsize)
+double tfidf(uint tf, uint df, uint corpsize)
 {
-	return termfreq(tf, df, corpsize) * idf(tf, df, corpsize);
+     return termfreq(tf, df, corpsize) * idf(tf, df, corpsize);
 }
 
 /**

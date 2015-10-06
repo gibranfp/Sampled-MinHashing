@@ -205,7 +205,7 @@ void test_hashes(uint number_of_hashes)
      for (i = 0; i < listdb.size - 1; i++) 
           for (j = i + 1; j < listdb.size; j++) 
                printf("Pair (%d, %d): sim = %lf, intersection = %u, union = %u,"
-                      " collisions(%d,%d) = %u avg collisions(%d, %d) = %lf\n",
+                      " collisions = %u avg collisions = %lf\n",
                       i, j, dist[i][j], inter[i][j], uni[i][j],
                       collisions[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
 }
