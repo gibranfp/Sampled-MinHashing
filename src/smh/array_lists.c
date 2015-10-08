@@ -148,6 +148,24 @@ Item *list_max_item(List *list)
 }
 
 /**
+ * @brief Computes the sum of the frequencies of a list
+ *
+ * @param list Input list
+ *
+ * @return Sum of the frequencies of the input list
+ */
+uint list_sum_freq(List *list)
+{
+    uint i;
+    uint sum = 0;
+
+    for (i = 0; i < list->size; i++)
+         sum += list->data[i].freq;
+              
+    return sum;
+}
+
+/**
  * @brief List item comparison for bsearch and qsort.
  *
  * @param a First item to compare

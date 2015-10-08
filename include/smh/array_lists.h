@@ -46,6 +46,7 @@ void list_destroy(List *);
 Item *list_find(List *, Item);
 Item *list_min_item(List *);
 Item *list_max_item(List *);
+uint list_sum_freq(List *);
 int list_item_compare(const void *, const void *);
 int list_item_compare_back(const void *, const void *);
 int list_frequency_compare(const void *, const void *);
@@ -86,6 +87,6 @@ uint list_difference_size(List *, List *);
 double list_jaccard(List *, List *);
 double list_overlap(List *, List *);
 double list_histogram_intersection(List *, List *);
-double list_weighted_histogram_intersection(List *list1, List *list2, uint *item_weights);
+double list_weighted_histogram_intersection(List *, List *, uint *);
 double list_weighted_similarity(List *, List *, uint *);
 #endif

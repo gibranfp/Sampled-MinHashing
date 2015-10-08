@@ -30,5 +30,5 @@ void ifindex_discard_less_frequent(ListDB *, uint);
 void ifindex_discard_more_frequent(ListDB *, uint);
 void ifindex_rank_more_frequent(ListDB *);
 ListDB ifindex_make_from_corpus(ListDB *);
-void ifindex_weight(ListDB *, ListDB *, double (*)(uint,uint,uint));
+void ifindex_weight(ListDB *, ListDB *, double (*)(uint,uint,uint, uint,uint,uint));
 #endif

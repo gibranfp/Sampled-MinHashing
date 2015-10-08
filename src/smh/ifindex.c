@@ -1,7 +1,7 @@
 /**
  * @file ifindex.c
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2013
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -130,15 +130,23 @@ ListDB ifindex_make_from_corpus(ListDB *corpus)
  * @param corpus Corpus
  * @param wg Function to compute weight
  */
-void ifindex_weight(ListDB *ifindex, ListDB *corpus, double (*wg)(uint, uint, uint))
+void ifindex_weight(ListDB *ifindex, ListDB *corpus, double (*wg)(uint, uint, uint, uint, uint, uint))
 {
      uint i, j;
-     double wval;
+
+     // Computes size of documents
+     uint *docsizes = (uint *) calloc(corpus->size, sizeof(uint));
+     for (i = 0; i < corpus->size; i++)
+          for (j = 0; j < corpus->lists[i].size; j++) 
+               docsizes[i] += corpus->lists[i].data[j].freq;
 
      // performs term weighting
      for (i = 0; i < ifindex->size; i++) {
           for (j = 0; j < ifindex->lists[i].size; j++) {
-               double wval = wg(ifindex->lists[i].data[j].freq, ifindex->lists[i].size, ifindex->dim);
+               double wval = wg(ifindex->lists[i].data[j].freq, ifindex->lists[i].size,
+                                docsizes[ifindex->lists[i].data[j].item],
+                                corpus->lists[ifindex->lists[i].data[j].item].size,
+                                corpus->size, ifindex->size);
                ifindex->lists[i].data[j].freq = intweight(wval);
                if (ifindex->lists[i].data[j].freq == 0)
                     ifindex->lists[i].data[j].freq = 1;
