@@ -24,7 +24,8 @@ typedef unsigned int uint;
 
 extern void listdb_delete_largest(ListDB *, uint);
 extern uint list_intersection_size(List *, List *);
-extern List* list_sum_freq(List *);
+extern List list_intersection(List *, List *);
+extern uint list_sum_freq(List *);
 
 %exception List::__getitem__ {
     assert(!errItem);

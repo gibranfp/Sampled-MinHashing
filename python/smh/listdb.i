@@ -43,7 +43,6 @@ typedef unsigned int uint;
 }
 
 %extend ListDB {
-     uint number_of_items;
      List __getitem__(size_t i) {
           if (i >= $self->size) {
                myErr = 1;
@@ -53,9 +52,6 @@ typedef unsigned int uint;
           return $self->lists[i];
      }
 
-     uint *compute_number_of_items(void) {
-          uint i;
-     }
      
      uint *rows(void) {
           uint i;
