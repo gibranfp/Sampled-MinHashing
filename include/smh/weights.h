@@ -1,7 +1,7 @@
 /**
  * @file weights.h 
  * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2013
+ * @date 2015
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -22,10 +22,23 @@
 
 #include "types.h"
 
-double termfreq(uint tf, uint df, uint corpsize);
-double logtf(uint tf, uint df, uint corpsize);
-double bintf(uint tf, uint df,uint corpsize);
-double idf(uint tf, uint df, uint corpsize);
-double tfidf(uint tf, uint df, uint corpsize);
-uint intweight(double weight);
+double termfreq(uint, uint, uint, uint, uint, uint);
+double logtf(uint, uint, uint, uint, uint, uint);
+double bintf(uint, uint, uint, uint, uint, uint);
+double idf(uint, uint, uint, uint, uint, uint);
+double itf(uint, uint, uint, uint, uint, uint);
+double ids(uint, uint, uint, uint, uint, uint);
+double tfidf(uint, uint, uint, uint, uint, uint);
+double logtfidf(uint, uint, uint, uint, uint, uint);
+double itfidf(uint, uint, uint, uint, uint, uint);
+double logitfidf(uint, uint, uint, uint, uint, uint);
+double tfids(uint, uint, uint, uint, uint, uint);
+double logtfids(uint, uint, uint, uint, uint, uint);
+double itfidfids(uint, uint, uint, uint, uint, uint);
+double logitfidfids(uint, uint, uint, uint, uint, uint);
+double tfdr(uint, uint, uint, uint, uint, uint);
+double logtfdr(uint, uint, uint, uint, uint, uint);
+double drtf(uint, uint, uint, uint, uint, uint);
+double drlogtf(uint, uint, uint, uint, uint, uint);
+uint intweight(double);
 #endif
