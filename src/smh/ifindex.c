@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
+#include "weights.h"
 #include "ifindex.h"
 
 /**

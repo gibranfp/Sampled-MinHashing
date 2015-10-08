@@ -55,30 +55,40 @@ typedef unsigned int uint;
 
      uint *compute_number_of_items(void) {
           uint i;
-          uint number_of_items = 0;
-          for (i = 0; i < $self->size; i++)
-               number_of_items += $self->lists[i].size;
      }
      
      uint *rows(void) {
           uint i;
-          uint *rows = (uint *) malloc($self->number_of_items * sizeof(uint));
+          uint *rows = NULL;
           uint counter = 0;
           for (i = 0; i < $self->size; i++) {
+               rows = (uint *) realloc(rows, counter + $self->lists[i].size);
                memset(&rows[counter], i, $self->lists[i].size);
                counter += $self->lists[i].size;
           }
      }
 
      uint *cols(void) {
-          uint i;
-          uint *cols = (uint *) malloc(number_of_items * sizeof(uint));
+          uint i, j;
+          uint *cols = NULL;
           uint counter = 0;
           for (i = 0; i < $self->size; i++) {
-               for (j = 0; j < $self->lists[i].size; j++) {
-               }
+               cols = (uint *) realloc(cols, counter + $self->lists[i].size);
+               for (j = 0; j < $self->lists[i].size; j++) 
+                    cols[counter + j] = $self->lists[i].data[j].item;
                counter += $self->lists[i].size;
-                                   
+          }
+     }
+
+     uint *array(void) {
+          uint i, j;
+          uint *array = NULL;
+          uint counter = 0;
+          for (i = 0; i < $self->size; i++) {
+               array = (uint *) realloc(array, counter + $self->lists[i].size);
+               for (j = 0; j < $self->lists[i].size; j++) 
+                    array[counter + j] = $self->lists[i].data[j].freq;
+               counter += $self->lists[i].size;
           }
      }
 }

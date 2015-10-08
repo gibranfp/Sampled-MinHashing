@@ -247,8 +247,8 @@ void test_weighted_hashes(uint number_of_hashes)
      for (i = 0; i < listdb.size - 1; i++) 
           for (j = i + 1; j < listdb.size; j++) {
                h0[i][j] = list_histogram_intersection(&listdb.lists[i], &listdb.lists[j]);
-               h1[i][j] = list_weighted_histogram_intersection(&listdb.lists[i], &listdb.lists[j], &weights);
-               wsim[i][j] = list_weighted_similarity(&listdb.lists[i], &listdb.lists[j], &weights);
+               h1[i][j] = list_weighted_histogram_intersection(&listdb.lists[i], &listdb.lists[j], weights);
+               wsim[i][j] = list_weighted_similarity(&listdb.lists[i], &listdb.lists[j], weights);
 
                uint k;
                for (k = 0; k < number_of_hashes; k++)
@@ -258,7 +258,7 @@ void test_weighted_hashes(uint number_of_hashes)
      
      for (i = 0; i < listdb.size - 1; i++) 
           for (j = i + 1; j < listdb.size; j++) 
-               printf("Pair (%d, %d): h0 = %lf, h1 = %u, wsim = %u,"
+               printf("Pair (%d, %d): h0 = %lf, h1 = %lf, wsim = %lf,"
                       " collisions = %u avg collisions = %lf\n",
                       i, j, h0[i][j], h1[i][j], wsim[i][j],
                       collisions[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
