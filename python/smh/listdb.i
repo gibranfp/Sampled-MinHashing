@@ -43,7 +43,6 @@ typedef unsigned int uint;
 }
 
 %extend ListDB {
-     uint number_of_items;
      List __getitem__(size_t i) {
           if (i >= $self->size) {
                myErr = 1;
@@ -53,19 +52,17 @@ typedef unsigned int uint;
           return $self->lists[i];
      }
 
-     uint *compute_number_of_items(void) {
-          uint i;
-     }
-     
      uint *rows(void) {
           uint i;
           uint *rows = NULL;
           uint counter = 0;
           for (i = 0; i < $self->size; i++) {
-               rows = (uint *) realloc(rows, counter + $self->lists[i].size);
+               rows = (uint *) realloc(rows, (counter + $self->lists[i].size) * sizeof(uint));
                memset(&rows[counter], i, $self->lists[i].size);
                counter += $self->lists[i].size;
           }
+
+          return rows;
      }
 
      uint *cols(void) {
@@ -78,6 +75,8 @@ typedef unsigned int uint;
                     cols[counter + j] = $self->lists[i].data[j].item;
                counter += $self->lists[i].size;
           }
+
+          return cols;
      }
 
      uint *array(void) {
@@ -90,5 +89,7 @@ typedef unsigned int uint;
                     array[counter + j] = $self->lists[i].data[j].freq;
                counter += $self->lists[i].size;
           }
+
+          return array;
      }
 }
