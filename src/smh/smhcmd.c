@@ -117,7 +117,7 @@ void smhcmd_ifindex(int opnum, char **opts)
           ListDB ifindex = ifindex_make_from_corpus(&corpus);
 
           if (weight_scheme != TF){
-               double (*weighting)(uint, uint, uint);
+               double (*weighting)(uint, uint, uint, uint, uint, uint);
                switch (weight_scheme){
                case LOGTF:
                     printf("logtf weights\n");
