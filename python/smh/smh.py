@@ -8,10 +8,18 @@
 # ----------------------------------------------------------------------
 
 import smh_api as sa
+import cluster as clus
+from scipy.sparse import csr_matrix
 
 def smh_load(filename):
     ldb = sa.listdb_load_from_file(filename)
     return SMH(ldb=ldb)
+
+def csr_to_listdb(csr):
+    ldb = sa.listdb_create(csr.shape[0], csr.shape[1])
+    coo = csr.tocoo()    
+    for i,j,v in itertools.izip(coo.row, coo.col, coo.data):
+        ldb.push(i, j, int(round(v * 100000000)))
 
 class SMH:
     def __init__(self,size=0,dim=0,ldb=None):
@@ -32,6 +40,13 @@ class SMH:
         ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
         return SMH(ldb=ldb)
 
+    def cluster_mhlink(self, num_tuples, tuple_size, table_size=2**19, thres=0.7):
+        ldb=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
+        return SMH(ldb=ldb)
+
+    def cluster_sklearn(self, algorithm):
+        return algorithm.fit(self.tocsr())
+
     def invert(self):
         ldb=sa.sampledmh_mine(self.ldb)
         ldb._inverted=True
@@ -44,11 +59,30 @@ class SMH:
         if max:
             sa.listdb_delete_largest(self.ldb,max)
 
+        ldb= sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
+        return SMH(ldb=ldb)
+
     def size(self):
         return self.ldb.size
 
     def dim(self):
         return self.ldb.dim
+
+    def tocsr(self):
+        number_of_items = 0
+        for l in self.ldb:
+            number_of_items += l.size
+
+        rows = []
+        cols = []
+        arr = []
+        for r, l in enumerate(self.ldb):
+            for i in l:
+                rows.append(r)
+                cols.append(i.item)
+                arr.append(float(i.freq))
+                
+        return csr_matrix((arr, (rows, cols)))
 
 
 # MAIN program

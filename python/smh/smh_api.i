@@ -7,3 +7,4 @@
 %include listdb.i
 %include sampledmh.i
 %include ifindex.i
+%include mhlink.i

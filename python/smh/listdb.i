@@ -2,6 +2,7 @@
 %module listdb
 %include typemaps.i
 %include "exception.i"
+
 %{
 #include "array_lists.h"
 #include "listdb.h"
@@ -11,19 +12,18 @@
 
      %}
  
-extern void listdb_init(ListDB *listdb);
+extern void listdb_init(ListDB *);
 extern ListDB listdb_create(int, int);
 extern ListDB listdb_random(uint, uint, uint);
-extern void listdb_clear(ListDB *listdb);
+extern void listdb_clear(ListDB *);
 extern void listdb_destroy(ListDB *);
 extern void listdb_print(ListDB *);
 extern void listdb_print_multi(ListDB *, List *);
 extern void listdb_print_range(ListDB *, uint, uint);
 extern void listdb_delete_smallest(ListDB *, uint);
 extern void listdb_delete_largest(ListDB *, uint);
-
-extern ListDB listdb_load_from_file(char *filename);
-extern void listdb_save_to_file(char *filename, ListDB *listdb);
+extern ListDB listdb_load_from_file(char *);
+extern void listdb_save_to_file(char *, ListDB *);
 
 typedef struct ListDB{
      uint size;
@@ -43,53 +43,30 @@ typedef unsigned int uint;
 }
 
 %extend ListDB {
-     List __getitem__(size_t i) {
-          if (i >= $self->size) {
+     List __getitem__(uint pos) {
+          if (pos >= $self->size) {
                myErr = 1;
                List list = (const List) {0};
                return list;
           }
-          return $self->lists[i];
+          
+          return $self->lists[pos];
      }
 
-     uint *rows(void) {
-          uint i;
-          uint *rows = NULL;
-          uint counter = 0;
-          for (i = 0; i < $self->size; i++) {
-               rows = (uint *) realloc(rows, (counter + $self->lists[i].size) * sizeof(uint));
-               memset(&rows[counter], i, $self->lists[i].size);
-               counter += $self->lists[i].size;
+     void push(uint pos, uint id, uint freq) {
+          if (pos >= $self->size) {
+               myErr = 1;
+          } else{
+               Item item = {id, freq};
+               list_push($self->lists + pos, item);
           }
-
-          return rows;
      }
 
-     uint *cols(void) {
-          uint i, j;
-          uint *cols = NULL;
-          uint counter = 0;
-          for (i = 0; i < $self->size; i++) {
-               cols = (uint *) realloc(cols, counter + $self->lists[i].size);
-               for (j = 0; j < $self->lists[i].size; j++) 
-                    cols[counter + j] = $self->lists[i].data[j].item;
-               counter += $self->lists[i].size;
+     void push(uint pos, Item item) {
+          if (pos >= $self->size) {
+               myErr = 1;
+          } else{
+               list_push($self->lists + pos, item);
           }
-
-          return cols;
-     }
-
-     uint *array(void) {
-          uint i, j;
-          uint *array = NULL;
-          uint counter = 0;
-          for (i = 0; i < $self->size; i++) {
-               array = (uint *) realloc(array, counter + $self->lists[i].size);
-               for (j = 0; j < $self->lists[i].size; j++) 
-                    array[counter + j] = $self->lists[i].data[j].freq;
-               counter += $self->lists[i].size;
-          }
-
-          return array;
      }
 }

@@ -43,6 +43,7 @@ void list_init(List *);
 List list_create(uint);
 List list_random(uint, uint);
 void list_destroy(List *);
+Item list_make_item(uint, uint);
 Item *list_find(List *, Item);
 Item *list_min_item(List *);
 Item *list_max_item(List *);
