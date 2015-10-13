@@ -89,6 +89,21 @@ void list_destroy(List *list)
 }
 
 /**
+ * @brief Makes an item
+ *
+ * @param ID of the item to be created
+ * @param Frequency of the item to be created
+ *
+ * @return Created item
+ */
+Item list_make_item(uint id, uint freq)
+{
+     Item item = {id, freq};
+     
+     return item;
+}
+
+/**
  * @brief Searches for the first occurrence of an item in an unsorted list
  *
  * @param list List where the item is to be searched

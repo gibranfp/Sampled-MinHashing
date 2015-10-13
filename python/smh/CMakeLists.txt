@@ -33,7 +33,7 @@ if ( PYTHON AND SWIG_FOUND AND PYTHONLIBS_FOUND )
          ${_REL_PYTHON_MODULE_PATH}
     )
 
-	INSTALL ( FILES ${CMAKE_BINARY_DIR}/python/smh/_smh_api.so ${CMAKE_BINARY_DIR}/python/smh/smh_api.py ${CMAKE_BINARY_DIR}/python/smh/__init__.py ${CMAKE_BINARY_DIR}/python/smh/smh.py DESTINATION ${PYTHON_MODULE_PATH}/smh )
+	INSTALL ( FILES ${CMAKE_BINARY_DIR}/python/smh/_smh_api.so ${CMAKE_BINARY_DIR}/python/smh/smh_api.py ${CMAKE_BINARY_DIR}/python/smh/__init__.py ${CMAKE_BINARY_DIR}/python/smh/smh.py ${CMAKE_BINARY_DIR}/python/smh/cluster.py DESTINATION ${PYTHON_MODULE_PATH}/smh )
 	
 else ()
   message(STATUS "Not building python bindings")

@@ -433,8 +433,13 @@ void listdb_delete_smallest(ListDB *listdb, uint min_size)
           if (listdb->lists[pos].size < min_size)
                break;
 
-     if (pos < listdb->size) 
+     if (pos < listdb->size) {
+          uint i;
+          for (i = pos; i < listdb->size; i++)
+               list_destroy(&listdb->lists[i]);
+
           listdb_pop_until(listdb, pos);
+     }
 }
 
 /**
@@ -445,15 +450,20 @@ void listdb_delete_smallest(ListDB *listdb, uint min_size)
  */
 void listdb_delete_largest(ListDB *listdb, uint max_size)
 {
-     int pos;
+     uint pos;
 
      listdb_sort_by_size(listdb);
      for (pos = 0; pos < listdb->size; pos++)
           if (listdb->lists[pos].size > max_size)
                break;
 
-     if (pos < listdb->size) 
+     if (pos < listdb->size) {
+          uint i;
+          for (i = pos; i < listdb->size; i++)
+               list_destroy(&listdb->lists[i]);
+
           listdb_pop_until(listdb, pos);
+     }
 }
 
 /**
