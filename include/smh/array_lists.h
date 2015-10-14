@@ -47,6 +47,8 @@ Item list_make_item(uint, uint);
 Item *list_find(List *, Item);
 Item *list_min_item(List *);
 Item *list_max_item(List *);
+Item *list_min_freq(List *);
+Item *list_max_freq(List *);
 uint list_sum_freq(List *);
 int list_item_compare(const void *, const void *);
 int list_item_compare_back(const void *, const void *);
