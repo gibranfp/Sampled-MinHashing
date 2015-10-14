@@ -1,5 +1,9 @@
 *.ede
 #*
+src/smh/#*
+src/tests/#*
+include/smh/#*
+.*
 *~
 *.py[cod]
 
