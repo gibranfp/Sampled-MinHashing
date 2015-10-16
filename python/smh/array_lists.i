@@ -71,9 +71,9 @@ extern double list_overlap(List *, List *);
 %ignore list_jaccard;
 %ignore list_overlap;
 
+extern double list_weighted_similarity(List *, List *, double *);
 extern double list_histogram_intersection(List *, List *);
-extern double list_weighted_histogram_intersection(List *, List *, uint *);
-extern double list_weighted_similarity(List *, List *, uint *);
+extern double list_weighted_histogram_intersection(List *, List *, double *);
 
 %exception List::__getitem__ {
     assert(!errItem);
