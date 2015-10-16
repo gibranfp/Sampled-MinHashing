@@ -89,7 +89,8 @@ List list_difference(List *, List *);
 uint list_difference_size(List *, List *);
 double list_jaccard(List *, List *);
 double list_overlap(List *, List *);
+double list_weighted_similarity(List *, List *, double *);
 double list_histogram_intersection(List *, List *);
-double list_weighted_histogram_intersection(List *, List *, uint *);
-double list_weighted_similarity(List *, List *, uint *);
+double list_weighted_histogram_intersection(List *, List *, double *);
+uint list_equal(List *, List *);
 #endif

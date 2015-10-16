@@ -44,7 +44,7 @@ void sampledmh_get_coitems(ListDB *coitems, HashTable *hash_table)
 
 
 /**
- * @brief Function for mining a database of binary lists.
+ * @brief Function for mining a database of lists based on Min-Hashing without weighting.
  *
  * @param listdb Database of binary lists
  * @param tuple_size Number of MinHash values per tuple
@@ -53,15 +53,15 @@ void sampledmh_get_coitems(ListDB *coitems, HashTable *hash_table)
  */
 ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, uint table_size)
 {
-     uint i;
      HashTable hash_table = mh_create(table_size, tuple_size, listdb->dim);
      uint *indices = (uint *) malloc(listdb->size * sizeof(uint));
 
      ListDB coitems;
-   
      listdb_init(&coitems);
-
+     coitems.dim = listdb->size;
+          
      // Hashing database & storing candidates
+     uint i;
      for (i = 0; i < number_of_tuples; i++){
           mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
           mh_store_listdb(listdb, &hash_table, indices);
@@ -70,6 +70,42 @@ ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
 
      mh_destroy(&hash_table);
      free(indices);
+
+
+     return coitems;
+}
+
+/**
+ * @brief Function for mining a database of lists based on Min-Hashing without weighting.
+ *
+ * @param listdb Database of binary lists
+ * @param tuple_size Number of MinHash values per tuple
+ * @param number_of_tuples Number of MinHash tuples
+ * @param table_size Number of buckets in the hash table
+ * @param weights Weight of each item
+ */
+ListDB sampledmh_mine_weighted(ListDB *listdb, uint tuple_size, uint number_of_tuples, uint table_size,
+                               double *weights)
+{
+     HashTable hash_table = mh_create(table_size, tuple_size, listdb->dim);
+     uint *indices = (uint *) malloc(listdb->size * sizeof(uint));
+
+     ListDB coitems;
+     listdb_init(&coitems);
+     coitems.dim = listdb->size;
+          
+     // Hashing database & storing candidates
+     uint i;
+     for (i = 0; i < number_of_tuples; i++){
+          mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
+          mh_weight_permutations(listdb->dim, tuple_size, hash_table.permutations, weights);
+          mh_store_listdb(listdb, &hash_table, indices);
+          sampledmh_get_coitems(&coitems, &hash_table);
+     }
+
+     mh_destroy(&hash_table);
+     free(indices);
+
 
      return coitems;
 }

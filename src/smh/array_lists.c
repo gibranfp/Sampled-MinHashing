@@ -968,7 +968,7 @@ double list_jaccard(List *list1, List *list2)
      if (list1->size > 0 && list2->size > 0){
           uint intersection_size = list_intersection_size(list1, list2);
           uint union_size = (list1->size + list2->size) - intersection_size;
-          return (double) intersection_size / (double)union_size;
+          return (double) intersection_size / (double) union_size;
      } else {
           return 0.0;
      }
@@ -995,6 +995,52 @@ double list_overlap(List *list1, List *list2)
 }
 
 /**
+ * @brief Computes the weighted similarity of a pair of lists
+ *
+ * @param list1 First list
+ * @param list2 Second list
+ *
+ * @return Weighted list similarity
+ */
+double list_weighted_similarity(List *list1, List *list2, double *weights)
+{
+     uint i = 0, j = 0;
+     double weighted_inter = 0.0;
+     double weighted_union = 0.0;
+
+     if (list1->size > 0 && list2->size > 0) {
+          while (i < list1->size && j < list2->size) {
+               if (list1->data[i].item == list2->data[j].item) {
+                    weighted_inter += weights[list1->data[i].item];
+                    weighted_union += weights[list1->data[i].item];
+                    i++;
+                    j++;
+               } else if (list1->data[i].item < list2->data[j].item) {
+                    weighted_union += weights[list1->data[i].item];
+                    i++;
+               } else {
+                    weighted_union += weights[list2->data[j].item];
+                    j++;
+               }
+          }
+
+          while (i < list1->size) {
+               weighted_union += weights[list1->data[i].item];
+               i++;
+          }
+
+          while (j < list2->size) {
+               weighted_union += weights[list2->data[j].item];
+               j++;
+          }
+
+          return weighted_inter / weighted_union;
+     } else {
+          return 0.0;
+     }
+}
+
+/**
  * @brief Computes the histogram intersection of a pair of lists
  *
  * @param list1 First list
@@ -1004,27 +1050,37 @@ double list_overlap(List *list1, List *list2)
  */
 double list_histogram_intersection(List *list1, List *list2)
 {
-     if (list1->size > 0 && list2->size > 0){
-          uint i;
-          uint hist_intersection = 0;
-          uint hist_union = 0;
+     uint i = 0, j = 0;
+     uint hist_inter = 0;
+     uint hist_union = 0;
 
-          List concat = list_concat(list1, list2);
-          list_sort_by_item(&concat);
-
-          for (i = 0; i < concat.size - 1; i++) {
-               if (concat.data[i].item == concat.data[i + 1].item){
-                    hist_intersection += min(concat.data[i].freq, concat.data[i + 1].freq);
+     if (list1->size > 0 && list2->size > 0) {
+          while (i < list1->size && j < list2->size) {
+               if (list1->data[i].item == list2->data[j].item) {
+                    hist_inter += min(list1->data[i].freq, list2->data[j].freq);
+                    hist_union += max(list1->data[i].freq, list2->data[j].freq);
                     i++;
+                    j++;
+               } else if (list1->data[i].item < list2->data[j].item) {
+                    hist_union += list1->data[i].freq;
+                    i++;
+               } else {
+                    hist_union += list2->data[j].freq;
+                    j++;
                }
           }
 
-          uint fsum1 = list_sum_freq(list1);
-          uint fsum2 = list_sum_freq(list2);
+          while (i < list1->size) {
+               hist_union += list1->data[i].freq;
+               i++;
+          }
 
-          list_destroy(&concat);
-          
-          return (double) hist_intersection / (double) (fsum1 + fsum2 - hist_intersection);
+          while (j < list2->size) {
+               hist_union += list2->data[j].freq;
+               j++;
+          }
+
+          return (double) hist_inter / (double) hist_union;
      } else {
           return 0.0;
      }
@@ -1038,66 +1094,68 @@ double list_histogram_intersection(List *list1, List *list2)
  *
  * @return Weighted histogram intersection
  */
-double list_weighted_histogram_intersection(List *list1, List *list2, uint *item_weights)
+double list_weighted_histogram_intersection(List *list1, List *list2, double *weights)
 {
      uint i = 0, j = 0;
-     uint whist_intersection = 0;
-     uint whist_union = 0;
+     double whist_inter = 0.0;
+     double whist_union = 0.0;
 
-     if (list1->size > 0 && list2->size > 0){
+     if (list1->size > 0 && list2->size > 0) {
           while (i < list1->size && j < list2->size) {
                if (list1->data[i].item == list2->data[j].item) {
-                    uint max_freq = max(list1->data[i].freq, list2->data[j].freq);
-                    uint min_freq = min(list1->data[i].freq, list2->data[j].freq);
-                    whist_intersection += item_weights[list1->data[i].item] * min_freq;
-                    whist_union += item_weights[list1->data[i].item] * max_freq;
+                    double max_freq = (double) max(list1->data[i].freq, list2->data[j].freq);
+                    double min_freq = (double) min(list1->data[i].freq, list2->data[j].freq);
+                    whist_inter += weights[list1->data[i].item] * min_freq;
+                    whist_union += weights[list1->data[i].item] * max_freq;
                     i++;
                     j++;
                } else if (list1->data[i].item < list2->data[j].item) {
-                    whist_union += item_weights[list1->data[i].item] * list1->data[i].freq;
+                    whist_union += weights[list1->data[i].item] * list1->data[i].freq;
                     i++;
                } else {
-                    whist_union += item_weights[list2->data[j].item] * list2->data[j].freq;
+                    whist_union += weights[list2->data[j].item] * list2->data[j].freq;
                     j++;
                }
           }
-          return ((double)whist_intersection / (double)whist_union);
+
+          while (i < list1->size) {
+               whist_union += weights[list1->data[i].item] * list1->data[i].freq;
+               i++;
+          }
+
+          while (j < list2->size) {
+               whist_union += weights[list2->data[j].item] * list2->data[j].freq;
+               j++;
+          }
+
+          return whist_inter / whist_union;
      } else {
           return 0.0;
      }
 }
 
 /**
- * @brief Computes the weighted similarity of a pair of lists
+ * @brief Checks if two lists are identical
  *
  * @param list1 First list
  * @param list2 Second list
  *
- * @return Weighted list similarity
+ * @return 1 if lists are identical, 0 otherwise
  */
-double list_weighted_similarity(List *list1, List *list2, uint *item_weights)
+uint list_equal(List *list1, List *list2)
 {
-     uint i = 0, j = 0;
-     uint weight_intersection = 0;
-     uint weight_union = 0;
-
-     if (list1->size > 0 && list2->size > 0){
-          while (i < list1->size && j < list2->size) {
-               if (list1->data[i].item == list2->data[j].item) {
-                    weight_intersection += item_weights[list1->data[i].item];
-                    weight_union += item_weights[list1->data[i].item];
-                    i++;
-                    j++;
-               } else if (list1->data[i].item < list2->data[j].item) {
-                    weight_union += item_weights[list1->data[i].item];
-                    i++;
-               } else {
-                    weight_union += item_weights[list2->data[j].item];
-                    j++;
+     if (list1->size == list2->size) {
+          uint i;
+          uint equal = 1;
+          for (i = 0; i < list1->size; i++) {
+               if (list1->data[i].item != list2->data[i].item) {
+                    equal = 0;
+                    break;
                }
           }
-          return (double) weight_intersection / weight_union;
+          
+          return equal;
      } else {
-          return 0.0;
+          return 0;
      }
 }

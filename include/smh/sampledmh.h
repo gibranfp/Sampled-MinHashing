@@ -24,5 +24,6 @@
 
 void sampledmh_get_coitems(ListDB *, HashTable *);
 ListDB sampledmh_mine(ListDB *, uint, uint, uint);
+ListDB sampledmh_mine_weighted(ListDB *, uint, uint, uint, double *);
 void sampledmh_prune(ListDB *, ListDB *, uint, uint, double, double);
 #endif
