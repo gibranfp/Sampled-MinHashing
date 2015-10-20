@@ -50,6 +50,8 @@ class SMH:
     def dim(self):
         return self.ldb.dim
 
+    def destroy(self):
+        sa.listdb_destroy(self.ldb)
 
 # MAIN program
 if __name__ == "__main__":
