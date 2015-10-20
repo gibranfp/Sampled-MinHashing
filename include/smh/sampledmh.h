@@ -23,6 +23,8 @@
 #include "minhash.h"
 
 void sampledmh_get_coitems(ListDB *, HashTable *);
+ListDB sampledmh_expand_frequencies(ListDB *, ListDB *);
+ListDB sampledmh_expand_frequencies_and_weights(ListDB *, ListDB *, double *, double *);
 ListDB sampledmh_mine(ListDB *, uint, uint, uint);
 ListDB sampledmh_mine_weighted(ListDB *, uint, uint, uint, double *);
 void sampledmh_prune(ListDB *, ListDB *, uint, uint, double, double);

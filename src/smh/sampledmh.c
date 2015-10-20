@@ -111,6 +111,41 @@ ListDB sampledmh_mine_weighted(ListDB *listdb, uint tuple_size, uint number_of_t
 }
 
 /**
+ * @brief Generates a database of lists with frequencies equal to 1
+ *        from a database of lists with frequencies greater than 1
+ *
+ * @param listdb Database of lists with frequencies greater than 1
+ * @param ifindex Inverted file index of the database of lists
+ *
+ * @return Expanded database of lists with frequencies equal to 1
+ */ 
+ListDB sampledmh_expand_frequencies(ListDB *listdb, ListDB *ifindex)
+{
+     uint *maxfreq = mh_get_cumulative_frequency(listdb, ifindex);
+     return mh_expand_listdb(listdb, maxfreq);
+     
+}
+
+ /**
+ * @brief Generates a database of lists with frequencies equal to 1
+ *        from a database of lists with frequencies greater than 1
+ *        and expands a set of weights to the new set of items.
+ *
+ * @param listdb Database of lists with frequencies greater than 1
+ * @param ifindex Inverted file index of the database of lists
+ *
+ * @return Expanded database of lists with frequencies equal to 1
+ */ 
+ListDB sampledmh_expand_frequencies_and_weights(ListDB *listdb, ListDB *ifindex, double *oldweights, double *newweights)
+{
+     uint *maxfreq = mh_get_cumulative_frequency(listdb, ifindex);
+     newweights = mh_expand_weights(ifindex, maxfreq, oldweights);
+     free(oldweights);
+     
+     return mh_expand_listdb(listdb, maxfreq);    
+}
+
+/**
  * @brief Prunes co-occurring sets.
  *
  * @param ifindex Inverted file index
