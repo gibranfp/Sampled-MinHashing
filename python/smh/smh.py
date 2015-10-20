@@ -40,6 +40,13 @@ def centers_from_labels(data, labels):
 
     return ndarray_to_listdb(centers)
 
+class Weights:
+    def __init__(self,path):
+        self.weights=sa.weights_load_from_file(path)
+
+    def save(self,path):
+        sa.weights_save_to_file(path,self.weights)
+
 class SMH:
     def __init__(self,size=0,dim=0,ldb=None):
         self._inverted=False
@@ -55,13 +62,34 @@ class SMH:
     def show(self):
         sa.listdb_print(self.ldb)
 
-    def mine(self,tuple_size,num_tuples,table_size=2**19):
-        ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
+    def mine(self,tuple_size,num_tuples,weights=None,expand=False,table_size=2**19):
+        if not weights and not expand:
+            ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
+        elif expand and not weights:
+            print "Aqui voy 1"
+            max_freq=sa.mh_get_cumulative_frequency(self.ldb,expand.ldb)
+            print self.ldb.size, max_freq
+            print "Aqui voy 2"
+            ldb_=sa.mh_expand_listdb(self.ldb,max_freq)
+            sa.listdb_print(ldb_)
+            print "Aqui voy 3"
+            print ldb_.size,self.ldb.size
+            ldb=sa.sampledmh_mine(ldb_,tuple_size,num_tuples,table_size)
+            print "Aqui voy 4"
+        elif not expand and weights:
+            ldb=sa.sampledmh_mine_weighted(self.ldb,tuple_size,num_tuples,table_size,weights.weights)
+        elif expand and weights:
+            max_freq=sa.mh_get_cumulative_frequency(self.ldb,expand.ldb)
+            ldb_=sa.mh_expand_listdb(self.ldb,max_freq)
+            weights_=sa.mh_expand_weights(self.ldb.size,max_freq,weights.weights)
+            ldb=sa.sampledmh_mine_weighted(ldb_,tuple_size,num_tuples,table_size,weights_)
         return SMH(ldb=ldb)
 
+
+
     def cluster_mhlink(self, num_tuples=3, tuple_size=255, table_size=2**19, thres=0.7):
-        ldb=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
-        sa.listdb_delete_smallest(ldb_,2)
+        ldb_=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
+        #sa.listdb_delete_smallest(ldb_,2)
         ldb=sa.mhlink_make_model(self.ldb, ldb_)
         return SMH(ldb=ldb)
 

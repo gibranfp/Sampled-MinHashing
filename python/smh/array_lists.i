@@ -26,7 +26,7 @@ extern void list_init(List *);
 extern List list_create(uint);
 extern List list_random(uint, uint);
 extern void list_destroy(List *);
-Item list_make_item(uint, uint);
+extern Item list_make_item(uint, uint);
 extern Item *list_find(List *, Item);
 extern Item *list_min_item(List *);
 extern Item *list_max_item(List *);

@@ -6,5 +6,7 @@
 %include array_lists.i
 %include listdb.i
 %include ifindex.i
-%include mhlink.i
 %include sampledmh.i
+%include mhlink.i
+%include weights.i
+%include minhash.i
