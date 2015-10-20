@@ -131,7 +131,7 @@ ListDB ifindex_make_from_corpus(ListDB *corpus)
  * @param corpus Corpus
  * @param wg Function to compute weight
  */
-void ifindex_weight(ListDB *ifindex, ListDB *corpus, double (*wg)(uint, uint, uint, uint, uint, uint))
+void ifindex_weight(ListDB *ifindex, ListDB *corpus, double (*wg)(uint,uint,uint,uint,uint,uint))
 {
      uint i, j;
 
@@ -148,7 +148,7 @@ void ifindex_weight(ListDB *ifindex, ListDB *corpus, double (*wg)(uint, uint, ui
                                 docsizes[ifindex->lists[i].data[j].item],
                                 corpus->lists[ifindex->lists[i].data[j].item].size,
                                 corpus->size, ifindex->size);
-               ifindex->lists[i].data[j].freq = intweight(wval);
+               ifindex->lists[i].data[j].freq = weights_intweight(wval);
                if (ifindex->lists[i].data[j].freq == 0)
                     ifindex->lists[i].data[j].freq = 1;
           }

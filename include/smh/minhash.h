@@ -41,7 +41,8 @@ typedef struct HashTable {
 	Bucket *buckets;
 	List used_buckets;
 	uint *a;
-	uint *b;
+   uint *b;
+   double *weights;
 } HashTable;
 
 typedef struct HashIndex {
@@ -60,10 +61,14 @@ void mh_erase_from_index(uint, HashTable *);
 void mh_clear_table(HashTable *);
 void mh_destroy(HashTable *);
 void mh_generate_permutations(uint, uint, RandomValue *);
+void mh_weight_permutations(uint, uint, RandomValue *, double *);
 int mh_random_value_compare(const void *, const void *);
 ullong mh_compute_minhash(List *, RandomValue *);
 void mh_univhash(List *, HashTable *, uint *, uint *);
 uint mh_get_index(List *, HashTable *);
 uint mh_store_list(List *, uint, HashTable *);
 void mh_store_listdb(ListDB *, HashTable *, uint *);
+uint *mh_get_cumulative_frequency(ListDB *, ListDB *);
+ListDB mh_expand_listdb(ListDB *, uint *);
+double *mh_expand_weights(ListDB *, uint *, double *);
 #endif

@@ -1,7 +1,6 @@
-/* listdb.i */
+/* ifindex.i */
 %module ifindex
 %{
-#include "array_lists.h"
 #include "ifindex.h"
 %}
  

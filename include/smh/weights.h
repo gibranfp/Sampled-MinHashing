@@ -20,25 +20,29 @@
 #ifndef WEIGHTS_H
 #define WEIGHTS_H
 
+#include "listdb.h"
 #include "types.h"
 
-double termfreq(uint, uint, uint, uint, uint, uint);
-double logtf(uint, uint, uint, uint, uint, uint);
-double bintf(uint, uint, uint, uint, uint, uint);
-double idf(uint, uint, uint, uint, uint, uint);
-double itf(uint, uint, uint, uint, uint, uint);
-double ids(uint, uint, uint, uint, uint, uint);
-double tfidf(uint, uint, uint, uint, uint, uint);
-double logtfidf(uint, uint, uint, uint, uint, uint);
-double itfidf(uint, uint, uint, uint, uint, uint);
-double logitfidf(uint, uint, uint, uint, uint, uint);
-double tfids(uint, uint, uint, uint, uint, uint);
-double logtfids(uint, uint, uint, uint, uint, uint);
-double itfidfids(uint, uint, uint, uint, uint, uint);
-double logitfidfids(uint, uint, uint, uint, uint, uint);
-double tfdr(uint, uint, uint, uint, uint, uint);
-double logtfdr(uint, uint, uint, uint, uint, uint);
-double drtf(uint, uint, uint, uint, uint, uint);
-double drlogtf(uint, uint, uint, uint, uint, uint);
-uint intweight(double);
+double weights_termfreq(uint, uint, uint, uint, uint, uint);
+double weights_logtf(uint, uint, uint, uint, uint, uint);
+double weights_bintf(uint, uint, uint, uint, uint, uint);
+double weights_idf(uint, uint, uint, uint, uint, uint);
+double weights_itf(uint, uint, uint, uint, uint, uint);
+double weights_ids(uint, uint, uint, uint, uint, uint);
+double weights_tfidf(uint, uint, uint, uint, uint, uint);
+double weights_logtfidf(uint, uint, uint, uint, uint, uint);
+double weights_itfidf(uint, uint, uint, uint, uint, uint);
+double weights_logitfidf(uint, uint, uint, uint, uint, uint);
+double weights_tfids(uint, uint, uint, uint, uint, uint);
+double weights_logtfids(uint, uint, uint, uint, uint, uint);
+double weights_itfidfids(uint, uint, uint, uint, uint, uint);
+double weights_logitfidfids(uint, uint, uint, uint, uint, uint);
+double weights_tfdr(uint, uint, uint, uint, uint, uint);
+double weights_logtfdr(uint, uint, uint, uint, uint, uint);
+double weights_drtf(uint, uint, uint, uint, uint, uint);
+double weights_drlogtf(uint, uint, uint, uint, uint, uint);
+uint weights_intweight(double);
+double *weights_from_corpus_and_ifindex(ListDB *, ListDB *, double (*)(uint,uint,uint,uint,uint,uint));
+double *weights_load_from_file(char *);
+void weights_save_to_file(char *, uint, double *);
 #endif
