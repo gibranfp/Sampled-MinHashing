@@ -6,5 +6,5 @@
 %include array_lists.i
 %include listdb.i
 %include ifindex.i
-%include mklink.i
+%include mhlink.i
 %include sampledmh.i

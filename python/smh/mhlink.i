@@ -6,3 +6,5 @@
 %}
  
 extern ListDB mhlink_cluster(ListDB *, uint, uint, uint, double (*)(List *, List *), double);
+extern ListDB mhlink_make_model(ListDB *, ListDB *);
+

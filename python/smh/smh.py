@@ -41,7 +41,9 @@ class SMH:
         return SMH(ldb=ldb)
 
     def cluster_mhlink(self, num_tuples, tuple_size, table_size=2**19, thres=0.7):
-        ldb=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
+        ldb_=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
+        sa.listdb_delete_smallest(ldb_,2)
+        ldb=sa.mhlink_make_model(self.ldb, ldb_)
         return SMH(ldb=ldb)
 
     def cluster_sklearn(self, algorithm):
@@ -59,8 +61,8 @@ class SMH:
         if max:
             sa.listdb_delete_largest(self.ldb,max)
 
-        ldb= sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
-        return SMH(ldb=ldb)
+        #ldb= sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
+        #return SMH(ldb=ldb)
 
     def size(self):
         return self.ldb.size
