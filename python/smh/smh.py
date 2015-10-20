@@ -7,9 +7,10 @@
 # 2015/IIMAS, México
 # ----------------------------------------------------------------------
 
-import smh_api as sa
-import cluster as clus
+import itertools
+import numpy as np
 from scipy.sparse import csr_matrix
+import smh_api as sa
 
 def smh_load(filename):
     ldb = sa.listdb_load_from_file(filename)
@@ -19,7 +20,25 @@ def csr_to_listdb(csr):
     ldb = sa.listdb_create(csr.shape[0], csr.shape[1])
     coo = csr.tocoo()    
     for i,j,v in itertools.izip(coo.row, coo.col, coo.data):
-        ldb.push(i, j, int(round(v * 100000000)))
+        ldb.push(int(i), int(j), int(round(v * 100000000)))
+
+    return SMH(ldb=ldb)
+
+def ndarray_to_listdb(arr):
+    ldb = sa.listdb_create(arr.shape[0], arr.shape[1])
+    for i,row in enumerate(arr):
+        for j,item in enumerate(row):
+            if item != 0:
+                ldb.push(int(i), int(j), int(round(item * 100000000)))
+    return SMH(ldb=ldb)
+
+def centers_from_labels(data, labels):
+    number_of_classes = np.max(labels) + 1
+    centers = np.zeros((number_of_classes, data.shape[1]))
+    for i in range(number_of_classes):
+        centers[i] = data[np.where(labels==i)].mean(axis=0)
+
+    return ndarray_to_listdb(centers)
 
 class SMH:
     def __init__(self,size=0,dim=0,ldb=None):
@@ -40,14 +59,16 @@ class SMH:
         ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
         return SMH(ldb=ldb)
 
-    def cluster_mhlink(self, num_tuples, tuple_size, table_size=2**19, thres=0.7):
-        ldb_=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
+    def cluster_mhlink(self, num_tuples=3, tuple_size=255, table_size=2**19, thres=0.7):
+        ldb=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
         sa.listdb_delete_smallest(ldb_,2)
         ldb=sa.mhlink_make_model(self.ldb, ldb_)
         return SMH(ldb=ldb)
 
     def cluster_sklearn(self, algorithm):
-        return algorithm.fit(self.tocsr())
+        csr = self.tocsr()
+        algorithm.fit(csr)
+        return centers_from_labels(csr, algorithm.labels_)
 
     def invert(self):
         ldb=sa.sampledmh_mine(self.ldb)
@@ -69,6 +90,9 @@ class SMH:
 
     def dim(self):
         return self.ldb.dim
+
+    def destroy(self):
+        sa.listdb_destroy(self.ldb)
 
     def tocsr(self):
         number_of_items = 0

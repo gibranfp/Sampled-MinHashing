@@ -29,6 +29,7 @@ from sklearn.cluster import SpectralClustering
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.preprocessing import Normalizer
 
+
 def cluster_kmeans(data, number_of_clusters = 100):
     km = KMeans(n_clusters=number_of_clusters, njobs=-1)
     km.fit(data)

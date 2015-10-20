@@ -23,6 +23,7 @@
 #include <time.h>
 #include <getopt.h>
 #include <inttypes.h>
+#include "weights.h"
 #include "ifindex.h"
 #include "sampledmh.h"
 #include "mhlink.h"
@@ -121,19 +122,19 @@ void smhcmd_ifindex(int opnum, char **opts)
                switch (weight_scheme){
                case LOGTF:
                     printf("logtf weights\n");
-                    weighting = &logtf;
+                    weighting = &weights_logtf;
                     break;
                case BINTF:
                     printf("Binary weights\n"); 
-                    weighting = &bintf;
+                    weighting = &weights_bintf;
                     break;
                case IDF:
                     printf("idf weights\n"); 
-                    weighting = &idf;
+                    weighting = &weights_idf;
                     break;
                case TFIDF:
                     printf("tfidf weights\n"); 
-                    weighting = &tfidf;
+                    weighting = &weights_tfidf;
                     break;
                case '?':
                     fprintf(stderr,"Error: Unknown type of weighting.\n"

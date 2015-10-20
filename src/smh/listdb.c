@@ -568,9 +568,7 @@ void listdb_add_lists_destroy(ListDB *listdb, uint position1, uint position2)
  */
 ListDB listdb_load_from_file(char *filename)
 {
-     uint i, j;
      FILE *file;
-
      if (!(file = fopen(filename,"r"))) {
           fprintf(stderr,"Error: Could not open file %s\n", filename);
           exit(EXIT_FAILURE);
@@ -589,6 +587,8 @@ ListDB listdb_load_from_file(char *filename)
      // reading lists
      listdb.dim = 0;
      listdb.lists = (List *) malloc(listdb.size * sizeof(List));
+
+     uint i, j;
      for (i = 0; i < listdb.size; i ++) {
           fscanf(file,"%u", &listdb.lists[i].size);
           listdb.lists[i].data = (Item *) malloc(listdb.lists[i].size * sizeof(Item));
@@ -618,14 +618,13 @@ ListDB listdb_load_from_file(char *filename)
  */
 void listdb_save_to_file(char *filename, ListDB *listdb)
 {
-     uint i, j;
-     FILE *file;
-     
+     FILE *file;     
      if (!(file = fopen(filename,"w"))) {
           fprintf(stderr,"Error: Could not create file %s\n", filename);
           exit(EXIT_FAILURE);
      }
-     
+
+     uint i, j;
      for (i = 0; i < listdb->size; i++) {
           fprintf(file,"%u", listdb->lists[i].size);
           for (j = 0; j < listdb->lists[i].size; j++)

@@ -26,6 +26,7 @@
 #include <math.h>
 #include <inttypes.h>
 #include "mt64.h"
+#include "ifindex.h"
 #include "minhash.h"
 
 /**
@@ -65,6 +66,7 @@ void mh_print_head(HashTable *hash_table)
 void mh_print_table(HashTable *hash_table)
 {
      uint i;
+     
      for (i = 0; i < hash_table->used_buckets.size; i++){
           printf("[  %d  ] ", hash_table->used_buckets.data[i].item);
           list_print(&hash_table->buckets[hash_table->used_buckets.data[i].item].items);
@@ -104,24 +106,25 @@ void mh_init(HashTable *hash_table)
  */
 HashTable mh_create(uint table_size, uint tuple_size, uint dim)
 {
+     uint i;
      HashTable hash_table;
 
      hash_table.table_size = table_size;
      hash_table.tuple_size = tuple_size; 
      hash_table.dim = dim; 
-     hash_table.permutations  = (RandomValue *) malloc(tuple_size * dim * sizeof(RandomValue)); 
-
+     hash_table.permutations = (RandomValue *) malloc(tuple_size * dim * sizeof(RandomValue)); 
+    
      hash_table.buckets = (Bucket *) calloc(table_size, sizeof(Bucket));
      list_init(&hash_table.used_buckets);
 
-     uint i;
+     // generates array of random values for universal hashing
      hash_table.a = (uint *) malloc(tuple_size * sizeof(uint));
      hash_table.b = (uint *) malloc(tuple_size * sizeof(uint));
      for (i = 0; i < tuple_size; i++){
           hash_table.a[i] = (unsigned int) (genrand64_int64() & 0xFFFFFFFF);
           hash_table.b[i] = (unsigned int) (genrand64_int64() & 0xFFFFFFFF);
      }
-
+     
      return hash_table;
 }
 
@@ -136,6 +139,7 @@ void mh_erase_from_list(List *list, HashTable *hash_table)
      uint index = mh_get_index(list, hash_table);
      list_destroy(&hash_table->buckets[index].items);
      hash_table->buckets[index].hash_value = 0;
+     
      Item item = {index, 1};
      Item *ptr = list_find(&hash_table->used_buckets, item);
      uint position = (uint) (ptr - hash_table->used_buckets.data);
@@ -174,6 +178,7 @@ void mh_clear_table(HashTable *hash_table)
 {  
      uint i;
 
+     // empties used buckets of a hash table
      for (i = 0; i < hash_table->used_buckets.size; i++) {
           list_destroy(&hash_table->buckets[hash_table->used_buckets.data[i].item].items);
           hash_table->buckets[hash_table->used_buckets.data[i].item].hash_value = 0;
@@ -188,7 +193,7 @@ void mh_clear_table(HashTable *hash_table)
  * @param hash_table Hash table structure
  */
 void mh_destroy(HashTable *hash_table)
-{  
+{
      free(hash_table->permutations);
      free(hash_table->buckets);
      free(hash_table->a);
@@ -205,8 +210,6 @@ void mh_destroy(HashTable *hash_table)
  * @param dim Largest item value in the database of lists
  * @param tuple_size Number of MinHash values per tuple
  * @param permutations Random positive integers assigned to each possible item 
- * @param uniform Uniformly distributed random numbers U(0,1) assigned to 
- *                each possible item 
  */
 void mh_generate_permutations(uint dim, uint tuple_size, RandomValue *permutations)
 {
@@ -222,6 +225,24 @@ void mh_generate_permutations(uint dim, uint tuple_size, RandomValue *permutatio
                permutations[i * dim + j].random_double = -logl((rnd >> 11) * (1.0/9007199254740991.0));
           }
      }
+}
+
+/**
+ * @brief Weights the random numbers assigned to each item
+ * 
+ * @param dim Largest item value in the database of lists
+ * @param tuple_size Number of MinHash values per tuple
+ * @param permutations Random positive integers assigned to each possible item
+ * @param weights Weight of each item
+ */
+void mh_weight_permutations(uint dim, uint tuple_size, RandomValue *permutations, double *weights)
+{
+     uint i, j;
+
+     // weights the assigned random value of each item
+     for (i = 0; i < tuple_size; i++)
+          for (j = 0; j < dim; j++)
+               permutations[i * dim + j].random_double /= weights[j];
 }
 
 /**
@@ -299,25 +320,23 @@ uint mh_get_index(List *list, HashTable *hash_table)
           if (hash_table->buckets[index].hash_value != hash_value){
                checked_buckets = 1;
                while (checked_buckets < hash_table->table_size){ // linear probing
-                    /* index = (index + 1) % hash_table->table_size; */
                     index = ((index + 1) & (hash_table->table_size - 1));
                     if (hash_table->buckets[index].items.size != 0){
                          if (hash_table->buckets[index].hash_value == hash_value)
                               break;   
-                    }
-                    else{
+                    } else {
                          hash_table->buckets[index].hash_value = hash_value; 
                          break;
                     }
                     checked_buckets++;      
                }
+               
                if (checked_buckets == hash_table->table_size){
                     fprintf(stderr,"Error: The hash table is full!\n ");
                     exit(EXIT_FAILURE);
                }
           }
-     }
-     else{
+     } else {
           hash_table->buckets[index].hash_value = hash_value; 
      }
      
@@ -367,3 +386,84 @@ void mh_store_listdb(ListDB *listdb, HashTable *hash_table, uint *indices)
                indices[i] = mh_store_list(&listdb->lists[i], i, hash_table);
 }
 
+/**
+ * @brief Computes the cumulative maximum frequencies of a database of lists
+ *
+ * @param listdb Database of lists
+ * @param ifindex Inverted file index of the database of lists
+ *
+ * @return Array with the cumulative maximum frequencies
+ */ 
+uint *mh_get_cumulative_frequency(ListDB *listdb, ListDB *ifindex)
+{
+     uint i, j, k;
+
+     // computes the cumulative maximum frequency of the inverted index
+     uint *maxfreq = calloc(ifindex->size, sizeof(uint));
+     Item *maxitem = list_max_freq(&ifindex->lists[0]);
+     maxfreq[0] = maxitem->freq;
+     for (i = 1; i < ifindex->size; i++) {    
+          maxitem = list_max_freq(&ifindex->lists[i]);
+          maxfreq[i] = maxfreq[i - 1] + maxitem->freq;
+     }
+
+     return maxfreq;
+}
+
+/**
+ * @brief Generates a database of lists with frequencies equal to 1
+ *        from a database of lists with frequencies greater than 1
+ *
+ * @param listdb Database of lists with frequencies greater than 1
+ * @param maxfreq Array with the cumulative maximum frequencies
+ *                to generate an expanded set of items
+ *
+ * @return Expanded database of lists with frequencies equal to 1
+ */ 
+ListDB mh_expand_listdb(ListDB *listdb, uint *maxfreq)
+{
+     uint i, j, k;
+     ListDB expldb = listdb_create(listdb->size, maxfreq[listdb->dim - 1] - 1);
+
+     // creates a binary listdb with the cumulative maximum frequency
+     for (i = 0; i < listdb->size; i++) {
+          for (j = 0; j < listdb->lists[i].size; j++) {
+               for (k = 0; k < listdb->lists[i].data[j].freq; k++) {
+                    if (listdb->lists[i].data[j].item != 0) {
+                         Item item = {maxfreq[listdb->lists[i].data[j].item - 1] + k, 1};
+                         list_push(&expldb.lists[i], item);
+                    } else {
+                         Item item = {k, 1};
+                         list_push(&expldb.lists[i], item);
+                    }
+               }
+          }
+     }
+     
+     return expldb;
+}
+
+/**
+ * @brief Expands an array of weights based on an expanded set of items
+ *
+ * @param ifindex Inverted file index of the database of lists
+ * @param maxfreq Array with the cumulative maximum frequencies
+ *                to generate the expanded set of items
+ * @param weights Weights of the original set of items
+ *
+ * @return Array with the weights of the expanded set of items
+ */ 
+double *mh_expand_weights(ListDB *ifindex, uint *maxfreq, double *weights)
+{
+     uint i, j;
+     double *new_weights = (double *) malloc(maxfreq[ifindex->size - 1] * sizeof(double));
+
+     for (j = 0; j < maxfreq[0]; j++) 
+          new_weights[j] = weights[0];
+
+     for (i = 1; i < ifindex->size; i++)
+          for (j = maxfreq[i - 1]; j < maxfreq[i]; j++) 
+               new_weights[j] = weights[i];
+          
+     return new_weights;
+}

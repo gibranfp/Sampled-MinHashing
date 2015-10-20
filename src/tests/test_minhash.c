@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include "listdb.h"
 #include "ifindex.h"
 #include "minhash.h"
 
@@ -94,11 +95,11 @@ void test_hash(void)
 	
      for (i = 0; i < htable.tuple_size; i++) {
           printf("\t");
-          for (j = 0; j < list.size; j++) 
+          for (j = 0; j < list.size; j++)
                printf("Perm[%u][%u]%llu ", i * htable.dim, list.data[j].item, htable.permutations[list.data[j].item].random_int);
           printf("\n\t");
 
-          for (j = 0; j < list.size; j++) 
+          for (j = 0; j < list.size; j++)
                printf("Perm[%u][%u]%lf ", i * htable.dim, list.data[j].item, htable.permutations[list.data[j].item].random_double);
 
          
@@ -162,16 +163,16 @@ void test_store(void)
      mh_print_head(&htable);
 }
 
-void test_hashes(uint number_of_hashes)
+void test_minhash_binary(uint number_of_hashes)
 {
-     ListDB listdb = listdb_random(50,8,20);               
+     ListDB listdb = listdb_random(50,8,20);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
      listdb_apply_to_all(&listdb, list_unique);
 
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
-          for (j = 0; j < listdb.lists[i].size; j++) 
+     for (i = 0; i < listdb.size; i++)
+          for (j = 0; j < listdb.lists[i].size; j++)
                listdb.lists[i].data[j].freq = 1;
 
      listdb_print(&listdb);
@@ -181,98 +182,365 @@ void test_hashes(uint number_of_hashes)
      mh_generate_permutations(listdb.dim, number_of_hashes, permutations);
 
      for (i = 0; i < listdb.size; i++) {
-          for (j = 0; j < number_of_hashes; j++) 
+          for (j = 0; j < number_of_hashes; j++)
                mhdb[i * number_of_hashes + j] = mh_compute_minhash(&listdb.lists[i], &permutations[j * listdb.dim]);
      }
+     
           
      double dist[listdb.size][listdb.size];
      uint collisions[listdb.size][listdb.size];
-     uint inter[listdb.size][listdb.size];
-     uint uni[listdb.size][listdb.size];
 
-     for (i = 0; i < listdb.size - 1; i++) 
+     for (i = 0; i < listdb.size - 1; i++)
           for (j = i + 1; j < listdb.size; j++) {
                dist[i][j] = list_jaccard(&listdb.lists[i], &listdb.lists[j]);
-               inter[i][j] = list_intersection_size(&listdb.lists[i], &listdb.lists[j]);
-               uni[i][j] = list_union_size(&listdb.lists[i], &listdb.lists[j]);
 
                uint k;
                for (k = 0; k < number_of_hashes; k++)
-                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k]) 
-                    collisions[i][j]++;
+                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k])
+                         collisions[i][j]++;
           }
      
-     for (i = 0; i < listdb.size - 1; i++) 
-          for (j = i + 1; j < listdb.size; j++) 
-               printf("Pair (%d, %d): sim = %lf, intersection = %u, union = %u,"
-                      " collisions = %u avg collisions = %lf\n",
-                      i, j, dist[i][j], inter[i][j], uni[i][j],
-                      collisions[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
+     for (i = 0; i < listdb.size - 1; i++)
+          for (j = i + 1; j < listdb.size; j++)
+               printf("Pair (%d, %d): sim = %lf, collisions = %u avg collisions = %lf\n",
+                      i, j, dist[i][j], collisions[i][j],
+                      (double) collisions[i][j] /  (double) number_of_hashes);
 }
 
-void test_weighted_hashes(uint number_of_hashes)
+void test_minhash_frequency_expanded(uint number_of_hashes)
 {
      ListDB listdb = listdb_random(50,8,20);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
      listdb_apply_to_all(&listdb, list_unique);
-
+               
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
-          for (j = 0; j < listdb.lists[i].size; j++) 
-               listdb.lists[i].data[j].freq = rand() % 100;
-
+     for (i = 0; i < listdb.size; i++)
+          for (j = 0; j < listdb.lists[i].size; j++)
+               listdb.lists[i].data[j].freq = rand() % 10 + 1;
+     printf("================= Database ==================\n");
      listdb_print(&listdb);
 
-     ListDB corpus = ifindex_make_from_corpus(&listdb);
-       
-     RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * listdb.dim * sizeof(RandomValue));
-     ullong *mhdb = calloc(number_of_hashes * listdb.size, sizeof(ullong));
-     mh_generate_permutations(listdb.dim, number_of_hashes, permutations);
+     ListDB ifindex = ifindex_make_from_corpus(&listdb);
+     uint *maxfreq = mh_get_cumulative_frequency(&listdb, &ifindex);
+     ListDB newdb = mh_expand_listdb(&listdb, maxfreq);
+     free(maxfreq);
 
+     RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * newdb.dim * sizeof(RandomValue));
+     mh_generate_permutations(newdb.dim, number_of_hashes, permutations);
+
+     ullong *mhdb = (ullong *) calloc(number_of_hashes * listdb.size, sizeof(ullong));
+     for (i = 0; i < listdb.size; i++) {
+          for (j = 0; j < number_of_hashes; j++) 
+               mhdb[i * number_of_hashes + j] = mh_compute_minhash(&newdb.lists[i], &permutations[j * newdb.dim]);
+     }
+
+     double h0[listdb.size][listdb.size];
+     uint **collisions = (uint **) calloc(listdb.size, sizeof(uint *));
+     for (i = 0; i < listdb.size; i++) 
+          collisions[i] = (uint *) calloc(listdb.size, sizeof(uint));
+
+     for (i = 0; i < listdb.size - 1; i++)
+          for (j = i + 1; j < listdb.size; j++) {
+               h0[j][i] = h0[i][j] = list_histogram_intersection(&listdb.lists[i], &listdb.lists[j]);
+
+               uint k;
+               for (k = 0; k < number_of_hashes; k++)
+                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k])
+                         collisions[i][j]++;
+          }
+     
+     for (i = 0; i < listdb.size - 1; i++)
+          for (j = i + 1; j < listdb.size; j++)
+               printf("Pair (%d, %d): h0 = %lf, estimation = %lf\n",
+                      i, j, h0[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
+}
+
+void test_minhash_weighted_items(uint number_of_hashes)
+{
+     ListDB listdb = listdb_random(50,8,20);
+     listdb_delete_smallest(&listdb, 3);
+     listdb_apply_to_all(&listdb, list_sort_by_item);
+     listdb_apply_to_all(&listdb, list_unique);
+               
+     uint i, j;
+     for (i = 0; i < listdb.size; i++)
+          for (j = 0; j < listdb.lists[i].size; j++)
+               listdb.lists[i].data[j].freq = 1;
+     printf("================= Database ==================\n");
+     listdb_print(&listdb);
+
+     ListDB ifindex = ifindex_make_from_corpus(&listdb);
+     double *weights = (double *) calloc(ifindex.size, sizeof(double));
+     for (i = 0; i < ifindex.size; i++) 
+          weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
+
+     RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * listdb.dim * sizeof(RandomValue));
+     mh_generate_permutations(listdb.dim, number_of_hashes, permutations);
+     mh_weight_permutations(listdb.dim, number_of_hashes, permutations, weights);
+     
+     ullong *mhdb = (ullong *) calloc(number_of_hashes * listdb.size, sizeof(ullong));
      for (i = 0; i < listdb.size; i++) {
           for (j = 0; j < number_of_hashes; j++) 
                mhdb[i * number_of_hashes + j] = mh_compute_minhash(&listdb.lists[i], &permutations[j * listdb.dim]);
      }
 
-     uint *weights = (uint *) calloc(corpus.size, sizeof(uint));
-     for (i = 0; i < corpus.size; i++) 
-          weights[i] = round(log ((double) corpus.size / (double)corpus.lists[i].size) *  100000000L);
+     double simw[listdb.size][listdb.size];
+     uint **collisions = (uint **) calloc(listdb.size, sizeof(uint *));
+     for (i = 0; i < listdb.size; i++) 
+          collisions[i] = (uint *) calloc(listdb.size, sizeof(uint));
 
-     double h0[listdb.size][listdb.size];
-     double h1[listdb.size][listdb.size];
-     double wsim[listdb.size][listdb.size];
-     uint collisions[listdb.size][listdb.size];
-     
-     for (i = 0; i < listdb.size - 1; i++) 
+     for (i = 0; i < listdb.size - 1; i++)
           for (j = i + 1; j < listdb.size; j++) {
-               h0[i][j] = list_histogram_intersection(&listdb.lists[i], &listdb.lists[j]);
-               h1[i][j] = list_weighted_histogram_intersection(&listdb.lists[i], &listdb.lists[j], weights);
-               wsim[i][j] = list_weighted_similarity(&listdb.lists[i], &listdb.lists[j], weights);
+               simw[j][i] = simw[i][j] = list_weighted_similarity(&listdb.lists[i], &listdb.lists[j], weights);
 
                uint k;
                for (k = 0; k < number_of_hashes; k++)
-                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k]) 
-                    collisions[i][j]++;
+                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k])
+                         collisions[i][j]++;
+          }
+     
+     for (i = 0; i < listdb.size - 1; i++)
+          for (j = i + 1; j < listdb.size; j++)
+               printf("Pair (%d, %d): simw = %lf estimation = %lf\n",
+                      i, j, simw[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
+}
+
+void test_minhash_frequency_expanded_weighted(uint number_of_hashes)
+{
+     ListDB listdb = listdb_random(50,8,20);
+     listdb_delete_smallest(&listdb, 3);
+     listdb_apply_to_all(&listdb, list_sort_by_item);
+     listdb_apply_to_all(&listdb, list_unique);
+               
+     uint i, j;
+     for (i = 0; i < listdb.size; i++)
+          for (j = 0; j < listdb.lists[i].size; j++)
+               listdb.lists[i].data[j].freq = rand() % 10 + 1;
+     printf("================= Database ==================\n");
+     listdb_print(&listdb);
+
+     ListDB ifindex = ifindex_make_from_corpus(&listdb);
+     double *oldweights = (double *) calloc(ifindex.size, sizeof(double));
+     for (i = 0; i < ifindex.size; i++) 
+          oldweights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
+
+     uint *maxfreq = mh_get_cumulative_frequency(&listdb, &ifindex);
+     ListDB newdb = mh_expand_listdb(&listdb, maxfreq);
+     
+     double *weights = mh_expand_weights(&ifindex, maxfreq, oldweights);
+     free(maxfreq);
+     
+     RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * newdb.dim * sizeof(RandomValue));
+     mh_generate_permutations(newdb.dim, number_of_hashes, permutations);
+     mh_weight_permutations(newdb.dim, number_of_hashes, permutations, weights);
+     
+     ullong *mhdb = (ullong *) calloc(number_of_hashes * listdb.size, sizeof(ullong));
+     for (i = 0; i < listdb.size; i++) {
+          for (j = 0; j < number_of_hashes; j++) 
+               mhdb[i * number_of_hashes + j] = mh_compute_minhash(&newdb.lists[i], &permutations[j * newdb.dim]);
+     }
+
+     double h[listdb.size][listdb.size];
+     uint **collisions = (uint **) calloc(listdb.size, sizeof(uint *));
+     for (i = 0; i < listdb.size; i++) 
+          collisions[i] = (uint *) calloc(listdb.size, sizeof(uint));
+
+     for (i = 0; i < listdb.size - 1; i++)
+          for (j = i + 1; j < listdb.size; j++) {
+               h[j][i] = h[i][j] = list_weighted_histogram_intersection(&listdb.lists[i], &listdb.lists[j], oldweights);
+
+               uint k;
+               for (k = 0; k < number_of_hashes; k++)
+                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k]){
+                         collisions[j][i]++;
+                         collisions[i][j]++;
+                    }
+          }
+     
+     for (i = 0; i < listdb.size - 1; i++)
+          for (j = i + 1; j < listdb.size; j++)
+               printf("Pair (%d, %d): h = %lf, estimation = %lf\n",
+                      i, j, h[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
+}
+
+void test_minhash_weighted_weighted(uint number_of_hashes)
+{
+     ListDB listdb = listdb_random(10,8,20);
+     listdb_delete_smallest(&listdb, 3);
+     listdb_apply_to_all(&listdb, list_sort_by_item);
+     listdb_apply_to_all(&listdb, list_unique);               
+               
+     uint i, j;
+     for (i = 0; i < listdb.size; i++) 
+          for (j = 0; j < listdb.lists[i].size; j++) 
+               listdb.lists[i].data[j].freq = 1;
+     printf("================= Database ==================\n");
+     listdb_print(&listdb);
+
+     ListDB ifindex = ifindex_make_from_corpus(&listdb);
+     ifindex_weight(&listdb, &ifindex, weights_ids);
+
+     RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * listdb.dim * sizeof(RandomValue));
+     ullong *mhdb = calloc(number_of_hashes * listdb.size, sizeof(ullong));
+     mh_generate_permutations(listdb.dim, number_of_hashes, permutations);
+
+     ListDB hashes = listdb_create(listdb.size, 0);
+     for (i = 0; i < listdb.size; i++) {
+          for (j = 0; j < number_of_hashes; j++) 
+               mhdb[i * number_of_hashes + j] = mh_compute_minhash(&listdb.lists[i], &permutations[j * listdb.dim]);
+     }
+     
+     double *weights = (double *) calloc(ifindex.size, sizeof(double));
+     for (i = 0; i < ifindex.size; i++) 
+          weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
+
+     
+     double simw[listdb.size][listdb.size];
+     uint **collisions = (uint **) calloc(listdb.size, sizeof(uint *));
+     for (i = 0; i < listdb.size; i++) 
+          collisions[i] = (uint *) calloc(listdb.size, sizeof(uint));
+     
+     for (i = 0; i < listdb.size - 1; i++) 
+          for (j = i + 1; j < listdb.size; j++) {
+               simw[i][j] = simw[j][i] = list_weighted_similarity(&listdb.lists[i], &listdb.lists[j], weights);
+
+               uint k;
+               for (k = 0; k < number_of_hashes; k++)
+                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k]) {
+                         collisions[j][i]++;
+                         collisions[i][j]++;
+                    }
           }
      
      for (i = 0; i < listdb.size - 1; i++) 
           for (j = i + 1; j < listdb.size; j++) 
-               printf("Pair (%d, %d): h0 = %lf, h1 = %lf, wsim = %lf,"
-                      " collisions = %u avg collisions = %lf\n",
-                      i, j, h0[i][j], h1[i][j], wsim[i][j],
-                      collisions[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
+               printf("Pair (%d, %d): h0 = %lf, estimator = %lf\n",
+                      i, j, simw[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
+}
+
+void test_minhash_frequency_weighted(uint number_of_hashes)
+{
+     ListDB listdb = listdb_random(10,8,20);
+     listdb_delete_smallest(&listdb, 3);
+     listdb_apply_to_all(&listdb, list_sort_by_item);
+     listdb_apply_to_all(&listdb, list_unique);               
+               
+     uint i, j;
+     for (i = 0; i < listdb.size; i++) 
+          for (j = 0; j < listdb.lists[i].size; j++) 
+               listdb.lists[i].data[j].freq = rand() % 10 + 1;
+     printf("================= Database ==================\n");
+     listdb_print(&listdb);
+
+     RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * listdb.dim * sizeof(RandomValue));
+     ullong *mhdb = calloc(number_of_hashes * listdb.size, sizeof(ullong));
+     mh_generate_permutations(listdb.dim, number_of_hashes, permutations);
+
+     ListDB hashes = listdb_create(listdb.size, 0);
+     for (i = 0; i < listdb.size; i++) {
+          for (j = 0; j < number_of_hashes; j++) 
+               mhdb[i * number_of_hashes + j] = mh_compute_minhash(&listdb.lists[i], &permutations[j * listdb.dim]);
+     }
+     
+     ListDB ifindex = ifindex_make_from_corpus(&listdb);
+     double *weights = (double *) calloc(ifindex.size, sizeof(double));
+     for (i = 0; i < ifindex.size; i++) 
+          weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
+
+     
+     double h0[listdb.size][listdb.size];
+     uint **collisions = (uint **) calloc(listdb.size, sizeof(uint *));
+     for (i = 0; i < listdb.size; i++) 
+          collisions[i] = (uint *) calloc(listdb.size, sizeof(uint));
+     
+     for (i = 0; i < listdb.size - 1; i++) 
+          for (j = i + 1; j < listdb.size; j++) {
+               h0[i][j] = list_histogram_intersection(&listdb.lists[i], &listdb.lists[j]);
+
+               uint k;
+               for (k = 0; k < number_of_hashes; k++)
+                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k]) {
+                         collisions[j][i]++;
+                         collisions[i][j]++;
+                    }
+          }
+     
+     for (i = 0; i < listdb.size - 1; i++) 
+          for (j = i + 1; j < listdb.size; j++) 
+               printf("Pair (%d, %d): h0 = %lf, estimator = %lf\n",
+                      i, j, h0[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
+}
+
+void test_minhash_frequency_weighted_weighted(uint number_of_hashes)
+{
+     ListDB listdb = listdb_random(10,8,20);
+     listdb_delete_smallest(&listdb, 3);
+     listdb_apply_to_all(&listdb, list_sort_by_item);
+     listdb_apply_to_all(&listdb, list_unique);               
+               
+     uint i, j;
+     for (i = 0; i < listdb.size; i++) 
+          for (j = 0; j < listdb.lists[i].size; j++)
+               listdb.lists[i].data[j].freq = rand() % 10 + 1;
+     printf("================= Database ==================\n");
+     listdb_print(&listdb);
+
+     ListDB ifindex = ifindex_make_from_corpus(&listdb);
+     ifindex_weight(&listdb, &ifindex, weights_tfids);
+
+     RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * listdb.dim * sizeof(RandomValue));
+     ullong *mhdb = calloc(number_of_hashes * listdb.size, sizeof(ullong));
+     mh_generate_permutations(listdb.dim, number_of_hashes, permutations);
+
+     ListDB hashes = listdb_create(listdb.size, 0);
+     for (i = 0; i < listdb.size; i++) {
+          for (j = 0; j < number_of_hashes; j++) 
+               mhdb[i * number_of_hashes + j] = mh_compute_minhash(&listdb.lists[i], &permutations[j * listdb.dim]);
+     }
+     
+     double *weights = (double *) calloc(ifindex.size, sizeof(double));
+     for (i = 0; i < ifindex.size; i++) 
+          weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
+
+     
+     double h[listdb.size][listdb.size];
+     uint **collisions = (uint **) calloc(listdb.size, sizeof(uint *));
+     for (i = 0; i < listdb.size; i++) 
+          collisions[i] = (uint *) calloc(listdb.size, sizeof(uint));
+     
+     for (i = 0; i < listdb.size - 1; i++) 
+          for (j = i + 1; j < listdb.size; j++) {
+               h[j][i] = h[i][j] = list_weighted_histogram_intersection(&listdb.lists[i], &listdb.lists[j], weights);
+
+               uint k;
+               for (k = 0; k < number_of_hashes; k++)
+                    if ( mhdb[i * number_of_hashes + k] == mhdb[j * number_of_hashes + k]) {
+                         collisions[j][i]++;
+                         collisions[i][j]++;
+                    }
+          }
+     
+     for (i = 0; i < listdb.size - 1; i++) 
+          for (j = i + 1; j < listdb.size; j++) 
+               printf("Pair (%d, %d): h0 = %lf, estimator = %lf\n",
+                      i, j, h[i][j], (double) collisions[i][j] /  (double) number_of_hashes);
 }
 
 int main(int argc, char **argv)
 {
-     srand((long int) time(NULL));
+     srand(123456);
      
      /* test_init_create_print(); */
      /* test_hash(); */
      /* test_store(); */
-     /* test_hashes(1000000); */
-     test_weighted_hashes(1000000);
+     /* test_minhash_binary(1000000); */
+     /* test_minhash_frequency_expanded(100000); */
+     /* test_minhash_weighted_items(100000); */
+     /* test_minhash_frequency_expanded_weighted(100000); */
+     /* test_minhash_frequency_weighted(1000000); */
+     /* test_minhash_weighted_weighted(1000000); */
+     test_minhash_frequency_weighted_weighted(1000000);
  
      return 0;
 }

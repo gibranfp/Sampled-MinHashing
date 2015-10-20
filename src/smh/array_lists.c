@@ -31,8 +31,8 @@
  */
 void list_init(List *list)
 {
-    list->size = 0;
-    list->data = NULL;
+     list->size = 0;
+     list->data = NULL;
 }
 
 /**
@@ -44,12 +44,12 @@ void list_init(List *list)
  */
 List list_create(uint size)
 {
-    List list;
+     List list;
 
-    list.size = size;
-    list.data = (Item *) calloc(size, sizeof(Item));
+     list.size = size;
+     list.data = (Item *) calloc(size, sizeof(Item));
 
-    return list;
+     return list;
 }
 
 /**
@@ -62,19 +62,19 @@ List list_create(uint size)
  */
 List list_random(uint max_size, uint max_item)
 {
-    uint i;
-    uint random_size = rand() % max_size;
-    List list;
-    Item random_item;
+     uint i;
+     uint random_size = rand() % max_size;
+     List list;
+     Item random_item;
 
-    list_init(&list);
-    for (i = 0; i < random_size; i++) {
-        random_item.item = rand() % max_item;
-        random_item.freq = 1;
-        list_push(&list, random_item);
-    }
+     list_init(&list);
+     for (i = 0; i < random_size; i++) {
+          random_item.item = rand() % max_item;
+          random_item.freq = 1;
+          list_push(&list, random_item);
+     }
 
-    return list;
+     return list;
 }
 
 /**
@@ -84,8 +84,8 @@ List list_random(uint max_size, uint max_item)
  */
 void list_destroy(List *list)
 {
-    free(list->data);
-    list_init(list);
+     free(list->data);
+     list_init(list);
 }
 
 /**
@@ -113,13 +113,13 @@ Item list_make_item(uint id, uint freq)
  */
 Item *list_find(List *list, Item item)
 {
-    uint i;
+     uint i;
 
-    for (i = 0; i < list->size; i++)
-        if (list->data[i].item == item.item)
-            return list->data + i;
+     for (i = 0; i < list->size; i++)
+          if (list->data[i].item == item.item)
+               return list->data + i;
 
-    return NULL;
+     return NULL;
 }
 
 /**
@@ -131,15 +131,15 @@ Item *list_find(List *list, Item item)
  */
 Item *list_min_item(List *list)
 {
-    uint i;
-    Item *min_item;
+     uint i;
+     Item *min_item;
 
-    min_item = list->data;
-    for (i = 1; i < list->size; i++)
-        if (min_item->item > list->data[i].item)
-            min_item = list->data + i;
+     min_item = list->data;
+     for (i = 1; i < list->size; i++)
+          if (min_item->item > list->data[i].item)
+               min_item = list->data + i;
 
-    return min_item;
+     return min_item;
 }
 
 /**
@@ -151,33 +151,74 @@ Item *list_min_item(List *list)
  */
 Item *list_max_item(List *list)
 {
-    uint i;
-    Item *max_item;
+     uint i;
+     Item *max_item;
 
-    max_item = list->data;
-    for (i = 1; i < list->size; i++)
-        if (max_item->item < list->data[i].item)
-            max_item = list->data + i;
+     max_item = list->data;
+     for (i = 1; i < list->size; i++)
+          if (max_item->item < list->data[i].item)
+               max_item = list->data + i;
 
-    return max_item;
+     return max_item;
+}
+
+/**
+ * @brief Finds the item with the minimum frequency of an unordered list
+ *
+ * @param list List where the item with the minimum frequency is to be searched
+ *
+ * @return Pointer to the item with the minimum frequency
+ */
+Item *list_min_freq(List *list)
+{
+     uint i;
+     Item *min_freq;
+
+     min_freq = list->data;
+     for (i = 1; i < list->size; i++)
+          if (min_freq->freq > list->data[i].freq)
+               min_freq = list->data + i;
+
+     return min_freq;
+}
+
+/**
+ * @brief Finds maximum frequency of an unordered list
+ *
+ * @param list List where the item with the maximum frequency is to be searched
+ *
+ * @return Pointer to the item with the maximum frequency
+ */
+
+Item *list_max_freq(List *list)
+{
+     uint i;
+     Item *max_freq;
+
+     max_freq = list->data;
+     for (i = 1; i < list->size; i++)
+          if (max_freq->freq < list->data[i].freq)
+               max_freq = list->data + i;
+
+     return max_freq;
 }
 
 /**
  * @brief Computes the sum of the frequencies of a list
  *
- * @param list Input list
+ * @param list List from which the sum of frequencies is to be computed
  *
  * @return Sum of the frequencies of the input list
  */
 uint list_sum_freq(List *list)
 {
-    uint i;
-    uint sum = 0;
+     uint i;
+     uint sum = 0;
 
-    for (i = 0; i < list->size; i++)
-         sum += list->data[i].freq;
+     for (i = 0; i < list->size; i++)
+          sum += list->data[i].freq;
               
-    return sum;
+     return sum;
 }
 
 /**
@@ -191,10 +232,10 @@ uint list_sum_freq(List *list)
  */
 int list_item_compare(const void *a, const void *b)
 {
-    int a_item = ((Item *)a)->item;
-    int b_item = ((Item *)b)->item;
+     int a_item = ((Item *)a)->item;
+     int b_item = ((Item *)b)->item;
 
-    return a_item - b_item;
+     return a_item - b_item;
 }
 
 /**
@@ -208,10 +249,10 @@ int list_item_compare(const void *a, const void *b)
  */
 int list_item_compare_back(const void *a, const void *b)
 {
-    int a_item = ((Item *)a)->item;
-    int b_item = ((Item *)b)->item;
+     int a_item = ((Item *)a)->item;
+     int b_item = ((Item *)b)->item;
 
-    return b_item - a_item;
+     return b_item - a_item;
 }
 
 /**
@@ -225,10 +266,10 @@ int list_item_compare_back(const void *a, const void *b)
  */
 int list_frequency_compare(const void *a, const void *b)
 {
-    int a_freq = ((Item *)a)->freq;
-    int b_freq = ((Item *)b)->freq;
+     int a_freq = ((Item *)a)->freq;
+     int b_freq = ((Item *)b)->freq;
 
-    return a_freq - b_freq;
+     return a_freq - b_freq;
 }
 
 /**
@@ -242,10 +283,10 @@ int list_frequency_compare(const void *a, const void *b)
  */
 int list_frequency_compare_back(const void *a, const void *b)
 {
-    int a_freq = ((Item *)a)->freq;
-    int b_freq = ((Item *)b)->freq;
+     int a_freq = ((Item *)a)->freq;
+     int b_freq = ((Item *)b)->freq;
 
-    return b_freq - a_freq;
+     return b_freq - a_freq;
 }
 
 /**
@@ -292,7 +333,7 @@ int list_score_compare_back(const void *a, const void *b)
  */
 Item *list_binary_search(List *list, Item query)
 {
-    return bsearch(&query, list->data, list->size, sizeof(Item), list_item_compare);
+     return bsearch(&query, list->data, list->size, sizeof(Item), list_item_compare);
 }
 
 /**
@@ -302,7 +343,7 @@ Item *list_binary_search(List *list, Item query)
  */
 void list_sort_by_item(List *list)
 {
-    qsort(list->data, list->size, sizeof(Item), list_item_compare);
+     qsort(list->data, list->size, sizeof(Item), list_item_compare);
 }
 
 /**
@@ -312,7 +353,7 @@ void list_sort_by_item(List *list)
  */
 void list_sort_by_item_back(List *list)
 {
-    qsort(list->data, list->size, sizeof(Item), list_item_compare_back);
+     qsort(list->data, list->size, sizeof(Item), list_item_compare_back);
 }
 
 /**
@@ -322,7 +363,7 @@ void list_sort_by_item_back(List *list)
  */
 void list_sort_by_frequency(List *list)
 {
-    qsort(list->data, list->size, sizeof(Item), list_frequency_compare);
+     qsort(list->data, list->size, sizeof(Item), list_frequency_compare);
 }
 
 /**
@@ -332,7 +373,7 @@ void list_sort_by_frequency(List *list)
  */
 void list_sort_by_frequency_back(List *list)
 {
-    qsort(list->data, list->size, sizeof(Item), list_frequency_compare_back);
+     qsort(list->data, list->size, sizeof(Item), list_frequency_compare_back);
 }
 
 /**
@@ -342,12 +383,12 @@ void list_sort_by_frequency_back(List *list)
  */
 void list_print(List *list)
 {
-    uint i;
+     uint i;
 
-    printf ("%d -- ", list->size);
-    for (i = 0; i < list->size; i++)
-        printf ("%d:%d[%d] ", list->data[i].item, list->data[i].freq, i);
-    printf("\n");
+     printf ("%d -- ", list->size);
+     for (i = 0; i < list->size; i++)
+          printf ("%d:%d[%d] ", list->data[i].item, list->data[i].freq, i);
+     printf("\n");
 }
 
 /**
@@ -358,17 +399,17 @@ void list_print(List *list)
  */
 void list_print_multi(List *list, List *positions)
 {
-    uint i, pos;
+     uint i, pos;
 
-    printf ("%d -- ", positions->size);
-    for (i = 0; i < positions->size; i++) {
-        pos = positions->data[i].item;
-        if (pos >= 0 && pos < list->size)
-            printf ("%d:%d[%d]", list->data[pos].item, list->data[pos].freq, pos);
-        else
-            printf ("%d-OOR ", pos);
-    }
-    printf ("\n");
+     printf ("%d -- ", positions->size);
+     for (i = 0; i < positions->size; i++) {
+          pos = positions->data[i].item;
+          if (pos >= 0 && pos < list->size)
+               printf ("%d:%d[%d]", list->data[pos].item, list->data[pos].freq, pos);
+          else
+               printf ("%d-OOR ", pos);
+     }
+     printf ("\n");
 }
 
 /**
@@ -380,17 +421,17 @@ void list_print_multi(List *list, List *positions)
  */
 void list_print_range(List *list, uint low, uint high)
 {
-    uint i;
+     uint i;
 
-    if (low >= 0 && low <= high && high < list->size) {
-        printf ("%d (%d-%d) -- ", list->size, low, high);
-        for (i = low; i <= high; i++)
-            printf ("%d:%d[%d] ", list->data[i].item, list->data[i].freq, i);
-    } else {
-        printf ("Invalid range %d-%d. List range is 0-%d", low, high,
-                list->size - 1);
-    }
-    printf ("\n");
+     if (low >= 0 && low <= high && high < list->size) {
+          printf ("%d (%d-%d) -- ", list->size, low, high);
+          for (i = low; i <= high; i++)
+               printf ("%d:%d[%d] ", list->data[i].item, list->data[i].freq, i);
+     } else {
+          printf ("Invalid range %d-%d. List range is 0-%d", low, high,
+                  list->size - 1);
+     }
+     printf ("\n");
 }
 
 /**
@@ -401,11 +442,11 @@ void list_print_range(List *list, uint low, uint high)
  */
 void list_push(List *list, Item item)
 {
-    uint newsize = list->size + 1;
+     uint newsize = list->size + 1;
 
-    list->data = realloc(list->data, newsize * sizeof(Item));
-    list->data[list->size] = item;
-    list->size = newsize;
+     list->data = realloc(list->data, newsize * sizeof(Item));
+     list->data[list->size] = item;
+     list->size = newsize;
 }
 
 /**
@@ -418,12 +459,12 @@ void list_push(List *list, Item item)
  */
 void list_push_range(List *list, List *items, uint low, uint high)
 {
-    uint range = high - low + 1;
-    uint newsize = list->size + range;
+     uint range = high - low + 1;
+     uint newsize = list->size + range;
 
-    list->data = realloc(list->data, newsize * sizeof(Item));
-    memcpy(list->data + list->size, items->data + low, range * sizeof(Item));
-    list->size = newsize;
+     list->data = realloc(list->data, newsize * sizeof(Item));
+     memcpy(list->data + list->size, items->data + low, range * sizeof(Item));
+     list->size = newsize;
 }
 
 /**
@@ -433,8 +474,8 @@ void list_push_range(List *list, List *items, uint low, uint high)
  */
 void list_pop(List *list)
 {
-    list->size--;
-    list->data = realloc(list->data, list->size * sizeof(Item));
+     list->size--;
+     list->data = realloc(list->data, list->size * sizeof(Item));
 }
 
 /**
@@ -445,8 +486,8 @@ void list_pop(List *list)
  */
 void list_pop_multi(List *list, uint number)
 {
-    list->size -= number;
-    list->data = realloc(list->data, list->size * sizeof(Item));
+     list->size -= number;
+     list->data = realloc(list->data, list->size * sizeof(Item));
 }
 
 /**
@@ -457,8 +498,8 @@ void list_pop_multi(List *list, uint number)
  */
 void list_pop_until(List *list, uint last)
 {
-    list->size = last;
-    list->data = realloc(list->data, list->size * sizeof(Item));
+     list->size = last;
+     list->data = realloc(list->data, list->size * sizeof(Item));
 }
 
 /**
@@ -469,15 +510,15 @@ void list_pop_until(List *list, uint last)
  */
 void list_delete_position(List *list, uint position)
 {
-    uint newsize = list->size - 1;
-    Item *tmpdata = (Item *) malloc(newsize * sizeof(Item));
+     uint newsize = list->size - 1;
+     Item *tmpdata = (Item *) malloc(newsize * sizeof(Item));
 
-    memcpy(tmpdata, list->data, position * sizeof(Item));
-    memcpy(tmpdata + position, list->data + position + 1,
-           (newsize - position) * sizeof(Item));
-    free(list->data);
-    list->data = tmpdata;
-    list->size = newsize;
+     memcpy(tmpdata, list->data, position * sizeof(Item));
+     memcpy(tmpdata + position, list->data + position + 1,
+            (newsize - position) * sizeof(Item));
+     free(list->data);
+     list->data = tmpdata;
+     list->size = newsize;
 }
 
 /**
@@ -488,20 +529,20 @@ void list_delete_position(List *list, uint position)
  */
 void list_delete_item(List *list, Item item)
 {
-    Item *found = list_binary_search(list, item);
+     Item *found = list_binary_search(list, item);
 
-    if (found != NULL) {
-        uint position = (uint)(found - list->data);
-        uint newsize = list->size - 1;
-        Item *tmpdata = (Item *) malloc(newsize * sizeof(Item));
+     if (found != NULL) {
+          uint position = (uint)(found - list->data);
+          uint newsize = list->size - 1;
+          Item *tmpdata = (Item *) malloc(newsize * sizeof(Item));
 
-        memcpy(tmpdata, list->data, position * sizeof(Item));
-        memcpy(tmpdata + position, list->data + position + 1,
-               (list->size - position - 1) * sizeof(Item));
-        free(list->data);
-        list->data = tmpdata;
-        list->size = newsize;
-    }
+          memcpy(tmpdata, list->data, position * sizeof(Item));
+          memcpy(tmpdata + position, list->data + position + 1,
+                 (list->size - position - 1) * sizeof(Item));
+          free(list->data);
+          list->data = tmpdata;
+          list->size = newsize;
+     }
 }
 
 /**
@@ -513,16 +554,16 @@ void list_delete_item(List *list, Item item)
  */
 void list_delete_range(List *list, uint low, uint high)
 {
-    uint range = high - low + 1;
-    uint newsize = list->size - range;
-    Item *tmpdata = (Item *) malloc(newsize* sizeof(Item));
+     uint range = high - low + 1;
+     uint newsize = list->size - range;
+     Item *tmpdata = (Item *) malloc(newsize* sizeof(Item));
 
-    memcpy(tmpdata, list->data, low * sizeof(Item));
-    memcpy(tmpdata + low, list->data + high + 1,
-           (list->size - high - 1) * sizeof(Item));
-    free(list->data);
-    list->data = tmpdata;
-    list->size = newsize;
+     memcpy(tmpdata, list->data, low * sizeof(Item));
+     memcpy(tmpdata + low, list->data + high + 1,
+            (list->size - high - 1) * sizeof(Item));
+     free(list->data);
+     list->data = tmpdata;
+     list->size = newsize;
 }
 
 /**
@@ -533,15 +574,15 @@ void list_delete_range(List *list, uint low, uint high)
  */
 void list_delete_less_frequent(List *list, uint min_freq)
 {
-    int pos;
+     int pos;
 
-    list_sort_by_frequency_back(list);
-    for (pos = 0; pos < list->size; pos++)
-        if (list->data[pos].freq < min_freq)
-            break;
+     list_sort_by_frequency_back(list);
+     for (pos = 0; pos < list->size; pos++)
+          if (list->data[pos].freq < min_freq)
+               break;
 
-    if (pos < list->size)
-        list_pop_until(list, pos);
+     if (pos < list->size)
+          list_pop_until(list, pos);
 }
 
 /**
@@ -552,15 +593,15 @@ void list_delete_less_frequent(List *list, uint min_freq)
  */
 void list_delete_more_frequent(List *list, uint max_freq)
 {
-    int pos;
+     int pos;
 
-    list_sort_by_frequency(list);
-    for (pos = 0; pos < list->size; pos++)
-        if (list->data[pos].freq > max_freq)
-            break;
+     list_sort_by_frequency(list);
+     for (pos = 0; pos < list->size; pos++)
+          if (list->data[pos].freq > max_freq)
+               break;
 
-    if (pos < list->size)
-        list_pop_until(list, pos);
+     if (pos < list->size)
+          list_pop_until(list, pos);
 }
 
 /**
@@ -570,21 +611,21 @@ void list_delete_more_frequent(List *list, uint max_freq)
  */
 void list_unique(List *list)
 {
-    uint i;
+     uint i;
 
-    if (list->size > 0) {
-        for (i = 0; i < list->size - 1; i++) {
-            if (list->data[i].item == list->data[i + 1].item) {
-                int k = 1;
-                while(i + k < list->size &&
-                      list->data[i].item == list->data[i + k].item) {
-                    list->data[i].freq += list->data[i + k].freq;
-                    k++;
-                }
-                list_delete_range(list, i + 1, i + k - 1);
-            }
-        }
-    }
+     if (list->size > 0) {
+          for (i = 0; i < list->size - 1; i++) {
+               if (list->data[i].item == list->data[i + 1].item) {
+                    int k = 1;
+                    while(i + k < list->size &&
+                          list->data[i].item == list->data[i + k].item) {
+                         list->data[i].freq += list->data[i + k].freq;
+                         k++;
+                    }
+                    list_delete_range(list, i + 1, i + k - 1);
+               }
+          }
+     }
 }
 
 /**
@@ -596,17 +637,17 @@ void list_unique(List *list)
  */
 void list_insert(List *list, Item item, uint position)
 {
-    uint newsize = list->size + 1;
-    Item *tmpdata;
+     uint newsize = list->size + 1;
+     Item *tmpdata;
 
-    tmpdata = (Item *) malloc(newsize * sizeof(Item));
-    memcpy(tmpdata, list->data, (position + 1) * sizeof(Item));
-    tmpdata[position] = item;
-    memcpy(tmpdata + position + 1, list->data + position,
-           (list->size - position) * sizeof(Item));
-    free(list->data);
-    list->data = tmpdata;
-    list->size = newsize;
+     tmpdata = (Item *) malloc(newsize * sizeof(Item));
+     memcpy(tmpdata, list->data, (position + 1) * sizeof(Item));
+     tmpdata[position] = item;
+     memcpy(tmpdata + position + 1, list->data + position,
+            (list->size - position) * sizeof(Item));
+     free(list->data);
+     list->data = tmpdata;
+     list->size = newsize;
 }
 
 /**
@@ -618,13 +659,13 @@ void list_insert(List *list, Item item, uint position)
  */
 List list_duplicate(List *src)
 {
-    List duplicate;
+     List duplicate;
 
-    duplicate.data = (Item *) malloc(src->size * sizeof(Item));
-    memcpy(duplicate.data, src->data, src->size * sizeof(Item));
-    duplicate.size = src->size;
+     duplicate.data = (Item *) malloc(src->size * sizeof(Item));
+     memcpy(duplicate.data, src->data, src->size * sizeof(Item));
+     duplicate.size = src->size;
 
-    return duplicate;
+     return duplicate;
 }
 
 /**
@@ -638,14 +679,14 @@ List list_duplicate(List *src)
  */
 List list_copy_range(List *src, uint low, uint high)
 {
-    List copy;
-    uint range = high - low + 1;
+     List copy;
+     uint range = high - low + 1;
 
-    copy.data = (Item *) malloc(range * sizeof(Item));
-    memcpy(copy.data, src->data + low, range * sizeof(Item));
-    copy.size = range;
+     copy.data = (Item *) malloc(range * sizeof(Item));
+     memcpy(copy.data, src->data + low, range * sizeof(Item));
+     copy.size = range;
 
-    return copy;
+     return copy;
 }
 
 /**
@@ -658,15 +699,15 @@ List list_copy_range(List *src, uint low, uint high)
  */
 List list_concat(List *list1, List *list2)
 {
-    uint newsize = list1->size + list2->size;
-    List concat;
+     uint newsize = list1->size + list2->size;
+     List concat;
 
-    concat.data = (Item *) malloc(newsize * sizeof(Item));
-    memcpy(concat.data, list1->data, list1->size * sizeof(Item));
-    memcpy(concat.data + list1->size, list2->data, list2->size * sizeof(Item));
-    concat.size = newsize;
+     concat.data = (Item *) malloc(newsize * sizeof(Item));
+     memcpy(concat.data, list1->data, list1->size * sizeof(Item));
+     memcpy(concat.data + list1->size, list2->data, list2->size * sizeof(Item));
+     concat.size = newsize;
 
-    return concat;
+     return concat;
 }
 
 /**
@@ -677,11 +718,11 @@ List list_concat(List *list1, List *list2)
  */
 void list_append(List *list1, List *list2)
 {
-    uint newsize = list1->size + list2->size;
+     uint newsize = list1->size + list2->size;
 
-    list1->data = realloc(list1->data, newsize * sizeof(Item));
-    memcpy(list1->data + list1->size, list2->data, list2->size * sizeof(Item));
-    list1->size = newsize;
+     list1->data = realloc(list1->data, newsize * sizeof(Item));
+     memcpy(list1->data + list1->size, list2->data, list2->size * sizeof(Item));
+     list1->size = newsize;
 }
 
 /**
@@ -692,9 +733,9 @@ void list_append(List *list1, List *list2)
  */
 void list_add(List *list1, List *list2)
 {
-    list_append(list1, list2);
-    list_sort_by_item(list1);
-    list_unique(list1);
+     list_append(list1, list2);
+     list_sort_by_item(list1);
+     list_unique(list1);
 }
 
 /**
@@ -707,50 +748,50 @@ void list_add(List *list1, List *list2)
  */
 List list_union(List *list1, List *list2)
 {
-    uint i = 0, j = 0;
-    List union_list;
+     uint i = 0, j = 0;
+     List union_list;
 
-    list_init(&union_list);
-    while (i < list1->size && j < list2->size) {
-        if (list1->data[i].item == list2->data[j].item) {
-            Item new_item;
-            new_item.item = list1->data[i].item;
-            new_item.freq = max(list1->data[i].freq, list2->data[j].freq);
-            list_push(&union_list, new_item);
-            i++;
-            j++;
-        } else if (list1->data[i].item < list2->data[j].item) {
-            Item new_item;
-            new_item.item = list1->data[i].item;
-            new_item.freq = list1->data[i].freq;
-            list_push(&union_list, new_item);
-            i++;
-        } else {
-            Item new_item;
-            new_item.item = list2->data[j].item;
-            new_item.freq = list2->data[j].freq;
-            list_push(&union_list, new_item);
-            j++;
-        }
-    }
+     list_init(&union_list);
+     while (i < list1->size && j < list2->size) {
+          if (list1->data[i].item == list2->data[j].item) {
+               Item new_item;
+               new_item.item = list1->data[i].item;
+               new_item.freq = max(list1->data[i].freq, list2->data[j].freq);
+               list_push(&union_list, new_item);
+               i++;
+               j++;
+          } else if (list1->data[i].item < list2->data[j].item) {
+               Item new_item;
+               new_item.item = list1->data[i].item;
+               new_item.freq = list1->data[i].freq;
+               list_push(&union_list, new_item);
+               i++;
+          } else {
+               Item new_item;
+               new_item.item = list2->data[j].item;
+               new_item.freq = list2->data[j].freq;
+               list_push(&union_list, new_item);
+               j++;
+          }
+     }
 
-    while (i < list1->size) {
-        Item new_item;
-        new_item.item = list1->data[i].item;
-        new_item.freq = list1->data[i].freq;
-        list_push(&union_list, new_item);
-        i++;
-    }
+     while (i < list1->size) {
+          Item new_item;
+          new_item.item = list1->data[i].item;
+          new_item.freq = list1->data[i].freq;
+          list_push(&union_list, new_item);
+          i++;
+     }
 
-    while (j < list2->size) {
-        Item new_item;
-        new_item.item = list2->data[j].item;
-        new_item.freq = list2->data[j].freq;
-        list_push(&union_list, new_item);
-        j++;
-    }
+     while (j < list2->size) {
+          Item new_item;
+          new_item.item = list2->data[j].item;
+          new_item.freq = list2->data[j].freq;
+          list_push(&union_list, new_item);
+          j++;
+     }
 
-    return union_list;
+     return union_list;
 }
 
 /**
@@ -763,34 +804,34 @@ List list_union(List *list1, List *list2)
  */
 uint list_union_size(List *list1, List *list2)
 {
-    uint i = 0, j = 0;
-    uint union_size = 0;
+     uint i = 0, j = 0;
+     uint union_size = 0;
 
-    while (i < list1->size && j < list2->size) {
-        if (list1->data[i].item == list2->data[j].item) {
-            union_size++;
-            i++;
-            j++;
-        } else if (list1->data[i].item < list2->data[j].item) {
-            union_size++;
-            i++;
-        } else {
-            union_size++;
-            j++;
-        }
-    }
+     while (i < list1->size && j < list2->size) {
+          if (list1->data[i].item == list2->data[j].item) {
+               union_size++;
+               i++;
+               j++;
+          } else if (list1->data[i].item < list2->data[j].item) {
+               union_size++;
+               i++;
+          } else {
+               union_size++;
+               j++;
+          }
+     }
 
-    while (i < list1->size) {
-        union_size++;
-        i++;
-    }
+     while (i < list1->size) {
+          union_size++;
+          i++;
+     }
 
-    while (j < list2->size) {
-        union_size++;
-        j++;
-    }
+     while (j < list2->size) {
+          union_size++;
+          j++;
+     }
 
-    return union_size;
+     return union_size;
 }
 
 /**
@@ -803,26 +844,26 @@ uint list_union_size(List *list1, List *list2)
  */
 List list_intersection(List *list1, List *list2)
 {
-    uint i = 0, j = 0;
-    List intersection_list;
+     uint i = 0, j = 0;
+     List intersection_list;
 
-    list_init(&intersection_list);
-    while (i < list1->size && j < list2->size) {
-        if (list1->data[i].item == list2->data[j].item) {
-            Item new_item;
-            new_item.item = list1->data[i].item;
-            new_item.freq = min(list1->data[i].freq, list2->data[j].freq);
-            list_push(&intersection_list, new_item);
-            i++;
-            j++;
-        } else if (list1->data[i].item < list2->data[j].item) {
-            i++;
-        } else {
-            j++;
-        }
-    }
+     list_init(&intersection_list);
+     while (i < list1->size && j < list2->size) {
+          if (list1->data[i].item == list2->data[j].item) {
+               Item new_item;
+               new_item.item = list1->data[i].item;
+               new_item.freq = min(list1->data[i].freq, list2->data[j].freq);
+               list_push(&intersection_list, new_item);
+               i++;
+               j++;
+          } else if (list1->data[i].item < list2->data[j].item) {
+               i++;
+          } else {
+               j++;
+          }
+     }
 
-    return intersection_list;
+     return intersection_list;
 }
 
 /**
@@ -835,22 +876,22 @@ List list_intersection(List *list1, List *list2)
  */
 uint list_intersection_size(List *list1, List *list2)
 {
-    uint i = 0, j = 0;
-    uint intersection_size = 0;
+     uint i = 0, j = 0;
+     uint intersection_size = 0;
 
-    while (i < list1->size && j < list2->size) {
-        if (list1->data[i].item == list2->data[j].item) {
-            intersection_size++;
-            i++;
-            j++;
-        } else if (list1->data[i].item < list2->data[j].item) {
-            i++;
-        } else {
-            j++;
-        }
-    }
+     while (i < list1->size && j < list2->size) {
+          if (list1->data[i].item == list2->data[j].item) {
+               intersection_size++;
+               i++;
+               j++;
+          } else if (list1->data[i].item < list2->data[j].item) {
+               i++;
+          } else {
+               j++;
+          }
+     }
 
-    return intersection_size;
+     return intersection_size;
 }
 
 /**
@@ -863,26 +904,26 @@ uint list_intersection_size(List *list1, List *list2)
  */
 List list_difference(List *list1, List *list2)
 {
-    uint i = 0, j = 0;
-    List difference_list;
+     uint i = 0, j = 0;
+     List difference_list;
 
-    list_init(&difference_list);
-    while (i < list1->size && j < list2->size) {
-        if (list1->data[i].item == list2->data[j].item) {
-            i++;
-            j++;
-        } else if (list1->data[i].item > list2->data[j].item){
-            j++;
-        } else {
-            Item new_item;
-            new_item.item = list1->data[i].item;
-            new_item.freq = list1->data[i].freq;
-            list_push(&difference_list, new_item);
-            i++;
-        }
-    }
+     list_init(&difference_list);
+     while (i < list1->size && j < list2->size) {
+          if (list1->data[i].item == list2->data[j].item) {
+               i++;
+               j++;
+          } else if (list1->data[i].item > list2->data[j].item){
+               j++;
+          } else {
+               Item new_item;
+               new_item.item = list1->data[i].item;
+               new_item.freq = list1->data[i].freq;
+               list_push(&difference_list, new_item);
+               i++;
+          }
+     }
 
-    return difference_list;
+     return difference_list;
 }
 
 /**
@@ -895,23 +936,23 @@ List list_difference(List *list1, List *list2)
  */
 uint list_difference_size(List *list1, List *list2)
 {
-    uint i = 0, j = 0;
-    uint difference_size = 0;
+     uint i = 0, j = 0;
+     uint difference_size = 0;
 
-    while (i < list1->size && j < list2->size) {
-        if (list1->data[i].item == list2->data[j].item) {
-            i++;
-            j++;
-        } else if (list1->data[i].item > list2->data[j].item){
-            j++;
-        }
-        else {
-            difference_size++;
-            i++;
-        }
-    }
+     while (i < list1->size && j < list2->size) {
+          if (list1->data[i].item == list2->data[j].item) {
+               i++;
+               j++;
+          } else if (list1->data[i].item > list2->data[j].item){
+               j++;
+          }
+          else {
+               difference_size++;
+               i++;
+          }
+     }
 
-    return difference_size;
+     return difference_size;
 }
 
 /**
@@ -924,13 +965,13 @@ uint list_difference_size(List *list1, List *list2)
  */
 double list_jaccard(List *list1, List *list2)
 {
-    if (list1->size > 0 && list2->size > 0){
-        uint intersection_size = list_intersection_size(list1, list2);
-        uint union_size = (list1->size + list2->size) - intersection_size;
-        return (double) intersection_size / (double)union_size;
-    } else {
-        return 0.0;
-    }
+     if (list1->size > 0 && list2->size > 0){
+          uint intersection_size = list_intersection_size(list1, list2);
+          uint union_size = (list1->size + list2->size) - intersection_size;
+          return (double) intersection_size / (double) union_size;
+     } else {
+          return 0.0;
+     }
 }
 
 /**
@@ -944,13 +985,59 @@ double list_jaccard(List *list1, List *list2)
 double list_overlap(List *list1, List *list2)
 {
 
-    if (list1->size > 0 && list2->size > 0){
-        uint intersection_size = list_intersection_size(list1, list2);
-        uint min_size = min(list1->size, list2->size);
-        return (double) intersection_size / min_size;
-    } else {
-        return 0.0;
-    }
+     if (list1->size > 0 && list2->size > 0){
+          uint intersection_size = list_intersection_size(list1, list2);
+          uint min_size = min(list1->size, list2->size);
+          return (double) intersection_size / min_size;
+     } else {
+          return 0.0;
+     }
+}
+
+/**
+ * @brief Computes the weighted similarity of a pair of lists
+ *
+ * @param list1 First list
+ * @param list2 Second list
+ *
+ * @return Weighted list similarity
+ */
+double list_weighted_similarity(List *list1, List *list2, double *weights)
+{
+     uint i = 0, j = 0;
+     double weighted_inter = 0.0;
+     double weighted_union = 0.0;
+
+     if (list1->size > 0 && list2->size > 0) {
+          while (i < list1->size && j < list2->size) {
+               if (list1->data[i].item == list2->data[j].item) {
+                    weighted_inter += weights[list1->data[i].item];
+                    weighted_union += weights[list1->data[i].item];
+                    i++;
+                    j++;
+               } else if (list1->data[i].item < list2->data[j].item) {
+                    weighted_union += weights[list1->data[i].item];
+                    i++;
+               } else {
+                    weighted_union += weights[list2->data[j].item];
+                    j++;
+               }
+          }
+
+          while (i < list1->size) {
+               weighted_union += weights[list1->data[i].item];
+               i++;
+          }
+
+          while (j < list2->size) {
+               weighted_union += weights[list2->data[j].item];
+               j++;
+          }
+
+          return weighted_inter / weighted_union;
+     } else {
+          return 0.0;
+     }
 }
 
 /**
@@ -963,30 +1050,40 @@ double list_overlap(List *list1, List *list2)
  */
 double list_histogram_intersection(List *list1, List *list2)
 {
-    uint i = 0, j = 0;
-    uint hist_intersection = 0;
-    uint hist_union = 0;
+     uint i = 0, j = 0;
+     uint hist_inter = 0;
+     uint hist_union = 0;
 
-    if (list1->size > 0 && list2->size > 0){
-        while (i < list1->size && j < list2->size) {
-            if (list1->data[i].item == list2->data[j].item) {
-                hist_intersection += min(list1->data[i].freq, list2->data[j].freq);
-                hist_union += max(list1->data[i].freq, list2->data[j].freq);
-                i++;
-                j++;
-            } else if (list1->data[i].item < list2->data[j].item) {
-                hist_union += list1->data[i].freq;
-                i++;
-            } else {
-                hist_union += list2->data[j].freq;
-                j++;
-            }
-        }
-        return (double) hist_intersection / hist_union;
-    } else {
-        return 0.0;
-    }
+     if (list1->size > 0 && list2->size > 0) {
+          while (i < list1->size && j < list2->size) {
+               if (list1->data[i].item == list2->data[j].item) {
+                    hist_inter += min(list1->data[i].freq, list2->data[j].freq);
+                    hist_union += max(list1->data[i].freq, list2->data[j].freq);
+                    i++;
+                    j++;
+               } else if (list1->data[i].item < list2->data[j].item) {
+                    hist_union += list1->data[i].freq;
+                    i++;
+               } else {
+                    hist_union += list2->data[j].freq;
+                    j++;
+               }
+          }
 
+          while (i < list1->size) {
+               hist_union += list1->data[i].freq;
+               i++;
+          }
+
+          while (j < list2->size) {
+               hist_union += list2->data[j].freq;
+               j++;
+          }
+
+          return (double) hist_inter / (double) hist_union;
+     } else {
+          return 0.0;
+     }
 }
 
 /**
@@ -997,66 +1094,68 @@ double list_histogram_intersection(List *list1, List *list2)
  *
  * @return Weighted histogram intersection
  */
-double list_weighted_histogram_intersection(List *list1, List *list2, uint *item_weights)
+double list_weighted_histogram_intersection(List *list1, List *list2, double *weights)
 {
-    uint i = 0, j = 0;
-    uint whist_intersection = 0;
-    uint whist_union = 0;
+     uint i = 0, j = 0;
+     double whist_inter = 0.0;
+     double whist_union = 0.0;
 
-    if (list1->size > 0 && list2->size > 0){
-        while (i < list1->size && j < list2->size) {
-            if (list1->data[i].item == list2->data[j].item) {
-                uint max_freq = max(list1->data[i].freq, list2->data[j].freq);
-                uint min_freq = min(list1->data[i].freq, list2->data[j].freq);
-                whist_intersection += item_weights[list1->data[i].item] * min_freq;
-                whist_union += item_weights[list1->data[i].item] * max_freq;
-                i++;
-                j++;
-            } else if (list1->data[i].item < list2->data[j].item) {
-                whist_union += item_weights[list1->data[i].item] * list1->data[i].freq;
-                i++;
-            } else {
-                whist_union += item_weights[list2->data[j].item] * list2->data[j].freq;
-                j++;
-            }
-        }
-        return ((double)whist_intersection / (double)whist_union);
-    } else {
-        return 0.0;
-    }
+     if (list1->size > 0 && list2->size > 0) {
+          while (i < list1->size && j < list2->size) {
+               if (list1->data[i].item == list2->data[j].item) {
+                    double max_freq = (double) max(list1->data[i].freq, list2->data[j].freq);
+                    double min_freq = (double) min(list1->data[i].freq, list2->data[j].freq);
+                    whist_inter += weights[list1->data[i].item] * min_freq;
+                    whist_union += weights[list1->data[i].item] * max_freq;
+                    i++;
+                    j++;
+               } else if (list1->data[i].item < list2->data[j].item) {
+                    whist_union += weights[list1->data[i].item] * list1->data[i].freq;
+                    i++;
+               } else {
+                    whist_union += weights[list2->data[j].item] * list2->data[j].freq;
+                    j++;
+               }
+          }
+
+          while (i < list1->size) {
+               whist_union += weights[list1->data[i].item] * list1->data[i].freq;
+               i++;
+          }
+
+          while (j < list2->size) {
+               whist_union += weights[list2->data[j].item] * list2->data[j].freq;
+               j++;
+          }
+
+          return whist_inter / whist_union;
+     } else {
+          return 0.0;
+     }
 }
 
 /**
- * @brief Computes the weighted similarity of a pair of lists
+ * @brief Checks if two lists are identical
  *
  * @param list1 First list
  * @param list2 Second list
  *
- * @return Weighted list similarity
+ * @return 1 if lists are identical, 0 otherwise
  */
-double list_weighted_similarity(List *list1, List *list2, uint *item_weights)
+uint list_equal(List *list1, List *list2)
 {
-    uint i = 0, j = 0;
-    uint weight_intersection = 0;
-    uint weight_union = 0;
-
-    if (list1->size > 0 && list2->size > 0){
-        while (i < list1->size && j < list2->size) {
-            if (list1->data[i].item == list2->data[j].item) {
-                weight_intersection += item_weights[list1->data[i].item];
-                weight_union += item_weights[list1->data[i].item];
-                i++;
-                j++;
-            } else if (list1->data[i].item < list2->data[j].item) {
-                weight_union += item_weights[list1->data[i].item];
-                i++;
-            } else {
-                weight_union += item_weights[list2->data[j].item];
-                j++;
-            }
-        }
-        return (double) weight_intersection / weight_union;
-    } else {
-        return 0.0;
-    }
+     if (list1->size == list2->size) {
+          uint i;
+          uint equal = 1;
+          for (i = 0; i < list1->size; i++) {
+               if (list1->data[i].item != list2->data[i].item) {
+                    equal = 0;
+                    break;
+               }
+          }
+          
+          return equal;
+     } else {
+          return 0;
+     }
 }
