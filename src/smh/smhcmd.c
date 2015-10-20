@@ -28,7 +28,7 @@
 #include "sampledmh.h"
 #include "mhlink.h"
 
-enum WeightScheme {TF, LOGTF, BINTF, IDF, TFIDF};
+enum WeightScheme {TF, LOGTF, BINTF, IDF, IDS, TFIDF};
 
 /**
  * @brief Prints help in screen.
@@ -36,6 +36,7 @@ enum WeightScheme {TF, LOGTF, BINTF, IDF, TFIDF};
 void usage(void)
 {
      printf("usage: smhcmd ifindex [OPTIONS]... [CORPUS_FILE] [INVERTED_FILE]\n"
+            "       smhcmd weights [OPTIONS]... [CORPUS_FILE] [INVERTED_FILE]\n"
             "       smhcmd mine [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
             "       smhcmd prune [OPTIONS]... [INVERTED_FILE] [INPUT_FILE] [OUTPUT_FILE]\n"
             "       smhcmd cluster [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
@@ -157,6 +158,90 @@ void smhcmd_ifindex(int opnum, char **opts)
                        "Try `smhcmd --help' for more information.\n");
           else
                fprintf(stderr, "Error: Unknown argumets.\n"
+                       "Try `smhcmd --help' for more information.\n");
+          exit(EXIT_FAILURE);
+     }
+}
+
+/**
+ * @brief Computes weights of the items in a database of lists
+ *
+ * @param opnum Number of command line options.
+ * @param opts Command line options.
+ */
+void smhcmd_weights(int opnum, char **opts)
+{
+     char *weight_scheme = "idf";
+     char *corpus_path, *ifindex_path, *output;     
+     int op;
+     int option_index = 0;
+     
+     static struct option long_options[] =
+          {
+               {"help", no_argument, 0, 'h'},
+               {"weight", required_argument, 0, 'w'},
+               {0, 0, 0, 0}
+          };
+
+     //Command-line option parser
+     while((op = getopt_long( opnum, opts, "hw:", long_options, 
+                              &option_index)) != -1){
+          int this_option_optind = optind ? optind : 1;
+          switch (op) {
+          case 0:
+               break;
+          case 'h':
+               usage();
+               exit(EXIT_SUCCESS);
+               break;
+          case 'w':
+               weight_scheme = optarg;
+               break;
+          case '?':
+               fprintf(stderr,"Error: Unknown options.\n"
+                       "Try `smhcmd --help' for more information.\n");
+               exit(EXIT_FAILURE);
+          default:
+               abort ();
+          }
+     }
+     if (optind + 3 == opnum){ 
+          corpus_path= opts[optind++];
+          ifindex_path = opts[optind++];
+          output = opts[optind++];
+
+          printf("Reading corpus file %s . . .\n", corpus_path);
+          ListDB corpus = listdb_load_from_file(corpus_path);
+          printf("Number of documents: %d\nVocabulary size: %d\n", corpus.size, corpus.dim);
+
+          printf("Loading inverted file from file %s . . .\n", ifindex_path);
+          ListDB ifindex = listdb_load_from_file(ifindex_path);
+          double *weights;
+          printf("Computing %s weights\n", weight_scheme);
+          if ( strcmp(weight_scheme, "idf") == 0 ) {
+               weights =  weights_from_corpus_and_ifindex(&corpus,
+                                                          &ifindex,
+                                                          weights_idf);
+               printf("Saving weights into %s\n", output);
+               weights_save_to_file(output, ifindex.size, weights);
+          } else if ( strcmp(weight_scheme, "ids") == 0 ) {
+               weights = weights_from_corpus_and_ifindex(&ifindex,
+                                                         &corpus,
+                                                         weights_ids);
+               printf("Saving weights into %s\n", output);
+               weights_save_to_file(output, corpus.size, weights);
+          } else {
+               printf ("Unrecognized weighting scheme %s.\n "
+                       "Try `smhcmd --help' for more information.\n", 
+                       weight_scheme);
+               exit(EXIT_FAILURE);
+          }
+     } else {
+          if (optind + 2 > opnum)
+               fprintf(stderr, "Error: Missing arguments.\n"
+                       "Try `smhcmd --help' for more information.\n");
+          else
+               fprintf(stderr, "Error: Unknown arguments.\n"
                        "Try `smhcmd --help' for more information.\n");
           exit(EXIT_FAILURE);
      }
@@ -463,6 +548,8 @@ int main(int argc, char **argv)
                smhcmd_prune(argc - 1, &argv[1]);
           else if ( strcmp(argv[1], "cluster") == 0 )
                smhcmd_cluster(argc - 1, &argv[1]);
+          else if ( strcmp(argv[1], "weights") == 0 )
+               smhcmd_weights(argc - 1, &argv[1]);
           else if ( strcmp(argv[1], "ifindex") == 0 )
                smhcmd_ifindex(argc - 1, &argv[1]);
           else if ( strcmp(argv[1], "--help") == 0 || 

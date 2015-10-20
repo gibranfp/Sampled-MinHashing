@@ -90,7 +90,9 @@ double weights_bintf(uint tf, uint df, uint docsize, uint docterms, uint corpsiz
  */
 double weights_idf(uint tf, uint df, uint docsize, uint docterms, uint corpsize, uint vocsize)
 {
-     return log ((double)corpsize / (double)df);
+     printf("Pase22\n");
+     return log ((double) corpsize / (double) df);
+               printf("Pase3e\n");
 }
 
 /**
