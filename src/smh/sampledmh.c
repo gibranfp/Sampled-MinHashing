@@ -139,7 +139,7 @@ ListDB sampledmh_expand_frequencies(ListDB *listdb, ListDB *ifindex)
 ListDB sampledmh_expand_frequencies_and_weights(ListDB *listdb, ListDB *ifindex, double *oldweights, double *newweights)
 {
      uint *maxfreq = mh_get_cumulative_frequency(listdb, ifindex);
-     newweights = mh_expand_weights(ifindex, maxfreq, oldweights);
+     newweights = mh_expand_weights(ifindex->size, maxfreq, oldweights);
      free(oldweights);
      
      return mh_expand_listdb(listdb, maxfreq);    

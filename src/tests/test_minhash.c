@@ -328,7 +328,7 @@ void test_minhash_frequency_expanded_weighted(uint number_of_hashes)
      uint *maxfreq = mh_get_cumulative_frequency(&listdb, &ifindex);
      ListDB newdb = mh_expand_listdb(&listdb, maxfreq);
      
-     double *weights = mh_expand_weights(&ifindex, maxfreq, oldweights);
+     double *weights = mh_expand_weights(ifindex.size, maxfreq, oldweights);
      free(maxfreq);
      
      RandomValue *permutations = (RandomValue *) malloc(number_of_hashes * newdb.dim * sizeof(RandomValue));

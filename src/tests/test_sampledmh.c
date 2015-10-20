@@ -563,11 +563,11 @@ int main(int argc, char **argv)
      srand((long int) time(NULL));
      /* test_mine(4, 100000, 1024); */
      /* test_mine_weighted(3, 100000, 1024); */
-     /* test_mine_frequency_expanded(3, 10000, 1024); */
+     test_mine_frequency_expanded(3, 10000, 1024);
      /* test_mine_frequency_expanded_weighted(1, 10000, 1024); */
      /* test_mine_frequency_weighted(3, 100000, 1024); */
      /* test_mine_weighted_weighted(1, 10000, 1024); */
-     test_mine_frequency_weighted_weighted(1, 1000, 1024);
+     /* test_mine_frequency_weighted_weighted(1, 1000, 1024); */
      
      return 0;
 }

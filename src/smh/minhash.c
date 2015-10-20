@@ -453,15 +453,15 @@ ListDB mh_expand_listdb(ListDB *listdb, uint *maxfreq)
  *
  * @return Array with the weights of the expanded set of items
  */ 
-double *mh_expand_weights(ListDB *ifindex, uint *maxfreq, double *weights)
+double *mh_expand_weights(uint number_of_items, uint *maxfreq, double *weights)
 {
      uint i, j;
-     double *new_weights = (double *) malloc(maxfreq[ifindex->size - 1] * sizeof(double));
+     double *new_weights = (double *) malloc(maxfreq[number_of_items - 1] * sizeof(double));
 
      for (j = 0; j < maxfreq[0]; j++) 
           new_weights[j] = weights[0];
 
-     for (i = 1; i < ifindex->size; i++)
+     for (i = 1; i < number_of_items; i++)
           for (j = maxfreq[i - 1]; j < maxfreq[i]; j++) 
                new_weights[j] = weights[i];
           

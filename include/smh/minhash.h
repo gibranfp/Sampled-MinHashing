@@ -70,5 +70,5 @@ uint mh_store_list(List *, uint, HashTable *);
 void mh_store_listdb(ListDB *, HashTable *, uint *);
 uint *mh_get_cumulative_frequency(ListDB *, ListDB *);
 ListDB mh_expand_listdb(ListDB *, uint *);
-double *mh_expand_weights(ListDB *, uint *, double *);
+double *mh_expand_weights(uint, uint *, double *);
 #endif
