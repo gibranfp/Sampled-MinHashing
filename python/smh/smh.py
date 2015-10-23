@@ -66,16 +66,9 @@ class SMH:
         if not weights and not expand:
             ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
         elif expand and not weights:
-            print "Aqui voy 1"
             max_freq=sa.mh_get_cumulative_frequency(self.ldb,expand.ldb)
-            print self.ldb.size, max_freq
-            print "Aqui voy 2"
             ldb_=sa.mh_expand_listdb(self.ldb,max_freq)
-            sa.listdb_print(ldb_)
-            print "Aqui voy 3"
-            print ldb_.size,self.ldb.size
             ldb=sa.sampledmh_mine(ldb_,tuple_size,num_tuples,table_size)
-            print "Aqui voy 4"
         elif not expand and weights:
             ldb=sa.sampledmh_mine_weighted(self.ldb,tuple_size,num_tuples,table_size,weights.weights)
         elif expand and weights:
@@ -85,11 +78,9 @@ class SMH:
             ldb=sa.sampledmh_mine_weighted(ldb_,tuple_size,num_tuples,table_size,weights_)
         return SMH(ldb=ldb)
 
-
-
     def cluster_mhlink(self, num_tuples=3, tuple_size=255, table_size=2**19, thres=0.7):
         ldb_=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
-        #sa.listdb_delete_smallest(ldb_,2)
+        sa.listdb_delete_smallest(ldb_,2)
         ldb=sa.mhlink_make_model(self.ldb, ldb_)
         return SMH(ldb=ldb)
 
@@ -109,9 +100,6 @@ class SMH:
             sa.listdb_delete_smallest(self.ldb,min)
         if max:
             sa.listdb_delete_largest(self.ldb,max)
-
-        #ldb= sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
-        #return SMH(ldb=ldb)
 
     def size(self):
         return self.ldb.size
