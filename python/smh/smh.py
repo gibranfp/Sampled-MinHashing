@@ -86,7 +86,7 @@ class SMH:
 
     def cluster_mhlink(self, num_tuples=255, tuple_size=3, table_size=2**20, thres=0.7,
                        min_cluster_size=3):
-        models=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size,
+        models=sa.mhlink_cluster(self.ldb, tuple_size, num_tuples, table_size,
                                  sa.list_overlap, thres, min_cluster_size)
         return SMH(ldb=models)
 

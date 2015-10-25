@@ -110,9 +110,8 @@ void mhlink_add_neighbors(ListDB *listdb, ListDB *clusters, uint listid, List *i
  *
  * @return Clusters of IDs
  */
-ListDB mhlink_cluster(ListDB *listdb, uint table_size, uint number_of_tuples,
-                      uint tuple_size, double (*sim)(List *, List *), double thres,
-                      uint min_cluster_size)
+ListDB mhlink_cluster(ListDB *listdb, uint tuple_size, uint number_of_tuples, uint table_size,
+                      double (*sim)(List *, List *), double thres, uint min_cluster_size)
 {
      uint i, j;
      uint *checked = (uint *) calloc(listdb->size, sizeof(uint));
@@ -177,9 +176,8 @@ ListDB mhlink_cluster(ListDB *listdb, uint table_size, uint number_of_tuples,
  * @param sim Similarity function for adding list to a cluster
  * @param thres Threshold for adding list to a cluster
  */
-ListDB mhlink_cluster_weighted(ListDB *listdb, uint table_size, uint number_of_tuples,
-                               uint tuple_size, double *weights,
-                               double (*sim)(List *, List *), double thres,
+ListDB mhlink_cluster_weighted(ListDB *listdb, uint tuple_size, uint number_of_tuples, uint table_size,
+                               double *weights, double (*sim)(List *, List *), double thres,
                                uint min_cluster_size)
 {
      uint i, j;
