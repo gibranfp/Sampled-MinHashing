@@ -35,8 +35,8 @@ enum WeightScheme {TF, LOGTF, BINTF, IDF, IDS, TFIDF};
  */
 void usage(void)
 {
-     printf("usage: smhcmd ifindex [OPTIONS]... [CORPUS_FILE] [INVERTED_FILE]\n"
-            "       smhcmd weights [OPTIONS]... [CORPUS_FILE] [INVERTED_FILE]\n"
+     printf("usage: smhcmd ifindex [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
+            "       smhcmd weights [OPTIONS]... [CORPUS_FILE] [INVERTED_FILE] [WEIGHTS_FILE]\n"
             "       smhcmd mine [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
             "       smhcmd prune [OPTIONS]... [INVERTED_FILE] [INPUT_FILE] [OUTPUT_FILE]\n"
             "       smhcmd cluster [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
@@ -154,10 +154,10 @@ void smhcmd_ifindex(int opnum, char **opts)
           listdb_save_to_file(output, &ifindex);
      } else {
           if (optind + 2 > opnum)
-               fprintf(stderr, "Error: Missing argumets.\n"
+               fprintf(stderr, "Error: Missing arguments.\n"
                        "Try `smhcmd --help' for more information.\n");
           else
-               fprintf(stderr, "Error: Unknown argumets.\n"
+               fprintf(stderr, "Error: Unknown arguments.\n"
                        "Try `smhcmd --help' for more information.\n");
           exit(EXIT_FAILURE);
      }
@@ -258,8 +258,8 @@ void smhcmd_mine(int opnum, char **opts)
      uint tuple_size = 4; // default tuple size
      uint number_of_tuples = 500; // default number of tuples
      uint table_size = 1048576; // default table size
-     uint min_set_size = 3; 
-     char *input, *output;
+     uint min_set_size = 3;
+     char *input, *output, *weights_file = NULL,  *ifindex_file = NULL;
      
      int op;
      int option_index = 0;
@@ -271,11 +271,13 @@ void smhcmd_mine(int opnum, char **opts)
                {"number_of_tuples", required_argument, 0, 'l'},
                {"table_size", required_argument, 0, 't'},
                {"min_set_size", required_argument, 0, 'm'},
+               {"expand", required_argument, 0, 'e'},
+               {"weights", required_argument, 0, 'w'},
                {0, 0, 0, 0}
           };
 
      //Command-line option parser
-     while((op = getopt_long( opnum, opts, "hr:l:t:", long_options, 
+     while((op = getopt_long( opnum, opts, "hr:l:t:ew:", long_options, 
                               &option_index)) != -1){
           int this_option_optind = optind ? optind : 1;
           switch (op)
@@ -298,6 +300,12 @@ void smhcmd_mine(int opnum, char **opts)
           case 'm':
                min_set_size = atoi(optarg);
                break;
+          case 'e':
+               ifindex_file = optarg;
+               break;
+          case 'w':
+               weights_file = optarg;
+               break;
           case '?':
                fprintf(stderr,"Error: Unknown options.\n"
                        "Try `smhcmd --help' for more information.\n");
@@ -313,11 +321,34 @@ void smhcmd_mine(int opnum, char **opts)
           printf("Reading sets from %s . . .\n", input);
           ListDB corpus = listdb_load_from_file(input);
           printf("Number of documents: %d\nVocabulary size: %d\n", corpus.size, corpus.dim);
-
-          printf("Mining . . . ");
-          ListDB mined = sampledmh_mine(&corpus, tuple_size, number_of_tuples, table_size);
+          
+          ListDB mined;
+          if (weights_file != NULL) {
+               printf("Loading weights . . . ");
+               double *weights = weights_load_from_file(weights_file);
+               printf("Mining . . . ");
+               if (ifindex_file != NULL) {
+                    ListDB ifindex = listdb_load_from_file(ifindex_file);
+                    uint *maxfreq = mh_get_cumulative_frequency(&corpus, &ifindex);
+                    ListDB expanded_corpus = mh_expand_listdb(&corpus, maxfreq);
+                    mined = sampledmh_mine_weighted(&expanded_corpus, tuple_size, number_of_tuples,
+                                                    table_size, weights);
+               } else {
+                    mined = sampledmh_mine_weighted(&corpus, tuple_size, number_of_tuples, table_size, weights);
+               }
+          } else {
+               printf("Mining . . . ");
+               if (ifindex_file != NULL) {
+                    ListDB ifindex = listdb_load_from_file(ifindex_file);
+                    uint *maxfreq = mh_get_cumulative_frequency(&corpus, &ifindex);
+                    ListDB expanded_corpus = mh_expand_listdb(&corpus, maxfreq);
+                    mined = sampledmh_mine(&expanded_corpus, tuple_size, number_of_tuples, table_size);
+               } else {
+                    mined = sampledmh_mine(&corpus, tuple_size, number_of_tuples, table_size);
+               }
+          }
           printf("Number of mined sets: %d\nDimensionality: %d\n", mined.size, mined.dim);
-
+          
           printf("Sorting items by size . . .\n");
           listdb_sort_by_size_back(&mined);
           listdb_delete_smallest(&mined, min_set_size);
@@ -326,10 +357,10 @@ void smhcmd_mine(int opnum, char **opts)
           listdb_save_to_file(output, &mined);
      } else {
           if (optind + 2 > opnum)
-               fprintf(stderr, "Error: Missing argumets.\n"
+               fprintf(stderr, "Error: Missing arguments.\n"
                        "Try `smhcmd --help' for more information.\n");
           else
-               fprintf(stderr, "Error: Unknown argumets.\n"
+               fprintf(stderr, "Error: Unknown arguments.\n"
                        "Try `smhcmd --help' for more information.\n");
           exit(EXIT_FAILURE);
      }
@@ -426,10 +457,10 @@ void smhcmd_prune(int opnum, char **opts)
           listdb_save_to_file(pruned_file, &mined);
      } else {
           if (optind + 3 > opnum)
-               fprintf(stderr, "Error: Missing argumets.\n"
+               fprintf(stderr, "Error: Missing arguments.\n"
                        "Try `smhcmd --help' for more information.\n");
           else
-               fprintf(stderr, "Error: Unknown argumets.\n"
+               fprintf(stderr, "Error: Unknown arguments.\n"
                        "Try `smhcmd --help' for more information.\n");
           exit(EXIT_FAILURE);
      }
@@ -445,11 +476,12 @@ void smhcmd_prune(int opnum, char **opts)
  */
 void smhcmd_cluster(int opnum, char **opts)
 {
-     char *mined_file, *clusters_file, *models_file;
-     uint tuple_size = 3;//Default tuple size
-     uint number_of_tuples = 255;//Default tuple number
-     uint table_size = 1048576;//Defualt table size
-     double ovr = 0.7;//overlap
+     char *mined_file, *models_file;
+     uint tuple_size = 3; 
+     uint number_of_tuples = 255;
+     uint table_size = 1048576;
+     double ovr = 0.7; 
+     uint min_cluster_size = 1;
      int op;
      int option_index = 0;
      
@@ -460,6 +492,7 @@ void smhcmd_cluster(int opnum, char **opts)
                {"tuples", required_argument, 0, 'l'},
                {"size", required_argument, 0, 's'},
                {"overlap", required_argument, 0, 'o'},
+               {"min", required_argument, 0, 'm'},
                {0, 0, 0, 0}
           };
 
@@ -485,6 +518,9 @@ void smhcmd_cluster(int opnum, char **opts)
           case 'o':
                ovr = atof(optarg);
                break;
+          case 'm':
+               min_cluster_size = atoi(optarg);
+               break;
           case '?':
                fprintf(stderr, "Error: Try `smhcmd --help' for more "
                        "information.\n");
@@ -494,9 +530,8 @@ void smhcmd_cluster(int opnum, char **opts)
                abort ();
           }
      }
-     if (optind + 3 == opnum){
+     if (optind + 2 == opnum){
           mined_file= opts[optind++];
-          clusters_file = opts[optind++];	  
           models_file = opts[optind++];	  
 
           printf("Reading mined sets from %s . . .\n", mined_file);
@@ -504,21 +539,12 @@ void smhcmd_cluster(int opnum, char **opts)
 
 
           printf("Clustering sets . . .\n");
-          ListDB clusters = mhlink_cluster(&mined, table_size, number_of_tuples, tuple_size, list_overlap, ovr);
-
-          printf("Deleting smallest clusters . . .\n");
-          listdb_delete_smallest(&clusters, 1);
+          ListDB models = mhlink_cluster(&mined, table_size, number_of_tuples, tuple_size,
+                                         list_overlap, ovr, min_cluster_size);
           
-          printf("Saving clusters in %s\n", clusters_file);
-          listdb_save_to_file(clusters_file, &clusters);
-
-          printf("Creating models . . . \n");
-          ListDB models = mhlink_make_model(&mined, &clusters);
-
           printf("Saving models in %s\n", models_file);
           listdb_save_to_file(models_file, &models);
-     }
-     else{
+     } else {
           if (optind + 2 > opnum)
                fprintf(stderr, "Error: Missing argumets.\n"
                        "Try `smhcmd --help' for more information.\n");
@@ -537,7 +563,7 @@ void smhcmd_cluster(int opnum, char **opts)
 int main(int argc, char **argv)
 {
      
-     // initialize Mersenne Twister random number generator
+     //initialize Mersenne Twister random number generator
      unsigned long long init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL}, length=4;
      init_by_array64(init, length);
 

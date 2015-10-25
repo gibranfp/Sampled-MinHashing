@@ -20,11 +20,8 @@ void test_cluster(char *input, char *output, char *modfile, uint table_size, uin
 {
 	// load inverted file and mined sets
 	ListDB mined = listdb_load_from_file(input);
-	ListDB clusters = mhlink_cluster(&mined, table_size, number_of_tuples, tuple_size, list_overlap, thres);
-	listdb_save_to_file(output, &clusters);
-
-	ListDB models = mhlink_make_model(&mined, &clusters);
-	listdb_save_to_file(modfile, &models);
+	ListDB models = mhlink_cluster(&mined, table_size, number_of_tuples, tuple_size,
+                                  list_overlap, thres, 3);
 }
 
 int main(int argc, char **argv)

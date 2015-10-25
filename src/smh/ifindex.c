@@ -34,10 +34,10 @@
  */
 List ifindex_query(ListDB *ifindex, List *query)
 {
-     uint i;
-     List query_result;
-	
+     List query_result;	
      list_init(&query_result);
+
+     uint i;
      for (i = 0; i < query->size; i++) //retrieves each list in inverted
           list_append(&query_result, &ifindex->lists[query->data[i].item]);
      list_sort_by_item(&query_result);

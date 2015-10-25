@@ -12,6 +12,8 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import smh_api as sa
 
+sa.mh_rng_init()
+
 def smh_load(filename):
     ldb = sa.listdb_load_from_file(filename)
     return SMH(ldb=ldb)
@@ -76,13 +78,17 @@ class SMH:
             ldb_=sa.mh_expand_listdb(self.ldb,max_freq)
             weights_=sa.mh_expand_weights(self.ldb.size,max_freq,weights.weights)
             ldb=sa.sampledmh_mine_weighted(ldb_,tuple_size,num_tuples,table_size,weights_)
+            
         return SMH(ldb=ldb)
 
-    def cluster_mhlink(self, num_tuples=3, tuple_size=255, table_size=2**19, thres=0.7):
-        ldb_=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size, sa.list_overlap, 0.7)
-        sa.listdb_delete_smallest(ldb_,2)
-        ldb=sa.mhlink_make_model(self.ldb, ldb_)
-        return SMH(ldb=ldb)
+    def prune(self,ifindex,min_size=3,min_hits=3,overlap=0.7,cooc_th=0.7):
+        sa.sampledmh_prune(ifindex.ldb, self.ldb, min_size, min_hits, overlap, cooc_th)
+
+    def cluster_mhlink(self, num_tuples=255, tuple_size=3, table_size=2**20, thres=0.7,
+                       min_cluster_size=3):
+        models=sa.mhlink_cluster(self.ldb, table_size, num_tuples, tuple_size,
+                                 sa.list_overlap, thres, min_cluster_size)
+        return SMH(ldb=models)
 
     def cluster_sklearn(self, algorithm):
         csr = self.tocsr()

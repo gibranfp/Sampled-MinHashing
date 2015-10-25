@@ -163,12 +163,11 @@ void sampledmh_prune(ListDB *ifindex, ListDB *mined, uint stop, uint hits, doubl
      // leaves documents in which at least ovr_th percent of the mined sets occurred
      uint i, j;
      for (i = 0; i < mined->size; i++) {
-          printf("Pruning set %d of %d\n",i, mined->size);
           uint ovr_th = (uint) ceil(mined->lists[i].size * ovr);
           list_delete_less_frequent(&retdocs.lists[i], ovr_th);
 
           double cooc_th = retdocs.lists[i].size * cooc;
-          for (j = 0; j < mined->lists[i].size; j++){
+          for (j = 0; j < mined->lists[i].size; j++) {
                // removes items from sets which co-occured in very few documents with the rest
                uint curr_item = mined->lists[i].data[j].item;
                if (list_intersection_size(&ifindex->lists[curr_item], &retdocs.lists[i]) < cooc_th)
@@ -177,8 +176,8 @@ void sampledmh_prune(ListDB *ifindex, ListDB *mined, uint stop, uint hits, doubl
      }
 
      // removes sets which occured in very few documents
-     for (i = 0; i < mined->size; i++){
-          if (retdocs.lists[i].size < hits){
+     for (i = 0; i < mined->size; i++) {
+          if (retdocs.lists[i].size < hits) {
                listdb_delete_position(mined, i);
                i--;
           }

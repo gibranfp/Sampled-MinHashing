@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <string.h>
 #include "mhlink.h"
 
 /**
@@ -32,11 +33,7 @@
  */
 ListDB mhlink_make_model(ListDB *listdb, ListDB *clusters)
 {
-     ListDB models;
-     models.size = clusters->size;
-     models.dim = listdb->dim;
-     models.lists = (List *) calloc(models.size, sizeof(List));
-
+     ListDB models = listdb_create(clusters->size, listdb->dim);
      uint i, j;
      for (i = 0; i < clusters->size; i++){
           for (j = 0; j < clusters->lists[i].size; j++)
@@ -68,33 +65,35 @@ void mhlink_add_neighbors(ListDB *listdb, ListDB *clusters, uint listid, List *i
 {
      uint i;
      for (i = 0; i < items->size; i++) {
-          if (items->data[i].item != listid && sim(&listdb->lists[listid], &listdb->lists[items->data[i].item]) > thres){
-               if (checked[items->data[i].item] == 0){ // list hasn't been checked
+          if (items->data[i].item != listid) {
+               // add neighbor item if similarity is greater than a threshold
+               if (sim(&listdb->lists[listid], &listdb->lists[items->data[i].item]) > thres) {
+                    if (checked[items->data[i].item] == 0) { // list doesn't belong to a cluster
+                         // Add item to cluster
+                         Item new_item = {items->data[i].item, 1};
+                         list_push(&clusters->lists[clus_table[listid]], new_item);
 
-                    // Add item to cluster
-                    Item new_item = {items->data[i].item, 1};
-                    list_push(&clusters->lists[clus_table[listid]], new_item);
+                         // mark list as checked
+                         checked[items->data[i].item] = 1;
 
-                    // mark list as checked
-                    checked[items->data[i].item] = 1;
+                         // assigning current id to new item
+                         clus_table[items->data[i].item] = clus_table[listid];
+                    } else if (clus_table[items->data[i].item] != clus_table[listid]) { // otherwise
+                         // get min and max between cluster ids
+                         uint max_clusid = max(clus_table[items->data[i].item], clus_table[listid]);
+                         uint min_clusid = min(clus_table[items->data[i].item], clus_table[listid]);
 
-                    // assigning current id to new item
-                    clus_table[items->data[i].item] = clus_table[listid];
-               } else if (clus_table[items->data[i].item] != clus_table[listid]) {
-                    // get min and max between cluster ids
-                    uint max_cluster_id = max(clus_table[items->data[i].item], clus_table[listid]);
-                    uint min_cluster_id = min(clus_table[items->data[i].item], clus_table[listid]);
+                         // Merge clusters
+                         list_append(&clusters->lists[min_clusid], &clusters->lists[max_clusid]);
 
-                    // Merge clusters
-                    list_append(&clusters->lists[min_cluster_id], &clusters->lists[max_cluster_id]);
-
-                    uint j;
-                    for (j = 0; j < clusters->lists[max_cluster_id].size; j++)
                          // reassigning ids to cluster with largest id
-                         clus_table[clusters->lists[max_cluster_id].data[j].item] = min_cluster_id;
+                         uint j;
+                         for (j = 0; j < clusters->lists[max_clusid].size; j++)
+                              clus_table[clusters->lists[max_clusid].data[j].item] = min_clusid;
 
-                    // Destroy cluster with largest id
-                    list_destroy(&clusters->lists[max_cluster_id]);
+                         // Destroy cluster with largest id
+                         list_destroy(&clusters->lists[max_clusid]);                         
+                    }
                }
           }
      }
@@ -108,9 +107,12 @@ void mhlink_add_neighbors(ListDB *listdb, ListDB *clusters, uint listid, List *i
  * @param tuple_size Number of MinHash values per tuple
  * @param sim Similarity function for adding list to a cluster
  * @param thres Threshold for adding list to a cluster
+ *
+ * @return Clusters of IDs
  */
 ListDB mhlink_cluster(ListDB *listdb, uint table_size, uint number_of_tuples,
-                         uint tuple_size, double (*sim)(List *, List *), double thres)
+                      uint tuple_size, double (*sim)(List *, List *), double thres,
+                      uint min_cluster_size)
 {
      uint i, j;
      uint *checked = (uint *) calloc(listdb->size, sizeof(uint));
@@ -127,10 +129,7 @@ ListDB mhlink_cluster(ListDB *listdb, uint table_size, uint number_of_tuples,
           // stores lists in the hash table
           mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
           mh_store_listdb(listdb, &hash_table, indices);
-
-          // sorts used items in ascending order
-          list_sort_by_item(&hash_table.used_buckets);
-
+          
           for (j = 0; j < listdb->size; j++){
                if (checked[j] == 0){// list hasn't been checked
                     // a new cluster is formed
@@ -157,12 +156,16 @@ ListDB mhlink_cluster(ListDB *listdb, uint table_size, uint number_of_tuples,
           // cleaning list of used buckets
           list_destroy(&hash_table.used_buckets);
      }
-
+          
      free(indices);
      free(checked);
      free(clus_table);
 
-     return clusters;
+     listdb_delete_smallest(&clusters, min_cluster_size);
+     ListDB models = mhlink_make_model(listdb, &clusters);
+     listdb_destroy(&clusters);
+     
+     return models;
 }
 
 /**
@@ -176,7 +179,8 @@ ListDB mhlink_cluster(ListDB *listdb, uint table_size, uint number_of_tuples,
  */
 ListDB mhlink_cluster_weighted(ListDB *listdb, uint table_size, uint number_of_tuples,
                                uint tuple_size, double *weights,
-                               double (*sim)(List *, List *), double thres)
+                               double (*sim)(List *, List *), double thres,
+                               uint min_cluster_size)
 {
      uint i, j;
      uint *checked = (uint *) calloc(listdb->size, sizeof(uint));
@@ -229,5 +233,9 @@ ListDB mhlink_cluster_weighted(ListDB *listdb, uint table_size, uint number_of_t
      free(checked);
      free(clus_table);
 
-     return clusters;
+     return clusters;     listdb_delete_smallest(&clusters, min_cluster_size);
+     ListDB models = mhlink_make_model(listdb, &clusters);
+     listdb_destroy(&clusters);
+     
+     return models;
 }

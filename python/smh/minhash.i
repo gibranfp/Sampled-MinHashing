@@ -7,7 +7,7 @@
 
 %}
 
-
+extern void mh_rng_init(void);
 extern uint * mh_get_cumulative_frequency(ListDB *, ListDB *);
 extern ListDB mh_expand_listdb(ListDB *, uint *);
 extern double * mh_expand_weights(uint, uint *, double *);

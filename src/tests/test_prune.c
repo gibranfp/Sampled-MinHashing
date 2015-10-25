@@ -14,22 +14,29 @@
 #define magenta "\033[0;35m"
 #define none "\033[0m"
 
-void test_prune(char *iffile, char *csfile, char *output, 
-		uint stop, uint dochits, double ovr_perc, double cooc_perc)
+void test_prune(uint stop, uint dochits, double ovr_perc, double cooc_perc)
 {
-     // load inverted file and mined sets
-     ListDB ifindex = listdb_load_from_file(iffile);
-     ListDB mined = listdb_load_from_file(csfile);
+     ListDB listdb = listdb_random(20,8,15);
+     listdb_delete_smallest(&listdb, 3);
+     listdb_apply_to_all(&listdb, list_sort_by_item);
+     listdb_apply_to_all(&listdb, list_unique);               
+               
+     uint i, j;
+     for (i = 0; i < listdb.size; i++) 
+          for (j = 0; j < listdb.lists[i].size; j++)
+               listdb.lists[i].data[j].freq = rand() % 10 + 1;
+     printf("========= List Database ========\n");
+     listdb_print(&listdb);
 
-     sampledmh_prune(&ifindex, &mined, stop, dochits, ovr_perc, cooc_perc);
-     listdb_print(&mined);
-     listdb_save_to_file(output, &mined);
+     ListDB ifindex = ifindex_make_from_corpus(&listdb);
+     sampledmh_prune(&ifindex, &listdb, stop, dochits, ovr_perc, cooc_perc);
+     listdb_print(&listdb);
 }
 
 int main(int argc, char **argv)
 {
      srand((long int) time(NULL));
-     test_prune(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), atof(argv[6]), atof(argv[7]));
+     test_prune(atoi(argv[1]), atoi(argv[2]), atof(argv[3]), atof(argv[4]));
 	 
      return 0;
 }

@@ -253,7 +253,6 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
                listdb.lists[i].data[j].freq = rand() % 10 + 1;
      printf("========= List Database ========\n");
      listdb_print(&listdb);
-     printf("\n");
 
      ListDB ifindex = ifindex_make_from_corpus(&listdb);
      uint *maxfreq = mh_get_cumulative_frequency(&listdb, &ifindex);
@@ -262,6 +261,30 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
      double *weights = (double *) calloc(ifindex.size, sizeof(double));
      for (i = 0; i < ifindex.size; i++) 
           weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
+
+     /* printf("\t   "); */
+     /* for (i = 0; i < ifindex.size; i++) { */
+     /*      printf("%2.4lf  ", weights[i]); */
+     /* } */
+     /* printf("\n"); */
+
+     /* for (i = 0; i < listdb.size; i++) { */
+     /*      printf("%2u(%2u) | ", i, listdb.lists[i].size); */
+     /*      uint k = 0; */
+     /*      for (j = 0; j < listdb.lists[i].size; j++) { */
+     /*           while (listdb.lists[i].data[j].item > k){ */
+     /*                printf("%6u  ", 0); */
+     /*                k++; */
+     /*           } */
+     /*           printf("%6u  ", listdb.lists[i].data[j].freq); */
+     /*           k++; */
+     /*      } */
+     /*      while (k < listdb.dim){ */
+     /*           printf("%6u  ", 0); */
+     /*           k++; */
+     /*      } */
+     /*      printf("\n"); */
+     /* } */
 
      ListDB coitems = sampledmh_mine_weighted(&expldb, tuple_size, number_of_tuples,
                                               table_size, weights);
@@ -273,7 +296,7 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
           repeat[i]++;
           for (j = i + 1; j < coitems.size; j++) {
                double ovr = list_overlap(&coitems.lists[i], &coitems.lists[j]);
-               if( ovr == 1.0 ) {
+               if( ovr >= 1.0 ) {
                     if ( coitems.lists[i].size <= coitems.lists[j].size )
                          repeat[i]++;
 
@@ -282,8 +305,8 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
                }            
           }
      }
-     repeat[i]++;
-     
+     repeat[coitems.size - 1]++;
+
      double *wfcc = (double *) calloc(coitems.size, sizeof(double *));
      for (i = 0; i < coitems.size; i++) {
           List inter = list_duplicate(&listdb.lists[coitems.lists[i].data[0].item]);
@@ -301,6 +324,37 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
                list_destroy(&tmp);
           }
 
+          /* printf("Coocc %u:\n",i); */
+          /* for (j = 0; j < coitems.lists[i].size; j++) { */
+          /*      printf("%2u(%2u) | ", coitems.lists[i].data[j].item, listdb.lists[coitems.lists[i].data[j].item].size); */
+          /*      uint k = 0; */
+          /*      uint h; */
+          /*      for (h = 0; h < listdb.lists[coitems.lists[i].data[j].item].size; h++) { */
+          /*           while (listdb.lists[coitems.lists[i].data[j].item].data[h].item > k){ */
+          /*                printf("%6u  ", 0); */
+          /*                k++; */
+          /*           } */
+          /*           printf("%6u  ", listdb.lists[coitems.lists[i].data[j].item].data[h].freq); */
+          /*           k++; */
+          /*      } */
+          /*      while (k < listdb.dim){ */
+          /*           printf("%6u  ", 0); */
+          /*           k++; */
+          /*      } */
+          /*      printf("\n"); */
+          /* } */
+
+          /* printf("Inter %u:\t",i); */
+          /* for (i = 0; i < inter.size; i++) { */
+          /*      printf("%u * %lf + ", inter.data[i].freq, weights[inter.data[i].item]); */
+          /* } */
+          /* printf("\n"); */
+          /* printf("Uni %u:\t",i); */
+          /* for (i = 0; i < uni.size; i++) { */
+          /*      printf("%u * %lf + ", uni.data[i].freq, weights[uni.data[i].item]); */
+          /* } */
+          /* printf("\n"); */
+          
           double winter = 0.0;
           for (j = 0; j < inter.size; j++) 
                winter += weights[inter.data[j].item] * (double) inter.data[j].freq;
@@ -311,6 +365,7 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
 
           wfcc[i] = pow(winter / wuni, (double) tuple_size);
 
+          /* printf("Weigtht %lf\n ", wfcc[i]); */
           list_destroy(&inter);
           list_destroy(&uni);
      }
@@ -563,8 +618,8 @@ int main(int argc, char **argv)
      srand((long int) time(NULL));
      /* test_mine(4, 100000, 1024); */
      /* test_mine_weighted(3, 100000, 1024); */
-     test_mine_frequency_expanded(3, 10000, 1024);
-     /* test_mine_frequency_expanded_weighted(1, 10000, 1024); */
+     /* test_mine_frequency_expanded(3, 10000, 1024); */
+     test_mine_frequency_expanded_weighted(1, 1000, 1024);
      /* test_mine_frequency_weighted(3, 100000, 1024); */
      /* test_mine_weighted_weighted(1, 10000, 1024); */
      /* test_mine_frequency_weighted_weighted(1, 1000, 1024); */

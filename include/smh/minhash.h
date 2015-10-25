@@ -53,6 +53,7 @@ typedef struct HashIndex {
 /************************ Function prototypes ************************/
 void mh_print_head(HashTable *);
 void mh_print_table(HashTable *);
+void mh_rng_init(void);
 void mh_init(HashTable *);
 HashTable mh_create(uint, uint, uint);
 void mh_destroy(HashTable *);

@@ -26,6 +26,7 @@
 ListDB mhlink_make_model(ListDB *, ListDB *);
 void mhlink_add_neighbors(ListDB *, ListDB *, uint , List *, uint *, uint *, 
 			  double (*)(List *, List *), double);
-ListDB mhlink_cluster(ListDB *, uint, uint, uint, double (*)(List *, List *), double);
-ListDB mhlink_cluster_weighted(ListDB *, uint, uint, uint, double *, double (*)(List *, List *), double);
+ListDB mhlink_cluster(ListDB *, uint, uint, uint, double (*)(List *, List *), double, uint);
+ListDB mhlink_cluster_weighted(ListDB *, uint, uint, uint, double *,
+                               double (*)(List *, List *), double, uint);
 #endif
