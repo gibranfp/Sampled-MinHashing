@@ -24,6 +24,7 @@ extern void listdb_delete_smallest(ListDB *, uint);
 extern void listdb_delete_largest(ListDB *, uint);
 extern ListDB listdb_load_from_file(char *);
 extern void listdb_save_to_file(char *, ListDB *);
+extern void listdb_apply_to_all(ListDB *, void (*)(List *));
 
 typedef struct ListDB{
      uint size;

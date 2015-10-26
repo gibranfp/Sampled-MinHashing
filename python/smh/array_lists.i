@@ -35,7 +35,6 @@ extern Item *list_binary_search(List *, Item);
 extern void list_sort_by_item(List *);
 extern void list_sort_by_item_back(List *);
 extern void list_sort_by_frequency(List *);
-extern void list_sort_by_frequency_back(List *);
 extern void list_print(List *);
 extern void list_print_multi(List *, List *);
 extern void list_print_range(List *, uint, uint);
@@ -66,10 +65,12 @@ extern uint list_difference_size(List *, List *);
 %pythoncallback;
 extern double list_jaccard(List *, List *);
 extern double list_overlap(List *, List *);
+extern void list_sort_by_frequency_back(List *);
 %nopythoncallback;
 
 %ignore list_jaccard;
 %ignore list_overlap;
+%ignore list_sort_by_frequency_back;
 
 extern double list_weighted_similarity(List *, List *, double *);
 extern double list_histogram_intersection(List *, List *);

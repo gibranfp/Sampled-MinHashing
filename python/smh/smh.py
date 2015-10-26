@@ -93,7 +93,14 @@ class SMH:
     def cluster_sklearn(self, algorithm):
         csr = self.tocsr()
         algorithm.fit(csr)
-        return centers_from_labels(csr, algorithm.labels_)
+        if hasattr(algorithm, 'cluster_centers_'):
+            ldb = ndarray_to_listdb(algorithm.cluster_centers_)            
+        else:
+            ldb = centers_from_labels(csr, algorithm.labels_)
+
+        sa.listdb_apply_to_all(ldb.ldb, sa.list_sort_by_frequency_back)
+        
+        return ldb
 
     def invert(self):
         ldb=sa.sampledmh_mine(self.ldb)
