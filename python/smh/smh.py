@@ -56,7 +56,7 @@ class SMH:
         if ldb:
             self.ldb=ldb
         else:
-            self.ldb = sa.listdb_init(size,dim)
+            self.ldb = sa.listdb_create(size,dim)
 
     def push(self,topic):
         sa.listdb_push(self.ldb,topic)
