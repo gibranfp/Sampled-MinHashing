@@ -58,6 +58,9 @@ class SMH:
         else:
             self.ldb = sa.listdb_init(size,dim)
 
+    def push(self,topic):
+        sa.listdb_push(self.ldb,topic)
+
     def save(self,filename):
         sa.listdb_save_to_file(filename,self.ldb)
 

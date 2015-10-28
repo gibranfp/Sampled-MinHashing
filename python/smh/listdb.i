@@ -17,6 +17,7 @@ extern ListDB listdb_create(int, int);
 extern ListDB listdb_random(uint, uint, uint);
 extern void listdb_clear(ListDB *);
 extern void listdb_destroy(ListDB *);
+extern void listdb_push(ListDB *listdb, List *list);
 extern void listdb_print(ListDB *);
 extern void listdb_print_multi(ListDB *, List *);
 extern void listdb_print_range(ListDB *, uint, uint);
