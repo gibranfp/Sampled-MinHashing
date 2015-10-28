@@ -92,9 +92,9 @@ class SMH:
 
     def cluster_sklearn(self, algorithm):
         csr = self.tocsr()
-        algorithm.fit(csr)
+        algorithm.fit(csr.toarray())
         if hasattr(algorithm, 'cluster_centers_'):
-            ldb = ndarray_to_listdb(algorithm.cluster_centers_)            
+            ldb = ndarray_to_listdb(algorithm.cluster_centers_)
         else:
             ldb = centers_from_labels(csr, algorithm.labels_)
 

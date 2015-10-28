@@ -20,22 +20,29 @@ void test_prune(uint stop, uint dochits, double ovr_perc, double cooc_perc)
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
      listdb_apply_to_all(&listdb, list_unique);               
-               
+     
      uint i, j;
      for (i = 0; i < listdb.size; i++) 
           for (j = 0; j < listdb.lists[i].size; j++)
-               listdb.lists[i].data[j].freq = rand() % 10 + 1;
+               listdb.lists[i].data[j].freq = 1;
+
      printf("========= List Database ========\n");
      listdb_print(&listdb);
 
+     printf("========= Inverted file index ========\n");
      ListDB ifindex = ifindex_make_from_corpus(&listdb);
+     listdb_print(&ifindex);
+     
      sampledmh_prune(&ifindex, &listdb, stop, dochits, ovr_perc, cooc_perc);
+
+     printf("========= Pruned database ========\n");
      listdb_print(&listdb);
 }
 
 int main(int argc, char **argv)
 {
-     srand((long int) time(NULL));
+     /* srand((long int) time(NULL)); */
+     srand(1234566);
      test_prune(atoi(argv[1]), atoi(argv[2]), atof(argv[3]), atof(argv[4]));
 	 
      return 0;
