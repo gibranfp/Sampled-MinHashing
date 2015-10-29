@@ -580,8 +580,10 @@ ListDB listdb_load_from_file(char *filename)
      char *line = NULL;
      ListDB listdb;
      listdb.size = 0;
-     while ((read = getline(&line, &len, file)) != -1)
-          listdb.size++;
+     while ((read = getline(&line, &len, file)) != -1) {
+          if ('\n' != line[0]) 
+               listdb.size++;
+     }
      rewind(file);
 
      // reading lists

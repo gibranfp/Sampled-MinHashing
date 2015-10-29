@@ -469,10 +469,11 @@ double *mh_expand_weights(uint number_of_items, uint *maxfreq, double *weights)
 
      for (j = 0; j < maxfreq[0]; j++) 
           new_weights[j] = weights[0];
-
-     for (i = 1; i < number_of_items; i++)
+          
+     for (i = 1; i < number_of_items; i++) {
           for (j = maxfreq[i - 1]; j < maxfreq[i]; j++) 
                new_weights[j] = weights[i];
-          
+     }
+     
      return new_weights;
 }

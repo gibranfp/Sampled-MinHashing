@@ -122,7 +122,7 @@ ListDB mhlink_cluster(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
      listdb_init(&clusters);
 
      for (i = 0; i < number_of_tuples; i++){// computes each hash table
-          printf("Table %u/%u: %u random permutations for %u lists\r",
+          printf("Clustering table %u/%u: %u random permutations for %u lists\r",
                  i + 1, number_of_tuples, tuple_size, listdb->size);
 
           // stores lists in the hash table
@@ -189,7 +189,7 @@ ListDB mhlink_cluster_weighted(ListDB *listdb, uint tuple_size, uint number_of_t
      listdb_init(&clusters);
 
      for (i = 0; i < number_of_tuples; i++){// computes each hash table
-          printf("Table %u/%u: %u random permutations for %u lists\r",
+          printf("Clustering table %u/%u: %u random permutations for %u lists\r",
                  i + 1, number_of_tuples, tuple_size, listdb->size);
 
           // stores lists in the hash table

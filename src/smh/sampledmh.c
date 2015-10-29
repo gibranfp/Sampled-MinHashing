@@ -63,6 +63,9 @@ ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
      // Hashing database & storing candidates
      uint i;
      for (i = 0; i < number_of_tuples; i++){
+          printf("Mining table %u/%u: %u random permutations for %u lists\r",
+                 i + 1, number_of_tuples, tuple_size, listdb->size);
+
           mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
           mh_store_listdb(listdb, &hash_table, indices);
           sampledmh_get_coitems(&coitems, &hash_table);
@@ -97,6 +100,9 @@ ListDB sampledmh_mine_weighted(ListDB *listdb, uint tuple_size, uint number_of_t
      // Hashing database & storing candidates
      uint i;
      for (i = 0; i < number_of_tuples; i++){
+          printf("Mining table %u/%u: %u random permutations for %u lists\r",
+                 i + 1, number_of_tuples, tuple_size, listdb->size);
+
           mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
           mh_weight_permutations(listdb->dim, tuple_size, hash_table.permutations, weights);
           mh_store_listdb(listdb, &hash_table, indices);

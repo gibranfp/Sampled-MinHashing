@@ -75,11 +75,11 @@ class SMH:
             ldb_=sa.mh_expand_listdb(self.ldb,max_freq)
             ldb=sa.sampledmh_mine(ldb_,tuple_size,num_tuples,table_size)
         elif not expand and weights:
-            ldb=sa.sampledmh_mine_weighted(self.ldb,tuple_size,num_tuples,table_size,weights.weights)
+            ldb=sa.sampledmh_mine_weighted(self.ldb,ifindex, tuple_size,num_tuples,table_size,weights.weights)
         elif expand and weights:
             max_freq=sa.mh_get_cumulative_frequency(self.ldb,expand.ldb)
-            ldb_=sa.mh_expand_listdb(self.ldb,max_freq)
-            weights_=sa.mh_expand_weights(self.ldb.size,max_freq,weights.weights)
+            ldb_=sa.mh_expand_listdb(self.ldb, max_freq)
+            weights_=sa.mh_expand_weights(expand.ldb.size, max_freq, weights.weights)
             ldb=sa.sampledmh_mine_weighted(ldb_,tuple_size,num_tuples,table_size,weights_)
             
         return SMH(ldb=ldb)
