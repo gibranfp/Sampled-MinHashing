@@ -23,11 +23,11 @@ void test_mine(uint tuple_size, uint number_of_tuples, uint table_size)
      ListDB listdb = listdb_random(20,8,15);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
-     listdb_apply_to_all(&listdb, list_unique);               
+     listdb_apply_to_all(&listdb, list_unique);
                
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
-          for (j = 0; j < listdb.lists[i].size; j++) 
+     for (i = 0; i < listdb.size; i++)
+          for (j = 0; j < listdb.lists[i].size; j++)
                listdb.lists[i].data[j].freq = 1;
      printf("========= List Database ========\n");
      listdb_print(&listdb);
@@ -48,7 +48,7 @@ void test_mine(uint tuple_size, uint number_of_tuples, uint table_size)
 
                     if ( coitems.lists[i].size >= coitems.lists[j].size )
                          repeat[j]++;
-               }            
+               }
           }
      }
      repeat[i]++;
@@ -79,7 +79,7 @@ void test_mine(uint tuple_size, uint number_of_tuples, uint table_size)
      printf("========= Mined lists ========\n");
      for (i = 0; i < coitems.size; i++) {
           printf("[   %u   ] ( %lf = %u %lf ) %u -- ", i, jcc[i], repeat[i], (double) repeat[i] /  (double) number_of_tuples, coitems.lists[i].size);
-          for (j = 0; j < coitems.lists[i].size; j++) 
+          for (j = 0; j < coitems.lists[i].size; j++)
                printf("%u ", coitems.lists[i].data[j].item);
           printf("\n");
      }
@@ -90,11 +90,11 @@ void test_mine_weighted(uint tuple_size, uint number_of_tuples, uint table_size)
      ListDB listdb = listdb_random(20,8,15);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
-     listdb_apply_to_all(&listdb, list_unique);               
+     listdb_apply_to_all(&listdb, list_unique);
                
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
-          for (j = 0; j < listdb.lists[i].size; j++) 
+     for (i = 0; i < listdb.size; i++)
+          for (j = 0; j < listdb.lists[i].size; j++)
                listdb.lists[i].data[j].freq = 1;
      printf("========= List Database ========\n");
      listdb_print(&listdb);
@@ -102,7 +102,7 @@ void test_mine_weighted(uint tuple_size, uint number_of_tuples, uint table_size)
 
      ListDB ifindex = ifindex_make_from_corpus(&listdb);
      double *weights = (double *) calloc(ifindex.size, sizeof(double));
-     for (i = 0; i < ifindex.size; i++) 
+     for (i = 0; i < ifindex.size; i++)
           weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
 
      ListDB coitems = sampledmh_mine_weighted(&listdb, tuple_size, number_of_tuples,
@@ -121,7 +121,7 @@ void test_mine_weighted(uint tuple_size, uint number_of_tuples, uint table_size)
 
                     if ( coitems.lists[i].size >= coitems.lists[j].size )
                          repeat[j]++;
-               }            
+               }
           }
      }
      repeat[i]++;
@@ -144,11 +144,11 @@ void test_mine_weighted(uint tuple_size, uint number_of_tuples, uint table_size)
           }
 
           double winter = 0.0;
-          for (j = 0; j < inter.size; j++) 
+          for (j = 0; j < inter.size; j++)
                winter += weights[inter.data[j].item];
 
           double wuni = 0.0;
-          for (j = 0; j < uni.size; j++) 
+          for (j = 0; j < uni.size; j++)
                wuni += weights[uni.data[j].item];
 
           wcc[i] = pow(winter / wuni, (double) tuple_size);
@@ -160,7 +160,7 @@ void test_mine_weighted(uint tuple_size, uint number_of_tuples, uint table_size)
      printf("========= Mined lists ========\n");
      for (i = 0; i < coitems.size; i++) {
           printf("[   %u   ] ( %lf = %u %lf ) %u -- ", i, wcc[i], repeat[i], (double) repeat[i] /  (double) number_of_tuples, coitems.lists[i].size);
-          for (j = 0; j < coitems.lists[i].size; j++) 
+          for (j = 0; j < coitems.lists[i].size; j++)
                printf("%u ", coitems.lists[i].data[j].item);
           printf("\n");
      }
@@ -171,10 +171,10 @@ void test_mine_frequency_expanded(uint tuple_size, uint number_of_tuples, uint t
      ListDB listdb = listdb_random(20,8,15);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
-     listdb_apply_to_all(&listdb, list_unique);               
+     listdb_apply_to_all(&listdb, list_unique);
                
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
+     for (i = 0; i < listdb.size; i++)
           for (j = 0; j < listdb.lists[i].size; j++)
                listdb.lists[i].data[j].freq = rand() % 10 + 1;
      printf("========= List Database ========\n");
@@ -200,7 +200,7 @@ void test_mine_frequency_expanded(uint tuple_size, uint number_of_tuples, uint t
 
                     if ( coitems.lists[i].size >= coitems.lists[j].size )
                          repeat[j]++;
-               }            
+               }
           }
      }
      repeat[i]++;
@@ -234,7 +234,7 @@ void test_mine_frequency_expanded(uint tuple_size, uint number_of_tuples, uint t
      printf("========= Mined lists ========\n");
      for (i = 0; i < coitems.size; i++) {
           printf("[   %u   ] ( %lf = %u %lf ) %u -- ", i, fcc[i], repeat[i], (double) repeat[i] /  (double) number_of_tuples, coitems.lists[i].size);
-          for (j = 0; j < coitems.lists[i].size; j++) 
+          for (j = 0; j < coitems.lists[i].size; j++)
                printf("%u ", coitems.lists[i].data[j].item);
           printf("\n");
      }
@@ -245,10 +245,10 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
      ListDB listdb = listdb_random(20,8,15);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
-     listdb_apply_to_all(&listdb, list_unique);               
+     listdb_apply_to_all(&listdb, list_unique);
                
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
+     for (i = 0; i < listdb.size; i++)
           for (j = 0; j < listdb.lists[i].size; j++)
                listdb.lists[i].data[j].freq = rand() % 10 + 1;
      printf("========= List Database ========\n");
@@ -259,7 +259,7 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
      ListDB expldb = mh_expand_listdb(&listdb, maxfreq);
      
      double *weights = (double *) calloc(ifindex.size, sizeof(double));
-     for (i = 0; i < ifindex.size; i++) 
+     for (i = 0; i < ifindex.size; i++)
           weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
 
      /* printf("\t   "); */
@@ -302,7 +302,7 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
 
                     if ( coitems.lists[i].size >= coitems.lists[j].size )
                          repeat[j]++;
-               }            
+               }
           }
      }
      repeat[coitems.size - 1]++;
@@ -356,11 +356,11 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
           /* printf("\n"); */
           
           double winter = 0.0;
-          for (j = 0; j < inter.size; j++) 
+          for (j = 0; j < inter.size; j++)
                winter += weights[inter.data[j].item] * (double) inter.data[j].freq;
 
           double wuni = 0.0;
-          for (j = 0; j < uni.size; j++) 
+          for (j = 0; j < uni.size; j++)
                wuni += weights[uni.data[j].item] * (double) uni.data[j].freq;
 
           wfcc[i] = pow(winter / wuni, (double) tuple_size);
@@ -373,7 +373,7 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
      printf("========= Mined lists ========\n");
      for (i = 0; i < coitems.size; i++) {
           printf("[   %u   ] ( %lf = %u %lf ) %u -- ", i, wfcc[i], repeat[i], (double) repeat[i] /  (double) number_of_tuples, coitems.lists[i].size);
-          for (j = 0; j < coitems.lists[i].size; j++) 
+          for (j = 0; j < coitems.lists[i].size; j++)
                printf("%u ", coitems.lists[i].data[j].item);
           printf("\n");
      }
@@ -384,10 +384,10 @@ void test_mine_frequency_weighted(uint tuple_size, uint number_of_tuples, uint t
      ListDB listdb = listdb_random(20,8,15);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
-     listdb_apply_to_all(&listdb, list_unique);               
+     listdb_apply_to_all(&listdb, list_unique);
                
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
+     for (i = 0; i < listdb.size; i++)
           for (j = 0; j < listdb.lists[i].size; j++)
                listdb.lists[i].data[j].freq = rand() % 10 + 1;
      printf("========= List Database ========\n");
@@ -409,7 +409,7 @@ void test_mine_frequency_weighted(uint tuple_size, uint number_of_tuples, uint t
 
                     if ( coitems.lists[i].size >= coitems.lists[j].size )
                          repeat[j]++;
-               }            
+               }
           }
      }
      repeat[i]++;
@@ -443,7 +443,7 @@ void test_mine_frequency_weighted(uint tuple_size, uint number_of_tuples, uint t
      printf("========= Mined lists ========\n");
      for (i = 0; i < coitems.size; i++) {
           printf("[   %u   ] ( %lf = %u %lf ) %u -- ", i, fcc[i], repeat[i], (double) repeat[i] /  (double) number_of_tuples, coitems.lists[i].size);
-          for (j = 0; j < coitems.lists[i].size; j++) 
+          for (j = 0; j < coitems.lists[i].size; j++)
                printf("%u ", coitems.lists[i].data[j].item);
           printf("\n");
      }
@@ -454,10 +454,10 @@ void test_mine_weighted_weighted(uint tuple_size, uint number_of_tuples, uint ta
      ListDB listdb = listdb_random(20,8,15);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
-     listdb_apply_to_all(&listdb, list_unique);               
+     listdb_apply_to_all(&listdb, list_unique);
                
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
+     for (i = 0; i < listdb.size; i++)
           for (j = 0; j < listdb.lists[i].size; j++)
                listdb.lists[i].data[j].freq = 1;
      printf("========= List Database ========\n");
@@ -468,7 +468,7 @@ void test_mine_weighted_weighted(uint tuple_size, uint number_of_tuples, uint ta
      ifindex_weight(&listdb, &ifindex, weights_ids);
      
      double *weights = (double *) calloc(ifindex.size, sizeof(double));
-     for (i = 0; i < ifindex.size; i++) 
+     for (i = 0; i < ifindex.size; i++)
           weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
 
      ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
@@ -486,7 +486,7 @@ void test_mine_weighted_weighted(uint tuple_size, uint number_of_tuples, uint ta
 
                     if ( coitems.lists[i].size >= coitems.lists[j].size )
                          repeat[j]++;
-               }            
+               }
           }
      }
      repeat[i]++;
@@ -509,11 +509,11 @@ void test_mine_weighted_weighted(uint tuple_size, uint number_of_tuples, uint ta
           }
 
           double winter = 0.0;
-          for (j = 0; j < inter.size; j++) 
+          for (j = 0; j < inter.size; j++)
                winter += weights[inter.data[j].item];
 
           double wuni = 0.0;
-          for (j = 0; j < uni.size; j++) 
+          for (j = 0; j < uni.size; j++)
                wuni += weights[uni.data[j].item];
 
           wcc[i] = pow(winter / wuni, (double) tuple_size);
@@ -525,7 +525,7 @@ void test_mine_weighted_weighted(uint tuple_size, uint number_of_tuples, uint ta
      printf("========= Mined lists ========\n");
      for (i = 0; i < coitems.size; i++) {
           printf("[   %u   ] ( %lf = %u %lf ) %u -- ", i, wcc[i], repeat[i], (double) repeat[i] /  (double) number_of_tuples, coitems.lists[i].size);
-          for (j = 0; j < coitems.lists[i].size; j++) 
+          for (j = 0; j < coitems.lists[i].size; j++)
                printf("%u ", coitems.lists[i].data[j].item);
           printf("\n");
      }
@@ -536,10 +536,10 @@ void test_mine_frequency_weighted_weighted(uint tuple_size, uint number_of_tuple
      ListDB listdb = listdb_random(20,8,15);
      listdb_delete_smallest(&listdb, 3);
      listdb_apply_to_all(&listdb, list_sort_by_item);
-     listdb_apply_to_all(&listdb, list_unique);               
+     listdb_apply_to_all(&listdb, list_unique);
                
      uint i, j;
-     for (i = 0; i < listdb.size; i++) 
+     for (i = 0; i < listdb.size; i++)
           for (j = 0; j < listdb.lists[i].size; j++)
                listdb.lists[i].data[j].freq = rand() % 10 + 1;
      printf("========= List Database ========\n");
@@ -550,7 +550,7 @@ void test_mine_frequency_weighted_weighted(uint tuple_size, uint number_of_tuple
      ifindex_weight(&listdb, &ifindex, weights_tfids);
      
      double *weights = (double *) calloc(ifindex.size, sizeof(double));
-     for (i = 0; i < ifindex.size; i++) 
+     for (i = 0; i < ifindex.size; i++)
           weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
 
      ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
@@ -568,7 +568,7 @@ void test_mine_frequency_weighted_weighted(uint tuple_size, uint number_of_tuple
 
                     if ( coitems.lists[i].size >= coitems.lists[j].size )
                          repeat[j]++;
-               }            
+               }
           }
      }
      repeat[i]++;
@@ -591,11 +591,11 @@ void test_mine_frequency_weighted_weighted(uint tuple_size, uint number_of_tuple
           }
 
           double winter = 0.0;
-          for (j = 0; j < inter.size; j++) 
+          for (j = 0; j < inter.size; j++)
                winter += weights[inter.data[j].item] * ((double) inter.data[j].freq);
 
           double wuni = 0.0;
-          for (j = 0; j < uni.size; j++) 
+          for (j = 0; j < uni.size; j++)
                wuni += weights[uni.data[j].item] * ((double) uni.data[j].freq);
 
           wfcc[i] = pow(winter / wuni, (double) tuple_size);
@@ -607,7 +607,7 @@ void test_mine_frequency_weighted_weighted(uint tuple_size, uint number_of_tuple
      printf("========= Mined lists ========\n");
      for (i = 0; i < coitems.size; i++) {
           printf("[   %u   ] ( %lf = %u %lf ) %u -- ", i, wfcc[i], repeat[i], (double) repeat[i] /  (double) number_of_tuples, coitems.lists[i].size);
-          for (j = 0; j < coitems.lists[i].size; j++) 
+          for (j = 0; j < coitems.lists[i].size; j++)
                printf("%u ", coitems.lists[i].data[j].item);
           printf("\n");
      }
@@ -615,7 +615,7 @@ void test_mine_frequency_weighted_weighted(uint tuple_size, uint number_of_tuple
 
 int main(int argc, char **argv)
 {
-     srand((long int) time(NULL));
+  srand((long int) time(NULL));
      /* test_mine(4, 100000, 1024); */
      /* test_mine_weighted(3, 100000, 1024); */
      /* test_mine_frequency_expanded(3, 10000, 1024); */
