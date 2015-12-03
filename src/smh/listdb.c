@@ -581,7 +581,7 @@ ListDB listdb_load_from_file(char *filename)
      ListDB listdb;
      listdb.size = 0;
      while ((read = getline(&line, &len, file)) != -1) {
-          if ('\n' != line[0]) 
+          if ('\n' != line[0])
                listdb.size++;
      }
      rewind(file);
