@@ -3,25 +3,29 @@
 %include typemaps.i
 %include "exception.i"
 %{
-#include "array_lists.h"
-#include <assert.h>
-static int errItem = 0;
+     #include "array_lists.h"
+     #include <assert.h>
+     static int errItem = 0;
 %}
 
 
 typedef struct Item {
      uint item;
      uint freq;
-}Item;
+} Item;
 
 
 typedef struct List{
      uint size;
      Item *data;
-}List;
+} List;
 
 typedef unsigned int uint;
 
+%pythoncallback;
+extern double list_jaccard(List *, List *);
+extern double list_overlap(List *, List *);
+extern void list_sort_by_frequency_back(List *);
 extern void list_init(List *);
 extern List list_create(uint);
 extern List list_random(uint, uint);
@@ -61,20 +65,53 @@ extern List list_intersection(List *, List *);
 extern uint list_intersection_size(List *, List *);
 extern List list_difference(List *, List *);
 extern uint list_difference_size(List *, List *);
-
-%pythoncallback;
-extern double list_jaccard(List *, List *);
-extern double list_overlap(List *, List *);
-extern void list_sort_by_frequency_back(List *);
 %nopythoncallback;
 
 %ignore list_jaccard;
 %ignore list_overlap;
 %ignore list_sort_by_frequency_back;
-
-extern double list_weighted_similarity(List *, List *, double *);
-extern double list_histogram_intersection(List *, List *);
-extern double list_weighted_histogram_intersection(List *, List *, double *);
+%ignore list_init;
+%ignore list_create;
+%ignore list_random;
+%ignore list_destroy;
+%ignore list_make_item;
+%ignore *list_find;
+%ignore *list_min_item;
+%ignore *list_max_item;
+%ignore list_sum_freq;
+%ignore *list_binary_search;
+%ignore list_sort_by_item;
+%ignore list_sort_by_item_back;
+%ignore list_sort_by_frequency;
+%ignore list_print;
+%ignore list_print_multi;
+%ignore list_print_range;
+%ignore list_push;
+%ignore list_push_range;
+%ignore list_pop;
+%ignore list_pop_multi;
+%ignore list_pop_until;
+%ignore list_delete_position;
+%ignore list_delete_item;
+%ignore list_delete_range;
+%ignore list_delete_less_frequent;
+%ignore list_delete_more_frequent;
+%ignore list_unique;
+%ignore list_insert;
+%ignore list_duplicate;
+%ignore list_copy_range;
+%ignore list_concat;
+%ignore list_append;
+%ignore list_add;
+%ignore list_union;
+%ignore list_union_size;
+%ignore list_intersection;
+%ignore list_intersection_size;
+%ignore list_difference;
+%ignore list_difference_size;
+%ignore list_weighted_similarity;
+%ignore list_histogram_intersection;
+%ignore list_weighted_histogram_intersection;
 
 %exception List::__getitem__ {
     assert(!errItem);

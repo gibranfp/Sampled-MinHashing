@@ -6,19 +6,29 @@
 # Ivan V. Meza
 # 2015/IIMAS, México
 # ----------------------------------------------------------------------
+"""
+Wrapper classes and function for working with Sampled Min-Hashing
+"""
 
 import itertools
 import numpy as np
 from scipy.sparse import csr_matrix
 import smh_api as sa
 
-sa.mh_rng_init()
+def smh_init(init_array):
+    sa.mh_rng_init(init_array)
 
 def smh_load(filename):
+    """
+    Loads a ListDB array from a given file
+    """
     ldb = sa.listdb_load_from_file(filename)
     return SMH(ldb=ldb)
 
 def csr_to_listdb(csr):
+    """
+    Converts a Compressed Sparse Row (CSR) matrix to a ListDB structure
+    """
     ldb = sa.listdb_create(csr.shape[0], csr.shape[1])
     coo = csr.tocoo()    
     for i,j,v in itertools.izip(coo.row, coo.col, coo.data):
@@ -27,6 +37,9 @@ def csr_to_listdb(csr):
     return SMH(ldb=ldb)
 
 def ndarray_to_listdb(arr):
+    """
+    Converts a numpy multidimensional array to a ListDB structure
+    """
     ldb = sa.listdb_create(arr.shape[0], arr.shape[1])
     for i,row in enumerate(arr):
         for j,item in enumerate(row):
@@ -35,6 +48,9 @@ def ndarray_to_listdb(arr):
     return SMH(ldb=ldb)
 
 def centers_from_labels(data, labels):
+    """
+    Computes the center points of a set of clusters from a list of labels
+    """
     number_of_classes = np.max(labels) + 1
     centers = np.zeros((number_of_classes, data.shape[1]))
     for i in range(number_of_classes):
@@ -43,6 +59,9 @@ def centers_from_labels(data, labels):
     return ndarray_to_listdb(centers)
 
 class Weights:
+    """
+    Interface class for handling item weights
+    """
     def __init__(self,path):
         self.weights=sa.weights_load_from_file(path)
 
@@ -50,7 +69,13 @@ class Weights:
         sa.weights_save_to_file(path,self.weights)
 
 class SMH:
+    """
+    Interface class to Sampled Min-Hashing
+    """
     def __init__(self,size=0,dim=0,ldb=None):
+        """
+        Initializes class with ListDB structure
+        """
         self._inverted=False
         self._original=None
         if ldb:
@@ -58,16 +83,31 @@ class SMH:
         else:
             self.ldb = sa.listdb_create(size,dim)
 
+    def __getitem__(self, row, col):
+        return self.ldb[row].data[col]
+    
     def push(self,topic):
+        """
+        Appends list to a ListDB structure
+        """
         sa.listdb_push(self.ldb,topic)
 
     def save(self,filename):
+        """
+        Saves ListDB structure to file
+        """
         sa.listdb_save_to_file(filename,self.ldb)
 
     def show(self):
+        """
+        Prints ListDB structure
+        """
         sa.listdb_print(self.ldb)
 
     def mine(self,tuple_size,num_tuples,weights=None,expand=False,table_size=2**19):
+        """
+        Mines co-occurring items from a database of lists using Sampled Min-Hashing
+        """
         if not weights and not expand:
             ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
         elif expand and not weights:
@@ -85,15 +125,27 @@ class SMH:
         return SMH(ldb=ldb)
 
     def prune(self,ifindex,min_size=3,min_hits=3,overlap=0.7,cooc_th=0.7):
+        """
+        Prunes a database of mined lists based on the inverted file
+        """
         sa.sampledmh_prune(ifindex.ldb, self.ldb, min_size, min_hits, overlap, cooc_th)
 
     def cluster_mhlink(self, num_tuples=255, tuple_size=3, table_size=2**20, thres=0.7,
                        min_cluster_size=3):
+        """
+        Clusters a database of mined lists using agglomerative clustering based on Min-Hashing
+        """
         models=sa.mhlink_cluster(self.ldb, tuple_size, num_tuples, table_size,
                                  sa.list_overlap, thres, min_cluster_size)
+
+        sa.listdb_apply_to_all(models, sa.list_sort_by_frequency_back)
+                
         return SMH(ldb=models)
 
     def cluster_sklearn(self, algorithm):
+        """
+        Clusters a database of mined lists using the clustering methods available in scikit-learn
+        """
         csr = self.tocsr()
         algorithm.fit(csr.toarray())
         if hasattr(algorithm, 'cluster_centers_'):
@@ -112,38 +164,58 @@ class SMH:
         return SMH(ldb=ldb)
 
     def cutoff(self,min=5,max=None):
+        """
+        Removes the largest and smallest lists in the ListDB
+        """
         if min:
             sa.listdb_delete_smallest(self.ldb,min)
         if max:
             sa.listdb_delete_largest(self.ldb,max)
 
     def size(self):
+        """
+        Returns the size of the ListDB structure
+        """
         return self.ldb.size
 
     def dim(self):
+        """
+        Returns the dimensionality of the ListDB structure
+        """
         return self.ldb.dim
 
     def destroy(self):
+        """
+        Destroys the ListDB structure
+        """
         sa.listdb_destroy(self.ldb)
 
     def tocsr(self):
-        number_of_items = 0
-        for l in self.ldb:
-            number_of_items += l.size
-
-        rows = []
-        cols = []
-        arr = []
-        for r, l in enumerate(self.ldb):
+        """
+        Returns the ListDB structure as a Compressed Sparse Row (CSR) matrix
+        """
+        indptr = [0]
+        indices = []
+        data = []
+        for l in listdb.ldb:
             for i in l:
-                rows.append(r)
-                cols.append(i.item)
-                arr.append(float(i.freq))
-                
-        return csr_matrix((arr, (rows, cols)))
+                indices.append(i.item)
+                data.append(i.freq)
+                indptr.append(len(indices))
 
+        return csr_matrix((data, indices, indptr), dtype=int)
 
-# MAIN program
+    def toarray(self):
+        """
+        Converts a listdb structure to a numpy multidimensional array
+        """
+        arr = np.zeros((listdb.size(), listdb.dim()))
+        for i, l in enumerate(listdb.ldb):
+            for j in l:
+                arr[i, j.item] = j.freq
+
+        return arr
+
 if __name__ == "__main__":
     import argparse
     p = argparse.ArgumentParser("Mines")

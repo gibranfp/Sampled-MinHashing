@@ -28,7 +28,7 @@
 #include "sampledmh.h"
 #include "mhlink.h"
 
-enum WeightScheme {TF, LOGTF, BINTF, IDF, IDS, TFIDF};
+enum WeightScheme {TF, LOGTF, BINTF, IDF, IDS, TFIDF, TFIDS};
 
 /**
  * @brief Prints help in screen.
@@ -44,6 +44,16 @@ void usage(void)
             "and writes the output to a file .\n\n"
             "General options:\n"
             "   --help\t\tPrints this help\n"
+            "all options:\n"
+            "   -s, --size_mine[=20(2^20 = 1048576)]\tNumber of buckets in hash"
+            "table (power of 2) for mining stage\n"
+            "   -r, --hashes_mine[=4]\tNumber of hashes per tuple for mining stage\n"
+            "   -l, --tuples_mine[=500]\tNumber of tuples for mining stage\n"
+            "   -a, --size_cluster[=20(2^20 = 1048576)]\tNumber of buckets in hash"
+            "table (power of 2) for clustering stage\n"
+            "   -b, --hashes_cluster[=3]\tNumber of hashes per tuple for clustering stage\n"
+            "   -c, --tuples_cluster[=255]\tNumber of tuples for clustering stage\n"
+            "   -o, --overlap[=0.7]\tOverlap threshold for clustering stage\n"
             "ifindex options:\n"
             "   -w, --weight[=binary]\tWeighting scheme to use."
             "mine options:\n"
@@ -133,9 +143,17 @@ void smhcmd_ifindex(int opnum, char **opts)
                     printf("idf weights\n"); 
                     weighting = &weights_idf;
                     break;
+               case IDS:
+                    printf("ids weights\n"); 
+                    weighting = &weights_ids;
+                    break;
                case TFIDF:
                     printf("tfidf weights\n"); 
                     weighting = &weights_tfidf;
+                    break;
+               case TFIDS:
+                    printf("tfids weights\n"); 
+                    weighting = &weights_tfids;
                     break;
                case '?':
                     fprintf(stderr,"Error: Unknown type of weighting.\n"
@@ -568,7 +586,9 @@ int main(int argc, char **argv)
      init_by_array64(init, length);
 
      if ( argc > 1 ){
-          if ( strcmp(argv[1], "mine") == 0 )
+          if ( strcmp(argv[1], "all") == 0 )
+               smhcmd_mine(argc - 1, &argv[1]);
+          else if ( strcmp(argv[1], "mine") == 0 )
                smhcmd_mine(argc - 1, &argv[1]);
           else if ( strcmp(argv[1], "prune") == 0 )
                smhcmd_prune(argc - 1, &argv[1]);
