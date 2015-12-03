@@ -97,10 +97,9 @@ void mh_init(HashTable *hash_table)
 /**
  * @brief Initializes the randon number generator
  */
-void mh_rng_init(unsigned long long *init)
+void mh_rng_init(unsigned long long seed)
 {
-     unsigned long long init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL}, length=4;
-     init_by_array64(init, length);
+     init_genrand64(seed);
 }
 
 /**

@@ -15,8 +15,8 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import smh_api as sa
 
-def smh_init(init_array):
-    sa.mh_rng_init(init_array)
+def smh_init(seed):
+    sa.mh_rng_init(seed)
 
 def smh_load(filename):
     """
