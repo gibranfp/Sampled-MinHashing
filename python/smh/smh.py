@@ -29,10 +29,15 @@ def csr_to_listdb(csr):
     """
     Converts a Compressed Sparse Row (CSR) matrix to a ListDB structure
     """
+    if issubclass(csr.dtype.type,np.integer):
+        factor=1
+    else:
+        factor= 100000000
+ 
     ldb = sa.listdb_create(csr.shape[0], csr.shape[1])
     coo = csr.tocoo()    
     for i,j,v in itertools.izip(coo.row, coo.col, coo.data):
-        ldb.push(int(i), int(j), int(round(v * 100000000)))
+        ldb.push(int(i), int(j), int(round(v * factor)))
 
     return SMH(ldb=ldb)
 
@@ -40,11 +45,15 @@ def ndarray_to_listdb(arr):
     """
     Converts a numpy multidimensional array to a ListDB structure
     """
+    if issubclass(arr.dtype.type,np.integer):
+        factor=1
+    else:
+        factor= 100000000
     ldb = sa.listdb_create(arr.shape[0], arr.shape[1])
     for i,row in enumerate(arr):
         for j,item in enumerate(row):
             if item != 0:
-                ldb.push(int(i), int(j), int(round(item * 100000000)))
+                ldb.push(int(i), int(j), int(round(item * factor)))
     return SMH(ldb=ldb)
 
 def centers_from_labels(data, labels):
@@ -83,9 +92,14 @@ class SMH:
         else:
             self.ldb = sa.listdb_create(size,dim)
 
-    def __getitem__(self, row, col):
-        return self.ldb[row].data[col]
-    
+    #def __getitem__(self, index):
+    #   """
+    #   Initializes class with ListDB structure
+    #   """
+    #   row, col = index
+    #   return self.ldb[row][col]
+ 
+   
     def push(self,topic):
         """
         Appends list to a ListDB structure
@@ -197,7 +211,7 @@ class SMH:
         indptr = [0]
         indices = []
         data = []
-        for l in listdb.ldb:
+        for l in self.ldb:
             for i in l:
                 indices.append(i.item)
                 data.append(i.freq)
@@ -209,8 +223,8 @@ class SMH:
         """
         Converts a listdb structure to a numpy multidimensional array
         """
-        arr = np.zeros((listdb.size(), listdb.dim()))
-        for i, l in enumerate(listdb.ldb):
+        arr = np.zeros((self.size(), self.dim()))
+        for i, l in enumerate(self.ldb):
             for j in l:
                 arr[i, j.item] = j.freq
 
