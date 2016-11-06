@@ -124,7 +124,7 @@ double weights_itf(uint tf, uint df, uint docsize, uint docterms, uint corpsize,
  */
 double weights_ids(uint tf, uint df, uint docsize, uint docterms, uint corpsize, uint vocsize)
 {
-     return log ((double)vocsize / (double)docterms);
+     return log ((double) corpsize / (double) df);
 }
 
 /**
