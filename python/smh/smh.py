@@ -122,7 +122,7 @@ class SMH:
         """
         Mines co-occurring items from a database of lists using Sampled Min-Hashing
         """
-        if not weights and not expand:
+        if not weights and not expand5H:
             ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
         elif expand and not weights:
             max_freq=sa.mh_get_cumulative_frequency(self.ldb,expand.ldb)
@@ -215,7 +215,7 @@ class SMH:
             for i in l:
                 indices.append(i.item)
                 data.append(i.freq)
-                indptr.append(len(indices))
+            indptr.append(len(indices))
 
         return csr_matrix((data, indices, indptr), dtype=int)
 
