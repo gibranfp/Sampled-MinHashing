@@ -217,7 +217,7 @@ class SMH:
                 data.append(i.freq)
             indptr.append(len(indices))
 
-        return csr_matrix((data, indices, indptr), dtype=int)
+        return csr_matrix((data, indices, indptr), dtype=np.uint32)
 
     def toarray(self):
         """
