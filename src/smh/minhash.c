@@ -1,7 +1,7 @@
 /**
  * @file minhash.c
- * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2015
+ * @author Gibran Fuentes Pineda <gibranfp@unam.mx>
+ * @date 2016
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,10 @@
 #include "mt64.h"
 #include "ifindex.h"
 #include "minhash.h"
+
+#ifdef OMP
+#include <omp.h>
+#endif
 
 /**
  * @Brief Prints head of a hash table structure
@@ -78,9 +82,6 @@ void mh_print_table(HashTable *hash_table)
  *        on a collection of list.
  *
  * @param hash_table Hash table structure
- * @param Number of MinHash values per tuple
- * @param dim Largest item value in the database of lists
- * @param table_size Number of buckets in the hash table
  */
 void mh_init(HashTable *hash_table)
 {
