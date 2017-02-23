@@ -106,7 +106,7 @@ class SMH:
         """
         sa.listdb_push(self.ldb,topic)
 
-    def save(self,filename):
+    def save(self, filename):
         """
         Saves ListDB structure to file
         """
@@ -204,6 +204,10 @@ class SMH:
         """
         sa.listdb_destroy(self.ldb)
 
+    def make_ifs(self):
+        ifs = sa.ifindex_make_from_corpus(self.ldb)
+        return SMH(ldb = ifs)
+
     def tocsr(self):
         """
         Returns the ListDB structure as a Compressed Sparse Row (CSR) matrix
@@ -229,6 +233,68 @@ class SMH:
                 arr[i, j.item] = j.freq
 
         return arr
+
+class SMHDiscovery:
+    """
+    Interface class to Sampled Min-Hashing discovery
+    """
+    def __init__(self, size = 0, dim = 0):
+        """
+        Initializes class with ListDB structure
+        """
+        self._inverted=False
+        self._original=None
+        if ldb:
+            self.ldb=ldb
+        else:
+            self.ldb = sa.listdb_create(size,dim)
+
+    def mine(self, tuple_size, num_tuples, weights = None, expand=False, table_size = 2**19):
+        """
+        Mines co-occurring items from a database of lists using Sampled Min-Hashing
+        """
+        if not weights and not expand:
+            ldb = sa.sampledmh_mine(self.ldb, tuple_size, num_tuples, table_size)
+        elif expand and not weights:
+            max_freq = sa.mh_get_cumulative_frequency(self.ldb, expand.ldb)
+            ldb_=sa.mh_expand_listdb(self.ldb,max_freq)
+            ldb=sa.sampledmh_mine(ldb_,tuple_size,num_tuples,table_size)
+        elif not expand and weights:
+            ldb=sa.sampledmh_mine_weighted(self.ldb,tuple_size,num_tuples,table_size,weights.weights)
+        elif expand and weights:
+            max_freq=sa.mh_get_cumulative_frequency(self.ldb,expand.ldb)
+            ldb_=sa.mh_expand_listdb(self.ldb, max_freq)
+            weights_=sa.mh_expand_weights(expand.ldb.size, max_freq, weights.weights)
+            ldb=sa.sampledmh_mine_weighted(ldb_,tuple_size,num_tuples,table_size,weights_)
+            
+        return SMH(ldb=ldb)
+
+    def cluster_mhlink(self, num_tuples=255, tuple_size=3, table_size=2**20, thres=0.7,
+                       min_cluster_size=3):
+        """
+        Clusters a database of mined lists using agglomerative clustering based on Min-Hashing
+        """
+        models=sa.mhlink_cluster(self.ldb, tuple_size, num_tuples, table_size,
+                                 sa.list_overlap, thres, min_cluster_size)
+
+        sa.listdb_apply_to_all(models, sa.list_sort_by_frequency_back)
+                
+        return SMH(ldb=models)
+
+    def cluster_sklearn(self, algorithm):
+        """
+        Clusters a database of mined lists using the clustering methods available in scikit-learn
+        """
+        csr = self.tocsr()
+        algorithm.fit(csr.toarray())
+        if hasattr(algorithm, 'cluster_centers_'):
+            ldb = ndarray_to_listdb(algorithm.cluster_centers_)
+        else:
+            ldb = centers_from_labels(csr, algorithm.labels_)
+
+        sa.listdb_apply_to_all(ldb.ldb, sa.list_sort_by_frequency_back)
+        
+        return ldb
 
 if __name__ == "__main__":
     import argparse
