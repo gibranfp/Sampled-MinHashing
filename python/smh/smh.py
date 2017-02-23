@@ -92,14 +92,6 @@ class SMH:
         else:
             self.ldb = sa.listdb_create(size,dim)
 
-    #def __getitem__(self, index):
-    #   """
-    #   Initializes class with ListDB structure
-    #   """
-    #   row, col = index
-    #   return self.ldb[row][col]
- 
-   
     def push(self,topic):
         """
         Appends list to a ListDB structure
@@ -122,7 +114,7 @@ class SMH:
         """
         Mines co-occurring items from a database of lists using Sampled Min-Hashing
         """
-        if not weights and not expand5H:
+        if not weights and not expand:
             ldb=sa.sampledmh_mine(self.ldb,tuple_size,num_tuples,table_size)
         elif expand and not weights:
             max_freq=sa.mh_get_cumulative_frequency(self.ldb,expand.ldb)
@@ -143,6 +135,18 @@ class SMH:
         Prunes a database of mined lists based on the inverted file
         """
         sa.sampledmh_prune(ifindex.ldb, self.ldb, min_size, min_hits, overlap, cooc_th)
+
+    def cluster_mhlink(self, num_tuples=255, tuple_size=3, table_size=2**20, thres=0.7,
+                       min_cluster_size=3):
+        """
+        Clusters a database of mined lists using agglomerative clustering based on Min-Hashing
+        """
+        models=sa.mhlink_cluster(self.ldb, tuple_size, num_tuples, table_size,
+                                 sa.list_overlap, thres, min_cluster_size)
+
+        sa.listdb_apply_to_all(models, sa.list_sort_by_frequency_back)
+                
+        return SMH(ldb=models)
 
     def cluster_mhlink(self, num_tuples=255, tuple_size=3, table_size=2**20, thres=0.7,
                        min_cluster_size=3):
@@ -234,90 +238,74 @@ class SMH:
 
         return arr
 
-class SMHDiscovery:
-    """
-    Interface class to Sampled Min-Hashing discovery
-    """
-    def __init__(self, size = 0, dim = 0):
-        """
-        Initializes class with ListDB structure
-        """
-        self._inverted=False
-        self._original=None
-        if ldb:
-            self.ldb=ldb
-        else:
-            self.ldb = sa.listdb_create(size,dim)
+class SMHDiscoverer:
+    def __init__(self,
+                 tuple_size = 3,
+                 number_of_tuples = 255,
+                 table_size = 2**19,
+                 min_set_size = 3,
+                 cluster_number_of_tuples = 255,
+                 cluster_tuple_size = 3,
+                 cluster_table_size = 2**20,
+                 overlap = 0.7,
+                 min_cluster_size = 3):
+        self.tuple_size_ = tuple_size
+        self.number_of_tuples_ = number_of_tuples
+        self.table_size_ = table_size
+        self.min_set_size_ = min_set_size
+        self.cluster_number_of_tuples_ = cluster_number_of_tuples
+        self.cluster_tuple_size_ = cluster_tuple_size
+        self.cluster_table_size_ = cluster_table_size
+        self.overlap_ = overlap
+        self.min_cluster_size_ = min_cluster_size
 
-    def mine(self, tuple_size, num_tuples, weights = None, expand=False, table_size = 2**19):
+    def fit(self,
+            listdb,
+            weights = None,
+            expand = False):
         """
-        Mines co-occurring items from a database of lists using Sampled Min-Hashing
+        Discovers patterns from a database of lists
         """
         if not weights and not expand:
-            ldb = sa.sampledmh_mine(self.ldb, tuple_size, num_tuples, table_size)
+            mined = sa.sampledmh_mine(listdb.ldb,
+                                      self.tuple_size_,
+                                      self.number_of_tuples_,
+                                      self.table_size_)
         elif expand and not weights:
-            max_freq = sa.mh_get_cumulative_frequency(self.ldb, expand.ldb)
-            ldb_=sa.mh_expand_listdb(self.ldb,max_freq)
-            ldb=sa.sampledmh_mine(ldb_,tuple_size,num_tuples,table_size)
-        elif not expand and weights:
-            ldb=sa.sampledmh_mine_weighted(self.ldb,tuple_size,num_tuples,table_size,weights.weights)
-        elif expand and weights:
-            max_freq=sa.mh_get_cumulative_frequency(self.ldb,expand.ldb)
-            ldb_=sa.mh_expand_listdb(self.ldb, max_freq)
-            weights_=sa.mh_expand_weights(expand.ldb.size, max_freq, weights.weights)
-            ldb=sa.sampledmh_mine_weighted(ldb_,tuple_size,num_tuples,table_size,weights_)
+            max_freq = sa.mh_get_cumulative_frequency(listdb.ldb, expand.ldb)
+            ldb_ = sa.mh_expand_listdb(listdb.ldb, max_freq)
+            mined = sa.sampledmh_mine(ldb_,
+                                      self.tuple_size_,
+                                      self.number_of_tuples_,
+                                      self.table_size_)
+            sa.listdb_destroy(ldb_)
             
-        return SMH(ldb=ldb)
+        elif not expand and weights:
+            mined = sa.sampledmh_mine_weighted(listdb.ldb,
+                                               self.tuple_size_,
+                                               self.number_of_tuples_,
+                                               self.table_size_,
+                                               weights.weights)
+        elif expand and weights:
+            max_freq = sa.mh_get_cumulative_frequency(listdb.ldb, expand.ldb)
+            ldb_ = sa.mh_expand_listdb(listdb.ldb, max_freq)
+            weights_ = sa.mh_expand_weights(expand.ldb.size, max_freq, weights.weights)
+            mined = sa.sampledmh_mine_weighted(ldb_,
+                                               self.tuple_size_,
+                                               self.number_of_tuples,
+                                               self.table_size_,
+                                               weights_)
+            sa.listdb_destroy(ldb_)
 
-    def cluster_mhlink(self, num_tuples=255, tuple_size=3, table_size=2**20, thres=0.7,
-                       min_cluster_size=3):
-        """
-        Clusters a database of mined lists using agglomerative clustering based on Min-Hashing
-        """
-        models=sa.mhlink_cluster(self.ldb, tuple_size, num_tuples, table_size,
-                                 sa.list_overlap, thres, min_cluster_size)
-
+        sa.listdb_delete_smallest(mined, self.min_set_size_)
+        models = sa.mhlink_cluster(mined,
+                                   self.cluster_tuple_size_,
+                                   self.number_of_tuples_,
+                                   self.cluster_table_size_,
+                                   sa.list_overlap, self.overlap_,
+                                   self.min_cluster_size_)
+        sa.listdb_destroy(mined)
         sa.listdb_apply_to_all(models, sa.list_sort_by_frequency_back)
-                
-        return SMH(ldb=models)
-
-    def cluster_sklearn(self, algorithm):
-        """
-        Clusters a database of mined lists using the clustering methods available in scikit-learn
-        """
-        csr = self.tocsr()
-        algorithm.fit(csr.toarray())
-        if hasattr(algorithm, 'cluster_centers_'):
-            ldb = ndarray_to_listdb(algorithm.cluster_centers_)
-        else:
-            ldb = centers_from_labels(csr, algorithm.labels_)
-
-        sa.listdb_apply_to_all(ldb.ldb, sa.list_sort_by_frequency_back)
         
-        return ldb
-
-if __name__ == "__main__":
-    import argparse
-    p = argparse.ArgumentParser("Mines")
-    p.add_argument("-r","--tuple_size",default=4,type=int,
-        action="store", dest='r',help="Size of the tupple")
-    p.add_argument("-l","--number_tuples",default=10,type=int,
-        action="store", dest='l',help="Number of the tupple")
-    p.add_argument("--output",default=None,type=str,
-        action="store", dest='output',help="Filename to save mined model")
-    p.add_argument("--min",default=1000,type=int,
-        action="store", dest='min',help="Minimum number of items")
-    p.add_argument("file",default=None,
-        action="store", help="File to mine")
-
-    opts = p.parse_args()
-
-    s=smh_load(opts.file)
-    print "Size of loaded file:",s.size()
-    m=s.mine(opts.r,opts.l)
-    print "Size of original mined topics:",m.size()
-    m.cutoff(min=opts.min)
-    print "Size of cutted off mined topics:",m.size()
-    if opts.output:
-        print "Saving resulting model to",opts.output
-        m.save(opts.output)
+        return SMH(ldb = models)
+        

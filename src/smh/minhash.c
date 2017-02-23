@@ -29,10 +29,6 @@
 #include "ifindex.h"
 #include "minhash.h"
 
-#ifdef OMP
-#include <omp.h>
-#endif
-
 /**
  * @Brief Prints head of a hash table structure
  *
@@ -271,10 +267,10 @@ ullong mh_compute_minhash(List *list, RandomValue *permutations)
      // get randomly assigned values for list
      // and find minimum value
      ullong min_int = permutations[list->data[0].item].random_int;
-     double min_double = permutations[list->data[0].item].random_double / (double) list->data[0].freq;
-     for (i = 1; i < list->size; i++){
-          double current_value = permutations[list->data[i].item].random_double / (double) list->data[i].freq;
-          if (min_double > current_value){
+     double min_double = permutations[list->data[0].item].random_double;
+     for (i = 1; i < list->size; i++) {
+          double current_value = permutations[list->data[i].item].random_double;
+          if (min_double > current_value) {
                min_int = permutations[list->data[i].item].random_int;
                min_double = current_value;
           }

@@ -1,7 +1,7 @@
 /**
  * @file mhclus.c 
- * @author Gibran Fuentes Pineda <gibranfp@turing.iimas.unam.mx>
- * @date 2015
+ * @author Gibran Fuentes-Pineda <gibranfp@unam.mx>
+ * @date 2017
  *
  * @section GPL
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,12 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <time.h>
 #include <getopt.h>
 #include <inttypes.h>
+#include "mt64.h"
 #include "weights.h"
 #include "ifindex.h"
 #include "sampledmh.h"
@@ -37,42 +39,26 @@ void usage(void)
 {
      printf("usage: smhcmd ifindex [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
             "       smhcmd weights [OPTIONS]... [CORPUS_FILE] [INVERTED_FILE] [WEIGHTS_FILE]\n"
-            "       smhcmd mine [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
-            "       smhcmd prune [OPTIONS]... [INVERTED_FILE] [INPUT_FILE] [OUTPUT_FILE]\n"
-            "       smhcmd cluster [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
-            "Mines inverted file structures, prunes and clusters mined sets,"
-            "and writes the output to a file .\n\n"
+            "       smhcmd discover [OPTIONS]... [INPUT_FILE] [OUTPUT_FILE]\n"
+            "Creates inverted file structure from corpus, computes weights and discovers patterns\n\n"
             "General options:\n"
             "   --help\t\tPrints this help\n"
-            "all options:\n"
-            "   -s, --size_mine[=20(2^20 = 1048576)]\tNumber of buckets in hash"
-            "table (power of 2) for mining stage\n"
-            "   -r, --hashes_mine[=4]\tNumber of hashes per tuple for mining stage\n"
-            "   -l, --tuples_mine[=500]\tNumber of tuples for mining stage\n"
-            "   -a, --size_cluster[=20(2^20 = 1048576)]\tNumber of buckets in hash"
-            "table (power of 2) for clustering stage\n"
-            "   -b, --hashes_cluster[=3]\tNumber of hashes per tuple for clustering stage\n"
-            "   -c, --tuples_cluster[=255]\tNumber of tuples for clustering stage\n"
-            "   -o, --overlap[=0.7]\tOverlap threshold for clustering stage\n"
-            "ifindex options:\n"
-            "   -w, --weight[=binary]\tWeighting scheme to use."
-            "mine options:\n"
-            "   -s, --size[=20(2^20 = 1048576)]\tNumber of buckets in hash"
-            "table (power of 2)\n"
-            "   -r, --hashes[=4]\tNumber of hashes per tuple\n"
-            "   -l, --tuples[=500]\tNumber of tuples\n"
-            "prune options:\n"
-            "   -s, --stop[=3]\tMinimum set size (stop > 0)\n"
-            "   -d, --dochits[=3]\tMinimum document hits per set (dochits > 0)\n"
-            "   -o, --overlap[=0.7]\tOverlap threshold (0 <= overlap <= 1)\n"
-            "   -c, --coocc[=0.7]\tWord cooccurrence in documents " 
-            " containing set (0 <= coocc <= 1)\n"
-            "cluster options:\n"
-            "   -s, --size[=1048576]\tNumber of buckets in hash"
-            "table (power of 2)\n"
-            "   -r, --tnum[=3]\tNumber of hashes per tuple\n"
-            "   -l, --tuples[=255]\tNumber of tuples\n"
-            "   -o, --overlap[=0.7]\tOverlap threshold\n");
+            "weights options:\n"
+            "   -w, --weight[=idf]\tWeighting scheme to use\n"
+            "discover options:\n"
+            "   -r, --tuple_size[=4]\tNumber of hashes per tuple in mining phase\n"
+            "   -l, --number_of_tuples[=500]\tNumber of tuples in mining phase\n"
+            "   -t, --table_size[=20(2^20 = 1048576)]\tNumber of buckets in hash"
+            "                                          table (power of 2) in mining phase\n"
+            "   -s, --min_set_size[=3]\t Minimum size of set to mine\n"
+            "   -x, --cluster_tuple_size[=3]\tNumber of hashes per tuple in clustering phase\n"
+            "   -y, --cluster_number_of_tuples[=255]\tNumber of tuples in clustering phase\n"
+            "   -z, --cluster_table_size[=1048576]\tNumber of buckets in hash"
+            "                                       table (power of 2) in clustering phase\n"
+            "   -o, --overlap[=0.7]\tOverlap threshold for clustering phase\n"
+            "   -c, --min_cluster_size[=3]\t Minimum size of cluster to consider as meaningful\n"
+            "   -e, --expand[=NULL]\t Corpus file used to consider frequencies\n"
+            "   -w, --weights[=NULL]\t Weights file used to consider item weights \n");
 }
 
 /**
@@ -83,7 +69,6 @@ void usage(void)
  */
 void smhcmd_ifindex(int opnum, char **opts)
 {
-     enum WeightScheme weight_scheme = TF;
      char *input, *output;     
      int op;
      int option_index = 0;
@@ -91,12 +76,11 @@ void smhcmd_ifindex(int opnum, char **opts)
      static struct option long_options[] =
           {
                {"help", no_argument, 0, 'h'},
-               {"weight", required_argument, 0, 'w'},
                {0, 0, 0, 0}
           };
 
      //Command-line option parser
-     while((op = getopt_long( opnum, opts, "hw:", long_options, 
+     while((op = getopt_long( opnum, opts, "h", long_options, 
                               &option_index)) != -1){
           int this_option_optind = optind ? optind : 1;
           switch (op) {
@@ -105,9 +89,6 @@ void smhcmd_ifindex(int opnum, char **opts)
           case 'h':
                usage();
                exit(EXIT_SUCCESS);
-               break;
-          case 'w':
-               weight_scheme = atoi(optarg);
                break;
           case '?':
                fprintf(stderr,"Error: Unknown options.\n"
@@ -128,46 +109,6 @@ void smhcmd_ifindex(int opnum, char **opts)
           printf("Creating inverted file . . .\n");
           ListDB ifindex = ifindex_make_from_corpus(&corpus);
 
-          if (weight_scheme != TF){
-               double (*weighting)(uint, uint, uint, uint, uint, uint);
-               switch (weight_scheme){
-               case LOGTF:
-                    printf("logtf weights\n");
-                    weighting = &weights_logtf;
-                    break;
-               case BINTF:
-                    printf("Binary weights\n"); 
-                    weighting = &weights_bintf;
-                    break;
-               case IDF:
-                    printf("idf weights\n"); 
-                    weighting = &weights_idf;
-                    break;
-               case IDS:
-                    printf("ids weights\n"); 
-                    weighting = &weights_ids;
-                    break;
-               case TFIDF:
-                    printf("tfidf weights\n"); 
-                    weighting = &weights_tfidf;
-                    break;
-               case TFIDS:
-                    printf("tfids weights\n"); 
-                    weighting = &weights_tfids;
-                    break;
-               case '?':
-                    fprintf(stderr,"Error: Unknown type of weighting.\n"
-                            "Try `smhcmd ifindex --help' for more information.\n");
-                    exit(EXIT_FAILURE);
-               default:
-                    abort ();
-               }
-               ifindex_weight(&ifindex, &corpus, weighting);
-          } else {
-               printf("tf weights\n"); 
-          }
-          
-          
           printf("Saving inverted file into %s\n",output);
           listdb_save_to_file(output, &ifindex);
      } else {
@@ -271,12 +212,17 @@ void smhcmd_weights(int opnum, char **opts)
  * @param opnum Number of command line options.
  * @param opts Command line options.
  */
-void smhcmd_mine(int opnum, char **opts)
+void smhcmd_discover(int opnum, char **opts)
 {
-     uint tuple_size = 4; // default tuple size
-     uint number_of_tuples = 500; // default number of tuples
-     uint table_size = 1048576; // default table size
+     uint mine_tuple_size = 3; // default tuple size
+     uint mine_number_of_tuples = 255; // default number of tuples
+     uint mine_table_size = 1048576; // default table size
      uint min_set_size = 3;
+     uint cluster_tuple_size = 3; 
+     uint cluster_number_of_tuples = 255;
+     uint cluster_table_size = 1048576;
+     double overlap = 0.7; 
+     uint min_cluster_size = 3;
      char *input, *output, *weights_file = NULL,  *ifindex_file = NULL;
      
      int op;
@@ -288,14 +234,18 @@ void smhcmd_mine(int opnum, char **opts)
                {"tuple_size", required_argument, 0, 'r'},
                {"number_of_tuples", required_argument, 0, 'l'},
                {"table_size", required_argument, 0, 't'},
-               {"min_set_size", required_argument, 0, 'm'},
+               {"min_set_size", required_argument, 0, 's'},
+               {"cluster_tuple_size", required_argument, 0, 'x'},
+               {"cluster_number_of_tuples", required_argument, 0, 'y'},
+               {"cluster_table_size", required_argument, 0, 'z'},
+               {"min_cluster_size", required_argument, 0, 'c'},
                {"expand", required_argument, 0, 'e'},
                {"weights", required_argument, 0, 'w'},
                {0, 0, 0, 0}
           };
 
      //Command-line option parser
-     while((op = getopt_long( opnum, opts, "hr:l:t:ew:", long_options, 
+     while((op = getopt_long( opnum, opts, "hr:l:t:s:x:y:z:c:e:w:", long_options, 
                               &option_index)) != -1){
           int this_option_optind = optind ? optind : 1;
           switch (op)
@@ -307,16 +257,31 @@ void smhcmd_mine(int opnum, char **opts)
                exit(EXIT_SUCCESS);
                break;
           case 'r':
-               tuple_size = atoi(optarg);
+               mine_tuple_size = atoi(optarg);
                break;
           case 'l':
-               number_of_tuples = atoi(optarg);
+               mine_number_of_tuples = atoi(optarg);
                break;
           case 't':
-               table_size = (uint) pow(2, atoi(optarg));
+               mine_table_size = (uint) pow(2, atoi(optarg));
                break;
-          case 'm':
+          case 's':
                min_set_size = atoi(optarg);
+               break;
+          case 'x':
+               cluster_tuple_size = atoi(optarg);
+               break;
+          case 'y':
+               cluster_number_of_tuples = atoi(optarg);
+               break;
+          case 'z':
+               cluster_table_size = atoi(optarg);
+               break;
+          case 'o':
+               overlap = atof(optarg);
+               break;
+          case 'c':
+               min_cluster_size = atoi(optarg);
                break;
           case 'e':
                ifindex_file = optarg;
@@ -349,10 +314,17 @@ void smhcmd_mine(int opnum, char **opts)
                     ListDB ifindex = listdb_load_from_file(ifindex_file);
                     uint *maxfreq = mh_get_cumulative_frequency(&corpus, &ifindex);
                     ListDB expanded_corpus = mh_expand_listdb(&corpus, maxfreq);
-                    mined = sampledmh_mine_weighted(&expanded_corpus, tuple_size, number_of_tuples,
-                                                    table_size, weights);
+                    mined = sampledmh_mine_weighted(&expanded_corpus,
+                                                    mine_tuple_size,
+                                                    mine_number_of_tuples,
+                                                    mine_table_size,
+                                                    weights);
                } else {
-                    mined = sampledmh_mine_weighted(&corpus, tuple_size, number_of_tuples, table_size, weights);
+                    mined = sampledmh_mine_weighted(&corpus,
+                                                    mine_tuple_size,
+                                                    mine_number_of_tuples,
+                                                    mine_table_size,
+                                                    weights);
                }
           } else {
                printf("Mining . . . ");
@@ -360,214 +332,40 @@ void smhcmd_mine(int opnum, char **opts)
                     ListDB ifindex = listdb_load_from_file(ifindex_file);
                     uint *maxfreq = mh_get_cumulative_frequency(&corpus, &ifindex);
                     ListDB expanded_corpus = mh_expand_listdb(&corpus, maxfreq);
-                    mined = sampledmh_mine(&expanded_corpus, tuple_size, number_of_tuples, table_size);
+                    mined = sampledmh_mine(&expanded_corpus,
+                                           mine_tuple_size,
+                                           mine_number_of_tuples,
+                                           mine_table_size);
                } else {
-                    mined = sampledmh_mine(&corpus, tuple_size, number_of_tuples, table_size);
+                    mined = sampledmh_mine(&corpus,
+                                           mine_tuple_size,
+                                           mine_number_of_tuples,
+                                           mine_table_size);
                }
           }
-          printf("Number of mined sets: %d\nDimensionality: %d\n", mined.size, mined.dim);
           
-          printf("Sorting items by size . . .\n");
+          printf("Sorting sets by size and deleting the smallest ones . . .\n");
           listdb_sort_by_size_back(&mined);
           listdb_delete_smallest(&mined, min_set_size);
+          printf("Number of mined sets: %d\nDimensionality: %d\n", mined.size, mined.dim);
+
+          printf("Clustering mined sets . . .\n");
+          ListDB models = mhlink_cluster(&mined,
+                                         cluster_tuple_size,
+                                         cluster_number_of_tuples,
+                                         cluster_table_size,
+                                         list_overlap,
+                                         overlap,
+                                         min_cluster_size);
           
-          printf("Saving file in %s . . .\n", output);
-          listdb_save_to_file(output, &mined);
+          printf("Saving models in %s\n", output);
+          listdb_save_to_file(output, &models);
      } else {
           if (optind + 2 > opnum)
                fprintf(stderr, "Error: Missing arguments.\n"
                        "Try `smhcmd --help' for more information.\n");
           else
                fprintf(stderr, "Error: Unknown arguments.\n"
-                       "Try `smhcmd --help' for more information.\n");
-          exit(EXIT_FAILURE);
-     }
-}
-
-/**
- *
- * @brief Prunes mined co-occurring word sets.
- *
- * @param opnum Number of command line options.
- * @param opts Command line options.
- *
- */
-void smhcmd_prune(int opnum, char **opts)
-{
-     char *inv_file, *mined_file, *pruned_file;
-     uint stop = 3;
-     uint dochits = 3;
-     double ovr = 0.7;
-     double coocc = 0.7;
-     int op;
-     int option_index = 0;
-     
-     static struct option long_options[] =
-          {
-               {"help", no_argument, 0, 'h'},
-               {"stop", required_argument, 0, 's'},
-               {"dochits", required_argument, 0, 'd'},
-               {"overlap", required_argument, 0, 'o'},
-               {"coocc", required_argument, 0, 'c'},
-               {0, 0, 0, 0}
-          };
-
-     //Command-line ption parser
-     while((op = getopt_long( opnum, opts, "hs:d:o:c:", long_options,
-                              &option_index)) != -1){
-          int this_option_optind = optind ? optind : 1;
-          switch (op)
-          {
-          case 0:
-               break;
-          case 'h':
-               usage();
-               exit(EXIT_SUCCESS);
-               break;
-          case 's':
-               stop = atoi(optarg);
-               if (stop <= 0)
-                    stop = 1;
-               break;
-          case 'd':
-               dochits = atoi(optarg);
-               if (dochits <= 0)
-                    dochits = 1;
-               break;
-          case 'o':
-               ovr = atof(optarg);
-               if (ovr < 0)
-                    ovr = 0.0;
-               if (ovr > 1)
-                    ovr = 1.0;
-               break;
-          case 'c':
-               coocc = atof(optarg);
-               if (coocc < 0)
-                    coocc = 0.0;
-               if (ovr > 1)
-                    coocc = 1.0;
-               break;
-          case '?':
-               printf("Try `smhcmd --help' for more information.\n");
-               exit(EXIT_FAILURE);
-               break;
-          default:
-               abort ();
-          }
-     }
-     if (optind + 3 == opnum){
-          inv_file = opts[optind++];
-          mined_file = opts[optind++];
-          pruned_file = opts[optind++];
-
-          printf("Reading inverted file %s . . .\n", inv_file);
-          ListDB ifindex = listdb_load_from_file(inv_file);
-
-          printf("Reading mined sets from %s . . .\n", mined_file);
-          ListDB mined = listdb_load_from_file(mined_file);
-
-          printf("Pruning sets . . .\n");
-          sampledmh_prune(&ifindex, &mined, stop, dochits, ovr, coocc);
-          printf("Number of sets after pruning: %d\nDimensionality: %d\n", mined.size, mined.dim);
-
-          printf("Saving file in %s . . .\n", pruned_file);
-          listdb_save_to_file(pruned_file, &mined);
-     } else {
-          if (optind + 3 > opnum)
-               fprintf(stderr, "Error: Missing arguments.\n"
-                       "Try `smhcmd --help' for more information.\n");
-          else
-               fprintf(stderr, "Error: Unknown arguments.\n"
-                       "Try `smhcmd --help' for more information.\n");
-          exit(EXIT_FAILURE);
-     }
-}
-
-/**
- *
- * @brief Clusters mined co-occurring word sets.
- *
- * @param opnum Number of command line options.
- * @param opts Command line options.
- *
- */
-void smhcmd_cluster(int opnum, char **opts)
-{
-     char *mined_file, *models_file;
-     uint tuple_size = 3; 
-     uint number_of_tuples = 255;
-     uint table_size = 1048576;
-     double ovr = 0.7; 
-     uint min_cluster_size = 1;
-     int op;
-     int option_index = 0;
-     
-     static struct option long_options[] =
-          {
-               {"help", no_argument, 0, 'h'},
-               {"hashes", required_argument, 0, 'r'},
-               {"tuples", required_argument, 0, 'l'},
-               {"size", required_argument, 0, 's'},
-               {"overlap", required_argument, 0, 'o'},
-               {"min", required_argument, 0, 'm'},
-               {0, 0, 0, 0}
-          };
-
-     //Command-line ption parser
-     while((op = getopt_long( opnum, opts, "hs:l:r:o:", long_options,
-                              &option_index)) != -1){
-          int this_option_optind = optind ? optind : 1;
-          switch (op)
-          {
-          case 'h':
-               usage();
-               exit(EXIT_SUCCESS);
-               break;
-          case 'r':
-               tuple_size = atoi(optarg);
-               break;
-          case 'l':
-               number_of_tuples = atoi(optarg);
-               break;
-          case 's':
-               table_size = atoi(optarg);
-               break;
-          case 'o':
-               ovr = atof(optarg);
-               break;
-          case 'm':
-               min_cluster_size = atoi(optarg);
-               break;
-          case '?':
-               fprintf(stderr, "Error: Try `smhcmd --help' for more "
-                       "information.\n");
-               exit(EXIT_FAILURE);
-               break;
-          default:
-               abort ();
-          }
-     }
-     if (optind + 2 == opnum){
-          mined_file= opts[optind++];
-          models_file = opts[optind++];	  
-
-          printf("Reading mined sets from %s . . .\n", mined_file);
-          ListDB mined = listdb_load_from_file(mined_file);
-
-
-          printf("Clustering sets . . .\n");
-          ListDB models = mhlink_cluster(&mined, table_size, number_of_tuples, tuple_size,
-                                         list_overlap, ovr, min_cluster_size);
-          
-          printf("Saving models in %s\n", models_file);
-          listdb_save_to_file(models_file, &models);
-     } else {
-          if (optind + 2 > opnum)
-               fprintf(stderr, "Error: Missing argumets.\n"
-                       "Try `smhcmd --help' for more information.\n");
-          else
-               fprintf(stderr, "Error: Unknown argumets.\n"
                        "Try `smhcmd --help' for more information.\n");
           exit(EXIT_FAILURE);
      }
@@ -586,31 +384,23 @@ int main(int argc, char **argv)
      init_by_array64(init, length);
 
      if ( argc > 1 ){
-          if ( strcmp(argv[1], "all") == 0 )
-               smhcmd_mine(argc - 1, &argv[1]);
-          else if ( strcmp(argv[1], "mine") == 0 )
-               smhcmd_mine(argc - 1, &argv[1]);
-          else if ( strcmp(argv[1], "prune") == 0 )
-               smhcmd_prune(argc - 1, &argv[1]);
-          else if ( strcmp(argv[1], "cluster") == 0 )
-               smhcmd_cluster(argc - 1, &argv[1]);
+          if ( strcmp(argv[1], "ifindex") == 0 )
+               smhcmd_ifindex(argc - 1, &argv[1]);
           else if ( strcmp(argv[1], "weights") == 0 )
                smhcmd_weights(argc - 1, &argv[1]);
-          else if ( strcmp(argv[1], "ifindex") == 0 )
-               smhcmd_ifindex(argc - 1, &argv[1]);
+          else if ( strcmp(argv[1], "discover") == 0 )
+               smhcmd_discover(argc - 1, &argv[1]);
           else if ( strcmp(argv[1], "--help") == 0 || 
                     strcmp(argv[1], "-h") == 0 ){
                usage();
                exit(EXIT_SUCCESS);
-          }
-          else {
+          } else {
                printf ("Unrecognized option %s.\n "
                        "Try `smhcmd --help' for more information.\n", 
                        argv[1]);
                exit(EXIT_FAILURE);
           }
-     }
-     else {
+     } else {
           printf ("Missing arguments.\n"
                   "Try `smhcmd --help' for more information.\n");
           exit(EXIT_FAILURE);

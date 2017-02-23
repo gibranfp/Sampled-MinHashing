@@ -62,6 +62,8 @@ void listdb_insert(ListDB *, List *, uint);
 void listdb_append(ListDB *, ListDB *);
 void listdb_append_lists_delete(ListDB *, uint, uint);
 void listdb_append_lists_destroy(ListDB *, uint, uint);
+void listdb_add_lists_delete(ListDB *, uint, uint);
+void listdb_add_lists_destroy(ListDB *, uint, uint);
 ListDB listdb_load_from_file(char *);
 void listdb_save_to_file(char *, ListDB *);
 #endif
