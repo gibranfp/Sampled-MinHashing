@@ -28,9 +28,9 @@ Alternatively, you can use it locally by adding the absolute path of the `bin` d
 export PATH=$PATH:[absolute_path_to_sampled_minhashing]/bin
 ~~~~
 
-And the absolute path of the `python` directory inside `build` to Python's path:
+And the absolute path of the `python/smh` directory inside `build` to Python's path:
 ~~~~
-export PYTHONPATH=$PYTHONPATH:[absolute_path_to_sampled_minhashing]/build/python
+export PYTHONPATH=$PYTHONPATH:[absolute_path_to_sampled_minhashing]/build/python/smh
 ~~~~
 
 To uninstall the library from your system do:
