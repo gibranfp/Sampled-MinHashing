@@ -72,8 +72,8 @@ smhcmd ifindex knowceans-ilda/nips/nips.corpus knowceans-ilda/nips/nips.ifs
 Or from Python:
 ~~~~
 import smh
-corpus = smh.smh_load('knowceans-ilda/nips/nips.corpus')
-ifs = corpus.make_ifs()
+corpus = smh.listdb_load('knowceans-ilda/nips/nips.corpus')
+ifs = corpus.invert()
 ifs.save('knowceans-ilda/nips/nips.ifs')
 ~~~~
 
@@ -86,8 +86,8 @@ smhcmd discover~/knowceans-ilda/nips/nips.ifs ~/knowceans-ilda/nips/nips.models
 From Python:
 ~~~~
 import smh
-corpus = smh.smh_load('knowceans-ilda/nips/nips.corpus')
-ifs = smh.smh_load('knowceans-ilda/nips/nips.ifs')
+corpus = smh.listdb_load('knowceans-ilda/nips/nips.corpus')
+ifs = smh.listdb_load('knowceans-ilda/nips/nips.ifs')
 discoverer = smh.SMHDiscoverer()
 models = discoverer.fit(ifs, expand = corpus)
 models.save('knowceans-ilda/nips/nips.models')
