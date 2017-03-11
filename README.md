@@ -5,7 +5,7 @@ MinHash-based clustering for binary and weighted dyadic data (e.g. bag of words)
 ## Installation
 Install the dependencies:
 ~~~~	
-sudo apt-get install cmake python swig libpyton-dev
+sudo apt-get install cmake python swig libpython-dev
 ~~~~
 
 Clone and coompile the library:
