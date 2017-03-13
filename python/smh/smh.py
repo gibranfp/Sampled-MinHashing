@@ -67,6 +67,19 @@ def ndarray_to_listdb(arr):
                 ldb.push(int(i), int(j), int(round(item)))
     return ListDB(ldb=ldb)
 
+def array_to_listdb(X):
+    """
+    Converts array (CSR or ndarray) to a dabase of lists
+    """
+    if type(X) is csr_matrix:
+        listdb = csr_to_listdb(X.T)
+    elif type(X) is ndarray:
+        listdb = ndarray_to_listdb(X.T)
+    else:
+        raise Exception('Invalid array type')
+
+    return listdb
+
 def centers_from_labels(data, labels):
     """
     Computes the center points of a set of clusters from a list of labels
@@ -205,14 +218,22 @@ class SMHDiscoverer:
                  tuple_size = 3,
                  number_of_tuples = 255,
                  table_size = 2**19,
+                 cooccurrence_threshold = None, 
                  min_set_size = 3,
                  cluster_number_of_tuples = 255,
                  cluster_tuple_size = 3,
                  cluster_table_size = 2**20,
                  overlap = 0.7,
                  min_cluster_size = 3):
+
         self.tuple_size_ = tuple_size
-        self.number_of_tuples_ = number_of_tuples
+
+        if cooccurrence_threshold:
+            self.cooccurrence_threshold = cooccurrence_threshold
+            self.number_of_tuples = log(0.5) / log(1.0 - pow(cooccurrence_threshold, tuple_size))
+        else:
+            self.number_of_tuples = number_of_tuples
+
         self.table_size_ = table_size
         self.min_set_size_ = min_set_size
         self.cluster_number_of_tuples_ = cluster_number_of_tuples
