@@ -4,7 +4,7 @@
 # Ivan V. Meza and
 # Gibran Fuentes-Pineda <gibranfp@unam.mx>
 # IIMAS, UNAM
-# 2016
+# 2017
 #
 # -------------------------------------------------------------------------
 # This program is free software: you can redistribute it and/or modify
@@ -44,6 +44,24 @@ def listdb_load(filename):
     else:
         print filename, "does not exists"
         return None
+
+def csr_load_from_listdb_file(listdb_file):
+    """
+    Returns the ListDB structure as a Compressed Sparse Row (CSR) matrix
+    """
+    with open(listdb_file, 'r') as f:
+        content = f.readlines()
+        indptr = [0]
+        indices = []
+        data = []
+        for line in content:
+            for entry in line.split()[1:]:
+                term,value = entry.split(':')
+                indices.append(int(term))
+                data.append(int(value))
+            indptr.append(len(indices))
+
+    return csr_matrix((data, indices, indptr), dtype=np.uint32)
 
 def csr_to_listdb(csr):
     """
