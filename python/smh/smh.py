@@ -246,11 +246,11 @@ class SMHDiscoverer:
 
         self.tuple_size_ = tuple_size
 
-        if cooccurrence_threshold:
-            self.cooccurrence_threshold = cooccurrence_threshold
-            self.number_of_tuples = log(0.5) / log(1.0 - pow(cooccurrence_threshold, tuple_size))
+        if cooccurrence_threshold_:
+            self.cooccurrence_threshold_ = cooccurrence_threshold
+            self.number_of_tuples_ = log(0.5) / log(1.0 - pow(cooccurrence_threshold, tuple_size))
         else:
-            self.number_of_tuples = number_of_tuples
+            self.number_of_tuples_ = number_of_tuples
 
         self.table_size_ = table_size
         self.min_set_size_ = min_set_size
@@ -293,7 +293,7 @@ class SMHDiscoverer:
             weights_ = sa.mh_expand_weights(expand.ldb.size, max_freq, weights.weights)
             mined = sa.sampledmh_mine_weighted(ldb_,
                                                self.tuple_size_,
-                                               self.number_of_tuples,
+                                               self.number_of_tuples_,
                                                self.table_size_,
                                                weights_)
             sa.listdb_destroy(ldb_)
@@ -302,17 +302,18 @@ class SMHDiscoverer:
 
         return ListDB(ldb = mined)
         
-    def cluster(self):
+    def cluster(self,
+                listdb):
         """
         Clusters a database of mined lists using agglomerative clustering based on Min-Hashing
         """
-        models = sa.mhlink_cluster(self.ldb,
-                                   self.cluster_tuple_size,
-                                   self.cluster_number__of_tuples,
-                                   self.cluster_table_size,
+        models = sa.mhlink_cluster(listdb.ldb,
+                                   self.cluster_tuple_size_,
+                                   self.cluster_number_of_tuples_,
+                                   self.cluster_table_size_,
                                    sa.list_overlap,
-                                   self.overlap,
-                                   self.min_cluster_size)
+                                   self.overlap_,
+                                   self.min_cluster_size_)
 
         sa.listdb_apply_to_all(models, sa.list_sort_by_frequency_back)
                 
