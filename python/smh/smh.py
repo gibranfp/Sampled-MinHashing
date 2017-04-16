@@ -234,12 +234,12 @@ class ListDB:
 class SMHDiscoverer:
     def __init__(self,
                  tuple_size = 3,
-                 number_of_tuples = 255,
-                 table_size = 2**19,
-                 cooccurrence_threshold = None, 
+                 number_of_tuples = None,
+                 table_size = 2**20,
+                 cooccurrence_threshold = 0.14, 
                  min_set_size = 3,
-                 cluster_number_of_tuples = 255,
                  cluster_tuple_size = 3,
+                 cluster_number_of_tuples = 255,
                  cluster_table_size = 2**20,
                  overlap = 0.7,
                  min_cluster_size = 3):
