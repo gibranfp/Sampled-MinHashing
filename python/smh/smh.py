@@ -29,7 +29,7 @@ import numpy as np
 import os
 from scipy.sparse import csr_matrix
 import smh_api as sa
-
+from math import log
 
 def rng_init(seed):
     sa.mh_rng_init(seed)
@@ -245,17 +245,17 @@ class SMHDiscoverer:
                  min_cluster_size = 3):
 
         self.tuple_size_ = tuple_size
-
-        if cooccurrence_threshold_:
-            self.cooccurrence_threshold_ = cooccurrence_threshold
-            self.number_of_tuples_ = log(0.5) / log(1.0 - pow(cooccurrence_threshold, tuple_size))
-        else:
+        
+        if number_of_tuples:
             self.number_of_tuples_ = number_of_tuples
+        else:
+            self.cooccurrence_threshold_ = cooccurrence_threshold
+            self.number_of_tuples_ = int(log(0.5) / log(1.0 - pow(cooccurrence_threshold, tuple_size)))
 
         self.table_size_ = table_size
         self.min_set_size_ = min_set_size
-        self.cluster_number_of_tuples_ = cluster_number_of_tuples
         self.cluster_tuple_size_ = cluster_tuple_size
+        self.cluster_number_of_tuples_ = cluster_number_of_tuples
         self.cluster_table_size_ = cluster_table_size
         self.overlap_ = overlap
         self.min_cluster_size_ = min_cluster_size
@@ -329,9 +329,10 @@ class SMHDiscoverer:
         mined = self.mine(listdb, weights = weights, expand = expand)
         models = sa.mhlink_cluster(mined.ldb,
                                    self.cluster_tuple_size_,
-                                   self.number_of_tuples_,
+                                   self.cluster_number_of_tuples_,
                                    self.cluster_table_size_,
-                                   sa.list_overlap, self.overlap_,
+                                   sa.list_overlap,
+                                   self.overlap_,
                                    self.min_cluster_size_)
         sa.listdb_apply_to_all(models, sa.list_sort_by_frequency_back)
 
