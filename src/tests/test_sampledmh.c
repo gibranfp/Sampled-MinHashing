@@ -33,9 +33,8 @@ void test_mine(uint tuple_size, uint number_of_tuples, uint table_size)
      listdb_print(&listdb);
      printf("\n");
 
-     ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
+     ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size, 3);
      listdb_sort_by_size_back(&coitems);
-     listdb_delete_smallest(&coitems, 3);
 
      uint *repeat = (uint *) calloc(coitems.size, sizeof(uint));
      for (i = 0; i < coitems.size - 1; i++) {
@@ -106,9 +105,8 @@ void test_mine_weighted(uint tuple_size, uint number_of_tuples, uint table_size)
           weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
 
      ListDB coitems = sampledmh_mine_weighted(&listdb, tuple_size, number_of_tuples,
-                                              table_size, weights);
+                                              table_size, weights, 3);
      listdb_sort_by_size_back(&coitems);
-     listdb_delete_smallest(&coitems, 3);
 
      uint *repeat = (uint *) calloc(coitems.size, sizeof(uint));
      for (i = 0; i < coitems.size - 1; i++) {
@@ -185,9 +183,8 @@ void test_mine_frequency_expanded(uint tuple_size, uint number_of_tuples, uint t
      uint *maxfreq = mh_get_cumulative_frequency(&listdb, &ifindex);
      ListDB expldb = mh_expand_listdb(&listdb, maxfreq);
      
-     ListDB coitems = sampledmh_mine(&expldb, tuple_size, number_of_tuples, table_size);
+     ListDB coitems = sampledmh_mine(&expldb, tuple_size, number_of_tuples, table_size, 3);
      listdb_sort_by_size_back(&coitems);
-     listdb_delete_smallest(&coitems, 3);
 
      uint *repeat = (uint *) calloc(coitems.size, sizeof(uint));
      for (i = 0; i < coitems.size - 1; i++) {
@@ -287,9 +284,8 @@ void test_mine_frequency_expanded_weighted(uint tuple_size, uint number_of_tuple
      /* } */
 
      ListDB coitems = sampledmh_mine_weighted(&expldb, tuple_size, number_of_tuples,
-                                              table_size, weights);
+                                              table_size, weights, 3);
      listdb_sort_by_size_back(&coitems);
-     listdb_delete_smallest(&coitems, 3);
 
      uint *repeat = (uint *) calloc(coitems.size, sizeof(uint));
      for (i = 0; i < coitems.size - 1; i++) {
@@ -394,9 +390,8 @@ void test_mine_frequency_weighted(uint tuple_size, uint number_of_tuples, uint t
      listdb_print(&listdb);
      printf("\n");
      
-     ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
+     ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size, 3);
      listdb_sort_by_size_back(&coitems);
-     listdb_delete_smallest(&coitems, 3);
 
      uint *repeat = (uint *) calloc(coitems.size, sizeof(uint));
      for (i = 0; i < coitems.size - 1; i++) {
@@ -471,9 +466,8 @@ void test_mine_weighted_weighted(uint tuple_size, uint number_of_tuples, uint ta
      for (i = 0; i < ifindex.size; i++)
           weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
 
-     ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
+     ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size, 3);
      listdb_sort_by_size_back(&coitems);
-     listdb_delete_smallest(&coitems, 3);
 
      uint *repeat = (uint *) calloc(coitems.size, sizeof(uint));
      for (i = 0; i < coitems.size - 1; i++) {
@@ -553,9 +547,8 @@ void test_mine_frequency_weighted_weighted(uint tuple_size, uint number_of_tuple
      for (i = 0; i < ifindex.size; i++)
           weights[i] = log ((double) listdb.size / (double) ifindex.lists[i].size);
 
-     ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size);
+     ListDB coitems = sampledmh_mine(&listdb, tuple_size, number_of_tuples, table_size, 3);
      listdb_sort_by_size_back(&coitems);
-     listdb_delete_smallest(&coitems, 3);
 
      uint *repeat = (uint *) calloc(coitems.size, sizeof(uint));
      for (i = 0; i < coitems.size - 1; i++) {

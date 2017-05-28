@@ -223,6 +223,7 @@ void smhcmd_discover(int opnum, char **opts)
      uint cluster_table_size = 1048576;
      double overlap = 0.7; 
      uint min_cluster_size = 3;
+     unsigned long long seed = 12345678;
      char *input, *output, *weights_file = NULL,  *ifindex_file = NULL;
      
      int op;
@@ -238,14 +239,16 @@ void smhcmd_discover(int opnum, char **opts)
                {"cluster_tuple_size", required_argument, 0, 'x'},
                {"cluster_number_of_tuples", required_argument, 0, 'y'},
                {"cluster_table_size", required_argument, 0, 'z'},
+               {"overlap", required_argument, 0, 'o'},
                {"min_cluster_size", required_argument, 0, 'c'},
                {"expand", required_argument, 0, 'e'},
                {"weights", required_argument, 0, 'w'},
+               {"seed", required_argument, 0, 'a'},
                {0, 0, 0, 0}
           };
 
      //Command-line option parser
-     while((op = getopt_long( opnum, opts, "hr:l:t:s:x:y:z:c:e:w:", long_options, 
+     while((op = getopt_long( opnum, opts, "ha:r:l:t:s:x:y:z:o:c:e:w:", long_options, 
                               &option_index)) != -1){
           int this_option_optind = optind ? optind : 1;
           switch (op)
@@ -289,6 +292,9 @@ void smhcmd_discover(int opnum, char **opts)
           case 'w':
                weights_file = optarg;
                break;
+          case 'a':
+            seed = (unsigned long long) atoll(optarg);
+               break;
           case '?':
                fprintf(stderr,"Error: Unknown options.\n"
                        "Try `smhcmd --help' for more information.\n");
@@ -298,6 +304,7 @@ void smhcmd_discover(int opnum, char **opts)
           }
      }
      if (optind + 2 == opnum){
+          mh_rng_init(seed);
           input = opts[optind++];
           output = opts[optind++];
 
@@ -318,13 +325,15 @@ void smhcmd_discover(int opnum, char **opts)
                                                     mine_tuple_size,
                                                     mine_number_of_tuples,
                                                     mine_table_size,
-                                                    weights);
+                                                    weights,
+                                                    min_set_size);
                } else {
                     mined = sampledmh_mine_weighted(&corpus,
                                                     mine_tuple_size,
                                                     mine_number_of_tuples,
                                                     mine_table_size,
-                                                    weights);
+                                                    weights,
+                                                    min_set_size);
                }
           } else {
                printf("Mining . . . ");
@@ -335,12 +344,14 @@ void smhcmd_discover(int opnum, char **opts)
                     mined = sampledmh_mine(&expanded_corpus,
                                            mine_tuple_size,
                                            mine_number_of_tuples,
-                                           mine_table_size);
+                                           mine_table_size,
+                                           min_set_size);
                } else {
                     mined = sampledmh_mine(&corpus,
                                            mine_tuple_size,
                                            mine_number_of_tuples,
-                                           mine_table_size);
+                                           mine_table_size,
+                                           min_set_size);
                }
           }
           
@@ -378,11 +389,6 @@ void smhcmd_discover(int opnum, char **opts)
  */
 int main(int argc, char **argv)
 {
-     
-     //initialize Mersenne Twister random number generator
-     unsigned long long init[4]={0x12345ULL, 0x23456ULL, 0x34567ULL, 0x45678ULL}, length=4;
-     init_by_array64(init, length);
-
      if ( argc > 1 ){
           if ( strcmp(argv[1], "ifindex") == 0 )
                smhcmd_ifindex(argc - 1, &argv[1]);

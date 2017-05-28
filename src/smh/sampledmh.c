@@ -29,12 +29,17 @@
  * @param listdb Database of lists to be hashed
  * @param hash_table Hash table
  */ 
-void sampledmh_get_coitems(ListDB *coitems, HashTable *hash_table)
+void sampledmh_get_coitems(ListDB *coitems, HashTable *hash_table, uint min_set_size)
 {
      uint i;
 
      for (i = 0; i < hash_table->used_buckets.size; i++){ // scan buckets to find co-occurring items
-          listdb_push(coitems, &hash_table->buckets[hash_table->used_buckets.data[i].item].items);
+          if (hash_table->buckets[hash_table->used_buckets.data[i].item].items.size >= min_set_size) {
+               listdb_push(coitems, &hash_table->buckets[hash_table->used_buckets.data[i].item].items);
+          } else {
+               list_destroy(&hash_table->buckets[hash_table->used_buckets.data[i].item].items);
+          }
+          
           list_init(&hash_table->buckets[hash_table->used_buckets.data[i].item].items);
           hash_table->buckets[hash_table->used_buckets.data[i].item].hash_value = 0;
      }
@@ -51,7 +56,11 @@ void sampledmh_get_coitems(ListDB *coitems, HashTable *hash_table)
  * @param number_of_tuples Number of MinHash tuples
  * @param table_size Number of buckets in the hash table
  */
-ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, uint table_size)
+ListDB sampledmh_mine(ListDB *listdb,
+                      uint tuple_size,
+                      uint number_of_tuples,
+                      uint table_size,
+                      uint min_set_size)
 {
      HashTable hash_table = mh_create(table_size, tuple_size, listdb->dim);
      uint *indices = (uint *) malloc(listdb->size * sizeof(uint));
@@ -59,7 +68,14 @@ ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
      ListDB coitems;
      listdb_init(&coitems);
      coitems.dim = listdb->size;
-          
+
+     printf("Mining a database of %u lists (dim = %u) with %u tuples of %u values (table size = %u)\n",
+            listdb->size,
+            listdb->dim,
+            number_of_tuples,
+            tuple_size,
+            table_size);
+
      // Hashing database & storing candidates
      uint i;
      for (i = 0; i < number_of_tuples; i++){
@@ -69,7 +85,7 @@ ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
 
           mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
           mh_store_listdb(listdb, &hash_table, indices);
-          sampledmh_get_coitems(&coitems, &hash_table);
+          sampledmh_get_coitems(&coitems, &hash_table, min_set_size);
      }
      printf("\n");
      mh_destroy(&hash_table);
@@ -87,8 +103,12 @@ ListDB sampledmh_mine(ListDB *listdb, uint tuple_size, uint number_of_tuples, ui
  * @param table_size Number of buckets in the hash table
  * @param weights Weight of each item
  */
-ListDB sampledmh_mine_weighted(ListDB *listdb, uint tuple_size, uint number_of_tuples, uint table_size,
-                               double *weights)
+ListDB sampledmh_mine_weighted(ListDB *listdb,
+                               uint tuple_size,
+                               uint number_of_tuples,
+                               uint table_size,
+                               double *weights,
+                               uint min_set_size)
 {
      HashTable hash_table = mh_create(table_size, tuple_size, listdb->dim);
      uint *indices = (uint *) malloc(listdb->size * sizeof(uint));
@@ -106,7 +126,7 @@ ListDB sampledmh_mine_weighted(ListDB *listdb, uint tuple_size, uint number_of_t
           mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
           mh_weight_permutations(listdb->dim, tuple_size, hash_table.permutations, weights);
           mh_store_listdb(listdb, &hash_table, indices);
-          sampledmh_get_coitems(&coitems, &hash_table);
+          sampledmh_get_coitems(&coitems, &hash_table, min_set_size);
      }
 
      mh_destroy(&hash_table);
@@ -127,6 +147,11 @@ ListDB sampledmh_mine_weighted(ListDB *listdb, uint tuple_size, uint number_of_t
  */ 
 ListDB sampledmh_expand_frequencies(ListDB *listdb, ListDB *ifindex)
 {
+  printf("Expanding a database of %u lists (dim = %u), inverted file of  %u lists (dim = %u)\n",
+         listdb->size,
+         listdb->dim,
+         ifindex->size,
+         ifindex->dim);
      uint *maxfreq = mh_get_cumulative_frequency(listdb, ifindex);
      return mh_expand_listdb(listdb, maxfreq);
      

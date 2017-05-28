@@ -247,10 +247,13 @@ class SMHDiscoverer:
         self.tuple_size_ = tuple_size
         
         if number_of_tuples:
+            self.cooccurrence_threshold_ = pow(1. -  pow(0.5, 1. / float(number_of_tuples)),\
+                                               1. / float(tuple_size))
             self.number_of_tuples_ = number_of_tuples
         else:
             self.cooccurrence_threshold_ = cooccurrence_threshold
-            self.number_of_tuples_ = int(log(0.5) / log(1.0 - pow(cooccurrence_threshold, tuple_size)))
+            self.number_of_tuples_ = int(log(0.5) / log(1.0 - pow(cooccurrence_threshold,\
+                                                                  tuple_size)))
 
         self.table_size_ = table_size
         self.min_set_size_ = min_set_size
@@ -271,14 +274,16 @@ class SMHDiscoverer:
             mined = sa.sampledmh_mine(listdb.ldb,
                                       self.tuple_size_,
                                       self.number_of_tuples_,
-                                      self.table_size_)
+                                      self.table_size_,
+                                      self.min_set_size_)
         elif expand and not weights:
             max_freq = sa.mh_get_cumulative_frequency(listdb.ldb, expand.ldb)
             ldb_ = sa.mh_expand_listdb(listdb.ldb, max_freq)
             mined = sa.sampledmh_mine(ldb_,
                                       self.tuple_size_,
                                       self.number_of_tuples_,
-                                      self.table_size_)
+                                      self.table_size_,
+                                      self.min_set_size_)
             sa.listdb_destroy(ldb_)
             
         elif not expand and weights:
@@ -286,7 +291,8 @@ class SMHDiscoverer:
                                                self.tuple_size_,
                                                self.number_of_tuples_,
                                                self.table_size_,
-                                               weights.weights)
+                                               weights.weights,
+                                               self.min_set_size_)
         elif expand and weights:
             max_freq = sa.mh_get_cumulative_frequency(listdb.ldb, expand.ldb)
             ldb_ = sa.mh_expand_listdb(listdb.ldb, max_freq)
@@ -295,7 +301,8 @@ class SMHDiscoverer:
                                                self.tuple_size_,
                                                self.number_of_tuples_,
                                                self.table_size_,
-                                               weights_)
+                                               weights_,
+                                               self.min_set_size_)
             sa.listdb_destroy(ldb_)
 
         sa.listdb_delete_smallest(mined, self.min_set_size_)
