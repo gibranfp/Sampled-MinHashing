@@ -407,9 +407,13 @@ uint *mh_get_cumulative_frequency(ListDB *listdb, ListDB *ifindex)
      uint *maxfreq = calloc(ifindex->size, sizeof(uint));
      Item *maxitem = list_max_freq(&ifindex->lists[0]);
      maxfreq[0] = maxitem->freq;
-     for (i = 1; i < ifindex->size; i++) {    
+     for (i = 1; i < ifindex->size; i++) {
+       if (ifindex->lists[i].size > 0) {
           maxitem = list_max_freq(&ifindex->lists[i]);
           maxfreq[i] = maxfreq[i - 1] + maxitem->freq;
+       } else {
+          maxfreq[i] = maxfreq[i - 1];
+       }
      }
 
      return maxfreq;

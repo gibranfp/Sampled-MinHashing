@@ -80,9 +80,9 @@ def ndarray_to_listdb(arr):
     """
     ldb = sa.listdb_create(arr.shape[0], arr.shape[1])
     for i,row in enumerate(arr):
-        for j,item in enumerate(row):
-            if item != 0:
-                ldb.push(int(i), int(j), int(round(item)))
+        for j,v in enumerate(row):
+            if v != 0:
+                ldb.push(int(i), int(j), int(round(v)))
     return ListDB(ldb=ldb)
 
 def array_to_listdb(X):
@@ -90,9 +90,9 @@ def array_to_listdb(X):
     Converts array (CSR or ndarray) to a dabase of lists
     """
     if type(X) is csr_matrix:
-        listdb = csr_to_listdb(X.T)
-    elif type(X) is ndarray:
-        listdb = ndarray_to_listdb(X.T)
+        listdb = csr_to_listdb(X)
+    elif type(X) is np.ndarray:
+        listdb = ndarray_to_listdb(X)
     else:
         raise Exception('Invalid array type')
 

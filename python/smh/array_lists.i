@@ -65,6 +65,7 @@ extern List list_intersection(List *, List *);
 extern uint list_intersection_size(List *, List *);
 extern List list_difference(List *, List *);
 extern uint list_difference_size(List *, List *);
+extern double list_histogram_intersection(List *, List *);
 %nopythoncallback;
 
 %ignore list_jaccard;
