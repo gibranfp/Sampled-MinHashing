@@ -1,6 +1,6 @@
 Sampled-MinHashing
 ==================
-MinHash-based clustering for binary and weighted dyadic data (e.g. bag of words).
+Sampled Min-Hashing (SMH) is a simple and scalable method to discover patterns from large-scale dyadic data (e.g. bag of words). SMH relies on Min-Hashing to efficiently mine beyond-pairwise relationships which are clustered to form the final discovered patterns. SMH has been successfully applied to the discovery of objects from image collections and topics from text corpora. This repository includes a C implementation of SMH together with SWIG Python bindings. 
 
 ## Installation
 Install the dependencies:
