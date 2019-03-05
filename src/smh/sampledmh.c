@@ -82,7 +82,6 @@ ListDB sampledmh_mine(ListDB *listdb,
           printf("\rMining table %u/%u: %u random permutations for %u lists",
                  i + 1, number_of_tuples, tuple_size, listdb->size);
           fflush(stdout);
-
           mh_generate_permutations(listdb->dim, tuple_size, hash_table.permutations);
           mh_store_listdb(listdb, &hash_table, indices);
           sampledmh_get_coitems(&coitems, &hash_table, min_set_size);
@@ -189,26 +188,27 @@ ListDB sampledmh_expand_frequencies_and_weights(ListDB *listdb, ListDB *ifindex,
 void sampledmh_prune(ListDB *ifindex, ListDB *mined, uint stop, uint hits, double ovr, double cooc)
 {
      // query inverted file with mined sets
-     ListDB retdocs = ifindex_query_multi(ifindex, mined);
 
      // leaves documents in which at least ovr_th percent of the mined sets occurred
      uint i, j;
      for (i = 0; i < mined->size; i++) {
           uint ovr_th = (uint) round((double) mined->lists[i].size * ovr);
-          list_delete_less_frequent(&retdocs.lists[i], ovr_th);
+          List retdoc = ifindex_query(ifindex,&mined->lists[i]);
+          list_delete_less_frequent(&retdoc, ovr_th);
          
-          uint cooc_th = (uint) round((double) retdocs.lists[i].size * cooc);
+          uint cooc_th = (uint) round((double) retdoc.size * cooc);
           for (j = 0; j < mined->lists[i].size; j++) {
                // removes items from sets which co-occured in very few documents with the rest
                uint curr_item = mined->lists[i].data[j].item;
-               if (list_intersection_size(&ifindex->lists[curr_item], &retdocs.lists[i]) < cooc_th) {
+               if (list_intersection_size(&ifindex->lists[curr_item], &retdoc) < cooc_th) {
                     list_delete_position(&mined->lists[i], j);
                }
           }
 
           // destroy mined lists that occur in less than a given number of documents
-          if (retdocs.lists[i].size < hits) 
+          if (retdoc.size < hits) 
                list_destroy(&mined->lists[i]);
+          list_destroy(&retdoc);
      }
 
      // removes small sets
