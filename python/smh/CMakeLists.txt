@@ -2,9 +2,9 @@ option ( PYTHON_BINDINGS "Build python bindings via swig" ON )
 option ( LINK_PYTHON_LIBRARY "Link against python libraries" ON )
 
 if ( PYTHON_BINDINGS )
-  find_package ( SWIG 2.0 REQUIRED )
-  find_package ( PythonLibs 2.7 REQUIRED )
-  find_package ( PythonInterp 2.7 REQUIRED )
+  find_package ( SWIG 3.0 REQUIRED )
+  find_package ( PythonLibs 3.6 REQUIRED )
+  find_package ( PythonInterp 3.6 REQUIRED )
 endif ()
 
 find_program(PYTHON "python")
