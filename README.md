@@ -119,5 +119,5 @@ with open('knowceans-ilda/nips/nips.terms', 'w') as f:
 ~~~~
 
 ## References
-* Gibran Fuentes-Pineda and Ivan Vladimir Meza-Ruiz. [**Topic Discovery in Massive Text Corpora Based on Min-Hashing**]. Expert Systems with Applications, 136, 62--72, 2019.
+* Gibran Fuentes-Pineda and Ivan Vladimir Meza-Ruiz. [**Topic Discovery in Massive Text Corpora Based on Min-Hashing**](https://www.sciencedirect.com/science/article/abs/pii/S0957417419304245). Expert Systems with Applications, 136, 62--72, 2019. Preprint available at [https://arxiv.org/abs/1807.00938](https://arxiv.org/abs/1807.00938).
 * Gibran Fuentes Pineda, Hisashi Koga and Toshinori Watanabe. [**Scalable Object Discovery: A Hash-based Approach to Clustering Co-occurring Visual Words**](http://turing.iimas.unam.mx/~gibranfp/ieice2011b.pdf). Transactions on Information and Systems, E94-D(10):2024–2035, 2011.
